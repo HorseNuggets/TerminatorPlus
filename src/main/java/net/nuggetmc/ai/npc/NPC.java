@@ -268,7 +268,6 @@ public class NPC extends EntityPlayer {
                 PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
                 connection.sendPacket(new PacketPlayOutEntityHeadRotation(playerNPC.getHandle(), (byte) (facing.getYaw() * 256 / 360)));
             }
-
         } catch (IllegalArgumentException ignored) { }
     }
 

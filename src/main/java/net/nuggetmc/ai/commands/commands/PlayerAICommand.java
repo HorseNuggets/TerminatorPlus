@@ -44,13 +44,13 @@ public class PlayerAICommand extends CommandInstance {
     @Command(name = "debug", desc = "Debug bot stats.")
     @Require("playerai.manage")
     public void debugCommand(@Sender Player sender) {
-
+        // This will be used for miscellaneous code for testing as the plugin is worked on
     }
 
     @Command(name = "info", desc = "Information about loaded bots.")
     @Require("playerai.manage")
     public void infoCommand(@Sender Player sender) {
-
+        // This will be the future GUI where players can view information about every loaded bot
     }
 
     @Command(name = "reset", desc = "Remove all loaded bots.")
