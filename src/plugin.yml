@@ -8,7 +8,7 @@ commands:
     description: The PlayerAI base command.
     permission: playerai.manage
     usage: /playerai
-    aliases: [bot, pai, ai]
+    aliases: [bot, pai, ai, npc]
 permissions:
   playerai.*:
     description: PlayerAI parent permission.
