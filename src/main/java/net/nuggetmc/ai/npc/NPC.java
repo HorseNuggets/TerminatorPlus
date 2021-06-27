@@ -83,7 +83,7 @@ public class NPC extends EntityPlayer {
         connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, this));
         connection.sendPacket(new PacketPlayOutNamedEntitySpawn(this));
         connection.sendPacket(new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true));
-        connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
+        //connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
 
         PacketPlayOutEntityHeadRotation rotationPacket = new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f));
 

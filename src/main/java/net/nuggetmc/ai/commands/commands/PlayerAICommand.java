@@ -35,7 +35,7 @@ public class PlayerAICommand extends CommandInstance {
     }
 
     @Command(name = "create", desc = "Create bots.", usage = "<name> [skin]")
-    public void createBotCommand(@Sender Player sender, String name, @OptArg() String skin) {
+    public void createBotCommand(@Sender Player sender, String name, @OptArg("Technoblade") String skin) {
         NPC.createNPC(name, sender.getLocation(), skin.isEmpty() ? name : skin);
     }
 
