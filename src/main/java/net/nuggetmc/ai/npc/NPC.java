@@ -186,6 +186,15 @@ public class NPC extends EntityPlayer {
         velocity.setZ(velocity.getZ() * 0.5);
     }
 
+    @Override
+    public void die() {
+        super.die();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
+            connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
+        }
+    }
+
     public void despawn() {
         getBukkitEntity().remove();
     }
