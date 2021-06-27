@@ -3,7 +3,6 @@ package net.nuggetmc.ai.commands.commands;
 import com.jonahseguin.drink.annotation.Command;
 import com.jonahseguin.drink.annotation.OptArg;
 import com.jonahseguin.drink.annotation.Sender;
-import com.jonahseguin.drink.annotation.Text;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.commands.CommandHandler;
 import net.nuggetmc.ai.commands.CommandInstance;
@@ -22,7 +21,7 @@ public class PlayerAICommand extends CommandInstance {
         super(commandHandler);
     }
 
-    @Command(name = "", desc = "Test Description")
+    @Command(name = "", desc = "The PlayerAI main command.")
     public void rootCommand(@Sender Player sender) {
         sender.sendMessage(ChatUtils.LINE);
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.VERSION + ChatColor.GRAY + "]");

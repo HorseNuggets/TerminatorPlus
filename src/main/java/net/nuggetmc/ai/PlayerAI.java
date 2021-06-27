@@ -2,7 +2,6 @@ package net.nuggetmc.ai;
 
 import net.nuggetmc.ai.commands.CommandHandler;
 import net.nuggetmc.ai.npc.NPCManager;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PlayerAI extends JavaPlugin {
@@ -31,7 +30,7 @@ public class PlayerAI extends JavaPlugin {
         instance = this;
 
         // Create Instances
-        this.handler = new CommandHandler();
+        this.handler = new CommandHandler(this);
         this.manager = new NPCManager(this);
 
         // Register all the things
@@ -46,5 +45,4 @@ public class PlayerAI extends JavaPlugin {
     private void registerEvents() {
         getServer().getPluginManager().registerEvents(manager, this);
     }
-
 }
