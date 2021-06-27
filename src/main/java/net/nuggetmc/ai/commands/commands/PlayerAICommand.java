@@ -2,6 +2,7 @@ package net.nuggetmc.ai.commands.commands;
 
 import com.jonahseguin.drink.annotation.Command;
 import com.jonahseguin.drink.annotation.OptArg;
+import com.jonahseguin.drink.annotation.Require;
 import com.jonahseguin.drink.annotation.Sender;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.commands.CommandHandler;
@@ -22,6 +23,7 @@ public class PlayerAICommand extends CommandInstance {
     }
 
     @Command(name = "", desc = "The PlayerAI main command.")
+    @Require("playerai.manage")
     public void rootCommand(@Sender Player sender) {
         sender.sendMessage(ChatUtils.LINE);
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.VERSION + ChatColor.GRAY + "]");
@@ -34,26 +36,32 @@ public class PlayerAICommand extends CommandInstance {
     }
 
     @Command(name = "create", desc = "Create bots.", usage = "<name> [skin]")
-    public void createBotCommand(@Sender Player sender, String name, @OptArg("Technoblade") String skin) {
-        NPC.createNPC(name, sender.getLocation(), skin.isEmpty() ? name : skin);
+    @Require("playerai.manage")
+    public void createBotCommand(@Sender Player sender, String name, @OptArg String skin) {
+        NPC.createNPC(name, sender.getLocation(), skin == null ? name : skin);
     }
 
     @Command(name = "debug", desc = "Debug bot stats.")
+    @Require("playerai.manage")
     public void debugCommand(@Sender Player sender) {
 
     }
 
     @Command(name = "info", desc = "Information about loaded bots.")
+    @Require("playerai.manage")
     public void infoCommand(@Sender Player sender) {
 
     }
 
     @Command(name = "reset", desc = "Remove all loaded bots.")
+    @Require("playerai.manage")
     public void resetCommand(@Sender Player sender) {
         sender.sendMessage("Removing every bot...");
+
         NPCManager manager = PlayerAI.getInstance().getManager();
         int size = manager.fetch().size();
         manager.reset();
+
         String formatted = NumberFormat.getNumberInstance(Locale.US).format(size);
         sender.sendMessage("Removed " + ChatColor.RED + formatted + ChatColor.RESET + " entit" + (size == 1 ? "y" : "ies") + ".");
     }

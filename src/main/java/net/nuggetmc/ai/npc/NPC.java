@@ -26,6 +26,7 @@ public class NPC extends EntityPlayer {
     private byte kbTicks;
 
     private final double regenAmount = 0.05;
+    private final double bbOffset = 0.05;
 
     public NPC(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
@@ -83,7 +84,6 @@ public class NPC extends EntityPlayer {
         connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, this));
         connection.sendPacket(new PacketPlayOutNamedEntitySpawn(this));
         connection.sendPacket(new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true));
-        //connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
 
         PacketPlayOutEntityHeadRotation rotationPacket = new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f));
 
@@ -137,8 +137,6 @@ public class NPC extends EntityPlayer {
 
         this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), velocity.getY(), velocity.getZ()));
     }
-
-    private final double bbOffset = 0.05;
 
     public boolean predictGround() {
         double vy = velocity.getY();
