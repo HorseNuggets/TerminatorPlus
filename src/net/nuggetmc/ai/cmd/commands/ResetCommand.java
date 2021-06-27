@@ -46,7 +46,7 @@ public class ResetCommand implements CommandInterface {
 
     @Override
     public void onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        sender.sendMessage("Removing every NPC...");
+        sender.sendMessage("Removing every bot...");
         int size = manager.fetch().size();
 
         manager.reset();
