@@ -44,5 +44,4 @@ public class BotManager implements Listener {
             bot.render(connection, true);
         }
     }
-
 }

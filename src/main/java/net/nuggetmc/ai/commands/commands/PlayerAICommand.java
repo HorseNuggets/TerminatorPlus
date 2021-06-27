@@ -5,10 +5,10 @@ import com.jonahseguin.drink.annotation.OptArg;
 import com.jonahseguin.drink.annotation.Require;
 import com.jonahseguin.drink.annotation.Sender;
 import net.nuggetmc.ai.PlayerAI;
-import net.nuggetmc.ai.commands.CommandHandler;
-import net.nuggetmc.ai.commands.CommandInstance;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.commands.CommandHandler;
+import net.nuggetmc.ai.commands.CommandInstance;
 import net.nuggetmc.ai.utils.ChatUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -28,8 +28,8 @@ public class PlayerAICommand extends CommandInstance {
         sender.sendMessage(ChatUtils.LINE);
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.VERSION + ChatColor.GRAY + "]");
 
-        for (String s : this.getCommandHandler().getUsage(PlayerAICommand.class)) {
-            sender.sendMessage(s);
+        for (String line : getCommandHandler().getHelp(getClass())) {
+            sender.sendMessage(line);
         }
 
         sender.sendMessage(ChatUtils.LINE);
@@ -65,5 +65,4 @@ public class PlayerAICommand extends CommandInstance {
         String formatted = NumberFormat.getNumberInstance(Locale.US).format(size);
         sender.sendMessage("Removed " + ChatColor.RED + formatted + ChatColor.RESET + " entit" + (size == 1 ? "y" : "ies") + ".");
     }
-
 }
