@@ -12,30 +12,30 @@ import java.util.Set;
 
 public class DebugCommand implements CommandInterface {
 
-    private final CommandHandler HANDLER;
+    private final CommandHandler handler;
 
-    private final String NAME;
-    private final String DESCRIPTION = "Debug NPC stats.";
-    private final String CMD_ARGS = "";
+    private final String name;
+    private final String description = "Debug NPC stats.";
+    private final String cmdArgs = "";
 
     public DebugCommand() {
-        this.HANDLER = PlayerAI.getInstance().getHandler();
-        this.NAME = HANDLER.fetchName(this);
+        this.handler = PlayerAI.getInstance().getHandler();
+        this.name = handler.fetchName(this);
     }
 
     @Override
     public String getName() {
-        return NAME;
+        return name;
     }
 
     @Override
     public String getDescription() {
-        return DESCRIPTION;
+        return description;
     }
 
     @Override
     public String getUsage() {
-        return CMD_ARGS;
+        return cmdArgs;
     }
 
     private boolean active = false;

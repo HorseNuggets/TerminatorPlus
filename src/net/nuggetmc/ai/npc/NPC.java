@@ -25,7 +25,7 @@ public class NPC extends EntityPlayer {
 
     private byte kbTicks;
 
-    private final double REGEN_AMOUNT = 0.05;
+    private final double regenAmount = 0.05;
 
     public NPC(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
@@ -116,8 +116,8 @@ public class NPC extends EntityPlayer {
         double maxHealth = playerNPC.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue();
         double amount;
 
-        if (health < maxHealth - REGEN_AMOUNT) {
-            amount = health + REGEN_AMOUNT;
+        if (health < maxHealth - regenAmount) {
+            amount = health + regenAmount;
         } else {
             amount = maxHealth;
         }
@@ -138,7 +138,7 @@ public class NPC extends EntityPlayer {
         this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), velocity.getY(), velocity.getZ()));
     }
 
-    private final double OFFSET = 0.05;
+    private final double bbOffset = 0.05;
 
     public boolean predictGround() {
         double vy = velocity.getY();
@@ -153,13 +153,13 @@ public class NPC extends EntityPlayer {
         AxisAlignedBB box = getBoundingBox();
 
         double[] xVals = new double[] {
-            box.minX + OFFSET,
-            box.maxX - OFFSET
+            box.minX + bbOffset,
+            box.maxX - bbOffset
         };
 
         double[] zVals = new double[] {
-            box.minZ + OFFSET,
-            box.maxZ - OFFSET
+            box.minZ + bbOffset,
+            box.maxZ - bbOffset
         };
 
         for (double x : xVals) {

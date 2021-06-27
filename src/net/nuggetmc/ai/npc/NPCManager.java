@@ -24,18 +24,18 @@ public class NPCManager implements Listener {
 
     private PlayerAI plugin;
 
-    private final Set<NPC> NPCS = new HashSet<>();
-    private final Map<Integer, NPC> NPC_CONNECTIONS = new HashMap<>();
+    private final Set<NPC> npcs = new HashSet<>();
+    private final Map<Integer, NPC> npcConnections = new HashMap<>();
 
     public Set<NPC> fetch() {
-        return NPCS;
+        return npcs;
     }
 
     public void add(NPC npc) {
-        NPCS.add(npc);
+        npcs.add(npc);
 
         Bukkit.getScheduler().runTaskLater(PlayerAI.getInstance(), () -> {
-            NPC_CONNECTIONS.put(npc.getId(), npc);
+            npcConnections.put(npc.getId(), npc);
         }, 10);
     }
 
@@ -44,19 +44,19 @@ public class NPCManager implements Listener {
     }
 
     public void reset() {
-        for (NPC npc : NPCS) {
+        for (NPC npc : npcs) {
             npc.despawn();
         }
 
-        NPCS.clear();
-        NPC_CONNECTIONS.clear();
+        npcs.clear();
+        npcConnections.clear();
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         PlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().playerConnection;
 
-        for (NPC npc : NPCS) {
+        for (NPC npc : npcs) {
             npc.render(connection, true);
         }
 
@@ -128,7 +128,7 @@ public class NPCManager implements Listener {
         if (!(obj instanceof Integer)) return;
         int n = (int) obj;
 
-        NPC npc = NPC_CONNECTIONS.get(n);
+        NPC npc = npcConnections.get(n);
         if (npc == null) return;
 
         connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, npc));

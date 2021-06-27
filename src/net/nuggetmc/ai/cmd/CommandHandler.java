@@ -10,13 +10,13 @@ import java.util.*;
 
 public class CommandHandler implements CommandExecutor, TabCompleter {
 
-    private final Map<String, CommandInterface> COMMANDS = new HashMap<>();
+    private final Map<String, CommandInterface> commands = new HashMap<>();
 
-    private final String PREFIX = "bot";
+    private final String prefix = "bot";
 
     public void register(CommandInterface[] subCmds) {
         for (CommandInterface cmd : subCmds) {
-            COMMANDS.put(cmd.getName(), cmd);
+            commands.put(cmd.getName(), cmd);
         }
     }
 
@@ -26,11 +26,11 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
     }
 
     private boolean exists(String name) {
-        return COMMANDS.containsKey(name.toLowerCase());
+        return commands.containsKey(name.toLowerCase());
     }
 
     private CommandInterface getExecutor(String name) {
-        return COMMANDS.get(name.toLowerCase());
+        return commands.get(name.toLowerCase());
     }
 
     public String nonPlayerMsg() {
@@ -38,7 +38,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
     }
 
     public String usageMsg(CommandInterface subCmd) {
-        return ChatColor.RED + "Invalid arguments!\nUsage: /" + PREFIX + " " + subCmd.getName() + " " + subCmd.getUsage();
+        return ChatColor.RED + "Invalid arguments!\nUsage: /" + prefix + " " + subCmd.getName() + " " + subCmd.getUsage();
     }
 
     private void sendCmdInfo(CommandSender sender) {
@@ -46,8 +46,8 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
 
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v1.0" + ChatColor.GRAY + "]");
 
-        for (Map.Entry<String, CommandInterface> entry : COMMANDS.entrySet()) {
-            sender.sendMessage(ChatColor.GRAY + " ▪ " + ChatColor.YELLOW + "/" + PREFIX + " " + entry.getKey() + ChatColor.GRAY + " ▪ "
+        for (Map.Entry<String, CommandInterface> entry : commands.entrySet()) {
+            sender.sendMessage(ChatColor.GRAY + " ▪ " + ChatColor.YELLOW + "/" + prefix + " " + entry.getKey() + ChatColor.GRAY + " ▪ "
                     + ChatColor.RESET +  entry.getValue().getDescription());
         }
 
@@ -74,7 +74,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
 
         switch (n) {
             case 1:
-                groupnames = new ArrayList<>(COMMANDS.keySet());
+                groupnames = new ArrayList<>(commands.keySet());
                 String arg = args[n - 1];
 
                 if (!isEmptyTab(arg)) {

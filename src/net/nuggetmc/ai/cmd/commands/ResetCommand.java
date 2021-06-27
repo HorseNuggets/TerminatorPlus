@@ -13,43 +13,43 @@ import java.util.Locale;
 
 public class ResetCommand implements CommandInterface {
 
-    private final PlayerAI INSTANCE;
+    private final PlayerAI plugin;
 
-    private final CommandHandler HANDLER;
-    private final NPCManager MANAGER;
+    private final CommandHandler handler;
+    private final NPCManager manager;
 
-    private final String NAME;
-    private final String DESCRIPTION = "Information about loaded NPCs.";
-    private final String CMD_ARGS = "";
+    private final String name;
+    private final String description = "Information about loaded NPCs.";
+    private final String cmdArgs = "";
 
     public ResetCommand() {
-        this.INSTANCE = PlayerAI.getInstance();
-        this.HANDLER = INSTANCE.getHandler();
-        this.MANAGER = INSTANCE.getManager();
-        this.NAME = HANDLER.fetchName(this);
+        this.plugin = PlayerAI.getInstance();
+        this.handler = plugin.getHandler();
+        this.manager = plugin.getManager();
+        this.name = handler.fetchName(this);
     }
 
     @Override
     public String getName() {
-        return NAME;
+        return name;
     }
 
     @Override
     public String getDescription() {
-        return DESCRIPTION;
+        return description;
     }
 
     @Override
     public String getUsage() {
-        return CMD_ARGS;
+        return cmdArgs;
     }
 
     @Override
     public void onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         sender.sendMessage("Removing every NPC...");
-        int size = MANAGER.fetch().size();
+        int size = manager.fetch().size();
 
-        MANAGER.reset();
+        manager.reset();
 
         String en;
         if (size == 1) {

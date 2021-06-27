@@ -14,14 +14,14 @@ public class PlayerAI extends JavaPlugin {
 
     private static PlayerAI instance;
 
-    private final CommandHandler HANDLER;
-    private final NPCManager MANAGER;
+    private final CommandHandler handler;
+    private final NPCManager manager;
 
     public PlayerAI() {
         instance = this;
 
-        this.HANDLER = new CommandHandler();
-        this.MANAGER = new NPCManager(this);
+        this.handler = new CommandHandler();
+        this.manager = new NPCManager(this);
     }
 
     public static PlayerAI getInstance() {
@@ -29,29 +29,29 @@ public class PlayerAI extends JavaPlugin {
     }
 
     public CommandHandler getHandler() {
-        return HANDLER;
+        return handler;
     }
 
     public NPCManager getManager() {
-        return MANAGER;
+        return manager;
     }
 
     @Override
     public void onEnable() {
-        getServer().getPluginManager().registerEvents(MANAGER, this);
+        getServer().getPluginManager().registerEvents(manager, this);
         registerCommands();
 
-        MANAGER.connectAll();
+        manager.connectAll();
     }
 
     @Override
     public void onDisable() {
-        MANAGER.reset();
-        MANAGER.disconnectAll();
+        manager.reset();
+        manager.disconnectAll();
     }
 
     private void registerCommands() {
-        HANDLER.register(new CommandInterface[] {
+        handler.register(new CommandInterface[] {
             new CreateCommand(),
             new InfoCommand(),
             new DebugCommand(),
@@ -61,8 +61,8 @@ public class PlayerAI extends JavaPlugin {
         PluginCommand command = getCommand("playerai");
 
         if (command != null) {
-            command.setExecutor(HANDLER);
-            command.setTabCompleter(HANDLER);
+            command.setExecutor(handler);
+            command.setTabCompleter(handler);
         }
     }
 }
