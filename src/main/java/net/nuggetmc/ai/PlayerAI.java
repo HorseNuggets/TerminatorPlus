@@ -36,15 +36,11 @@ public class PlayerAI extends JavaPlugin {
 
         // Register all the things
         this.registerEvents();
-
-        // Create Netty injections
-        manager.connectAll();
     }
 
     @Override
     public void onDisable() {
         manager.reset();
-        manager.disconnectAll();
     }
 
     private void registerEvents() {
