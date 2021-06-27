@@ -1,4 +1,4 @@
-package net.nuggetmc.ai.npc;
+package net.nuggetmc.ai.bot;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -19,7 +19,7 @@ import org.bukkit.util.Vector;
 
 import java.util.UUID;
 
-public class NPC extends EntityPlayer {
+public class Bot extends EntityPlayer {
 
     public Vector velocity;
 
@@ -28,14 +28,14 @@ public class NPC extends EntityPlayer {
     private final double regenAmount = 0.05;
     private final double bbOffset = 0.05;
 
-    public NPC(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
+    public Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
 
         velocity = new Vector(0, 0, 0);
         kbTicks = 0;
     }
 
-    public static NPC createNPC(String name, Location loc, String skin) {
+    public static Bot createBot(String name, Location loc, String skin) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer nmsWorld = ((CraftWorld) loc.getWorld()).getHandle();
 
@@ -48,18 +48,18 @@ public class NPC extends EntityPlayer {
             setSkin(profile, skin);
         }
 
-        NPC npc = new NPC(nmsServer, nmsWorld, profile, interactManager);
+        Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
 
-        npc.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND), npc);
-        npc.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
-        npc.getBukkitEntity().setNoDamageTicks(0);
-        nmsWorld.addEntity(npc);
+        bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND), bot);
+        bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+        bot.getBukkitEntity().setNoDamageTicks(0);
+        nmsWorld.addEntity(bot);
 
-        sendSpawnPackets(npc);
+        sendSpawnPackets(bot);
 
-        PlayerAI.getInstance().getManager().add(npc);
+        PlayerAI.getInstance().getManager().add(bot);
 
-        return npc;
+        return bot;
     }
 
     private static void setSkin(GameProfile profile, String skin) {
@@ -70,13 +70,13 @@ public class NPC extends EntityPlayer {
         }
     }
 
-    private static void sendSpawnPackets(NPC npc) {
-        DataWatcher watcher = npc.getDataWatcher();
+    private static void sendSpawnPackets(Bot bot) {
+        DataWatcher watcher = bot.getDataWatcher();
         watcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-            npc.render(connection, false);
+            bot.render(connection, false);
         }
     }
 
@@ -248,7 +248,7 @@ public class NPC extends EntityPlayer {
         return damaged;
     }
 
-    private void kb(Player playerNPC, Location loc1, Location loc2) {
+    private void kb(Player playerBot, Location loc1, Location loc2) {
         Vector diff = loc1.toVector().subtract(loc2.toVector()).normalize();
         diff.multiply(0.25);
         diff.setY(0.5);
@@ -259,14 +259,14 @@ public class NPC extends EntityPlayer {
 
     public void faceLocation(Location loc) {
         try {
-            CraftPlayer playerNPC = this.getBukkitEntity();
-            Vector dir = loc.toVector().subtract(playerNPC.getLocation().toVector()).normalize();
-            Location facing = playerNPC.getLocation().setDirection(dir);
-            playerNPC.teleport(facing);
+            CraftPlayer playerBot = this.getBukkitEntity();
+            Vector dir = loc.toVector().subtract(playerBot.getLocation().toVector()).normalize();
+            Location facing = playerBot.getLocation().setDirection(dir);
+            playerBot.teleport(facing);
 
             for (Player player : Bukkit.getOnlinePlayers()) {
                 PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-                connection.sendPacket(new PacketPlayOutEntityHeadRotation(playerNPC.getHandle(), (byte) (facing.getYaw() * 256 / 360)));
+                connection.sendPacket(new PacketPlayOutEntityHeadRotation(playerBot.getHandle(), (byte) (facing.getYaw() * 256 / 360)));
             }
         } catch (IllegalArgumentException ignored) { }
     }

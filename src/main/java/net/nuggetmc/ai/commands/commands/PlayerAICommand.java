@@ -7,8 +7,8 @@ import com.jonahseguin.drink.annotation.Sender;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.commands.CommandHandler;
 import net.nuggetmc.ai.commands.CommandInstance;
-import net.nuggetmc.ai.npc.NPC;
-import net.nuggetmc.ai.npc.NPCManager;
+import net.nuggetmc.ai.bot.Bot;
+import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.utils.ChatUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -38,7 +38,7 @@ public class PlayerAICommand extends CommandInstance {
     @Command(name = "create", desc = "Create bots.", usage = "<name> [skin]")
     @Require("playerai.manage")
     public void createBotCommand(@Sender Player sender, String name, @OptArg String skin) {
-        NPC.createNPC(name, sender.getLocation(), skin == null ? name : skin);
+        Bot.createBot(name, sender.getLocation(), skin == null ? name : skin);
     }
 
     @Command(name = "debug", desc = "Debug bot stats.")
@@ -58,7 +58,7 @@ public class PlayerAICommand extends CommandInstance {
     public void resetCommand(@Sender Player sender) {
         sender.sendMessage("Removing every bot...");
 
-        NPCManager manager = PlayerAI.getInstance().getManager();
+        BotManager manager = PlayerAI.getInstance().getManager();
         int size = manager.fetch().size();
         manager.reset();
 

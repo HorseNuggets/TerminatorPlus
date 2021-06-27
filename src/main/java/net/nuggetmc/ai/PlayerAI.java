@@ -1,7 +1,7 @@
 package net.nuggetmc.ai;
 
 import net.nuggetmc.ai.commands.CommandHandler;
-import net.nuggetmc.ai.npc.NPCManager;
+import net.nuggetmc.ai.bot.BotManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PlayerAI extends JavaPlugin {
@@ -11,7 +11,7 @@ public class PlayerAI extends JavaPlugin {
     private static PlayerAI instance;
 
     private CommandHandler handler;
-    private NPCManager manager;
+    private BotManager manager;
 
     public static PlayerAI getInstance() {
         return instance;
@@ -21,7 +21,7 @@ public class PlayerAI extends JavaPlugin {
         return handler;
     }
 
-    public NPCManager getManager() {
+    public BotManager getManager() {
         return manager;
     }
 
@@ -31,7 +31,7 @@ public class PlayerAI extends JavaPlugin {
 
         // Create Instances
         this.handler = new CommandHandler(this);
-        this.manager = new NPCManager(this);
+        this.manager = new BotManager(this);
 
         // Register all the things
         this.registerEvents();

@@ -11,5 +11,5 @@ permissions:
     children:
       playerai.manage: true
   playerai.manage:
-    description: Allows for PlayerAI NPC management.
+    description: Allows for PlayerAI bot management.
     default: op

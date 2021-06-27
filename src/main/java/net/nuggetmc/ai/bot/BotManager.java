@@ -1,4 +1,4 @@
-package net.nuggetmc.ai.npc;
+package net.nuggetmc.ai.bot;
 
 import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.nuggetmc.ai.PlayerAI;
@@ -10,38 +10,38 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import java.util.HashSet;
 import java.util.Set;
 
-public class NPCManager implements Listener {
+public class BotManager implements Listener {
 
     private final PlayerAI plugin;
 
-    private final Set<NPC> npcs = new HashSet<>();
+    private final Set<Bot> bots = new HashSet<>();
 
-    public Set<NPC> fetch() {
-        return npcs;
+    public Set<Bot> fetch() {
+        return bots;
     }
 
-    public void add(NPC npc) {
-        npcs.add(npc);
+    public void add(Bot bot) {
+        bots.add(bot);
     }
 
-    public NPCManager(PlayerAI plugin) {
+    public BotManager(PlayerAI plugin) {
         this.plugin = plugin;
     }
 
     public void reset() {
-        for (NPC npc : npcs) {
-            npc.despawn();
+        for (Bot bot : bots) {
+            bot.despawn();
         }
 
-        npcs.clear();
+        bots.clear();
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         PlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().playerConnection;
 
-        for (NPC npc : npcs) {
-            npc.render(connection, true);
+        for (Bot bot : bots) {
+            bot.render(connection, true);
         }
     }
 
