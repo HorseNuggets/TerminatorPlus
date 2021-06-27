@@ -14,7 +14,7 @@ public class CreateCommand implements CommandInterface {
     private final CommandHandler HANDLER;
 
     private final String NAME;
-    private final String DESCRIPTION = "Create NPCs.";
+    private final String DESCRIPTION = "Create bots.";
     private final String CMD_ARGS = "<name> [skin]";
 
     public CreateCommand() {

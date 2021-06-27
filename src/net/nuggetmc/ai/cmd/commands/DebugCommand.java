@@ -15,7 +15,7 @@ public class DebugCommand implements CommandInterface {
     private final CommandHandler handler;
 
     private final String name;
-    private final String description = "Debug NPC stats.";
+    private final String description = "Debug bot stats.";
     private final String cmdArgs = "";
 
     public DebugCommand() {

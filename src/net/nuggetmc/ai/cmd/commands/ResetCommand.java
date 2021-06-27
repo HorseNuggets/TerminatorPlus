@@ -19,7 +19,7 @@ public class ResetCommand implements CommandInterface {
     private final NPCManager manager;
 
     private final String name;
-    private final String description = "Information about loaded NPCs.";
+    private final String description = "Information about loaded bots.";
     private final String cmdArgs = "";
 
     public ResetCommand() {

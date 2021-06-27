@@ -11,7 +11,7 @@ public class InfoCommand implements CommandInterface {
     private final CommandHandler handler;
 
     private final String name;
-    private final String description = "Information about loaded NPCs.";
+    private final String description = "Information about loaded bots.";
     private final String cmdArgs = "";
 
     public InfoCommand() {
