@@ -3,12 +3,7 @@ main: net.nuggetmc.ai.PlayerAI
 version: 1.0
 api-version: 1.16
 author: HorseNuggets
-commands:
-  playerai:
-    description: The PlayerAI base command.
-    permission: playerai.manage
-    usage: /playerai
-    aliases: [bot, pai, ai, npc]
+
 permissions:
   playerai.*:
     description: PlayerAI parent permission.
