@@ -1,6 +1,7 @@
 package net.nuggetmc.ai.cmd;
 
 import net.md_5.bungee.api.ChatColor;
+import net.nuggetmc.ai.utils.ChatUtils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -42,8 +43,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
     }
 
     private void sendCmdInfo(CommandSender sender) {
-        sender.sendMessage(ChatColor.GRAY + "----------------------------------------");
-
+        sender.sendMessage(ChatUtils.LINE);
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v1.0" + ChatColor.GRAY + "]");
 
         for (Map.Entry<String, CommandInterface> entry : commands.entrySet()) {
@@ -51,7 +51,7 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                     + ChatColor.RESET +  entry.getValue().getDescription());
         }
 
-        sender.sendMessage(ChatColor.GRAY + "----------------------------------------");
+        sender.sendMessage(ChatUtils.LINE);
     }
 
     @Override
