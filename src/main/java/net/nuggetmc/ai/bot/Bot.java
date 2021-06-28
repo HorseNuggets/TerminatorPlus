@@ -126,6 +126,8 @@ public class Bot extends EntityPlayer {
     }
 
     private void updateLocation() {
+        // Eventually there will be a whole algorithm here to slow a player down to a certain velocity depending on the liquid a player is in
+
         velocity.setY(velocity.getY() - 0.1);
 
         double y;
@@ -179,15 +181,6 @@ public class Bot extends EntityPlayer {
     public void addFriction() {
         velocity.setX(velocity.getX() * 0.5);
         velocity.setZ(velocity.getZ() * 0.5);
-    }
-
-    @Override
-    public void die() {
-        super.die();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-            connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
-        }
     }
 
     public void despawn() {
@@ -252,6 +245,10 @@ public class Bot extends EntityPlayer {
 
         velocity.add(diff);
         kbTicks = 10;
+    }
+
+    public Location getLocation() {
+        return getBukkitEntity().getLocation();
     }
 
     public void faceLocation(Location loc) {

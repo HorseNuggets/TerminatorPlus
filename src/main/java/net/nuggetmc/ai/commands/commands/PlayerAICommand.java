@@ -38,6 +38,7 @@ public class PlayerAICommand extends CommandInstance {
     @Command(name = "create", desc = "Create bots.", usage = "<name> [skin]")
     @Require("playerai.manage")
     public void createBotCommand(@Sender Player sender, String name, @OptArg String skin) {
+        // make 16 character limit on name
         Bot.createBot(name, sender.getLocation(), skin == null ? name : skin);
     }
 
