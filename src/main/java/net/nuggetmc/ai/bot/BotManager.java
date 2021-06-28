@@ -2,6 +2,7 @@ package net.nuggetmc.ai.bot;
 
 import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.bot.agent.BotAgent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -13,12 +14,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.util.Vector;
 
+import java.text.NumberFormat;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public class BotManager implements Listener {
 
     private final PlayerAI plugin;
+    private final BotAgent agent;
+    private final NumberFormat numberFormat;
 
     private final Set<Bot> bots = new HashSet<>();
 
@@ -32,6 +37,8 @@ public class BotManager implements Listener {
 
     public BotManager(PlayerAI plugin) {
         this.plugin = plugin;
+        this.agent = new BotAgent(this);
+        this.numberFormat = NumberFormat.getInstance(Locale.US);
     }
 
     public void createBots(Player sender, String name, String skin, int n) {
@@ -45,27 +52,28 @@ public class BotManager implements Listener {
         if (name.length() > 16) name = name.substring(0, 16);
         if (skin != null && skin.length() > 16) skin = skin.substring(0, 16);
 
-        sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + String.valueOf(n) + ChatColor.RESET + " new bots")
+        sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + numberFormat.format(n) + ChatColor.RESET + " new bots")
                 + " with name " + ChatColor.GREEN + name
-                + (skin == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skin) + ChatColor.RESET + "...");
+                + (skin == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skin)
+                + ChatColor.RESET + "...");
 
         skin = skin == null ? name : skin;
 
+        double f = n < 100 ? .004 * n : .4;
+
         for (int i = 0; i < n; i++) {
             Bot bot = Bot.createBot(loc, name, skin);
-            if (i > 0) bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(0.4));
+            if (i > 0) bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
         }
 
         world.spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
 
-        double time = (System.currentTimeMillis() - timestamp) / 1000D;
-
-        sender.sendMessage("Process completed (" + ChatColor.RED + time + "s" + ChatColor.RESET + ").");
+        sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
     }
 
     public void reset() {
         for (Bot bot : bots) {
-            bot.despawn();
+            bot.remove();
         }
 
         bots.clear();

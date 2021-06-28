@@ -24,9 +24,13 @@ public class Bot extends EntityPlayer {
     public Vector velocity;
 
     private byte kbTicks;
+    private byte jumpTicks;
+    private byte groundTicks;
 
     private final double regenAmount = 0.05;
     private final double bbOffset = 0.05;
+    private final double frictionMin = 0.01;
+    private final double kbUp = 0.3;
 
     public Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
@@ -92,11 +96,22 @@ public class Bot extends EntityPlayer {
         }
     }
 
+    public Vector getVelocity() {
+        return velocity.clone();
+    }
+
     public void setVelocity(Vector vector) {
         this.velocity = vector;
     }
 
     public void addVelocity(Vector vector) {
+        try {
+            velocity.checkFinite();
+        } catch (IllegalArgumentException e) {
+            velocity = vector;
+            return;
+        }
+
         this.velocity.add(vector);
     }
 
@@ -106,6 +121,13 @@ public class Bot extends EntityPlayer {
 
         if (noDamageTicks > 0) --noDamageTicks;
         if (kbTicks > 0) --kbTicks;
+        if (jumpTicks > 0) --jumpTicks;
+
+        if (predictGround()) {
+            groundTicks++;
+        } else {
+            groundTicks = 0;
+        }
 
         Player botPlayer = this.getBukkitEntity();
         if (botPlayer.isDead()) return;
@@ -128,11 +150,9 @@ public class Bot extends EntityPlayer {
     private void updateLocation() {
         // Eventually there will be a whole algorithm here to slow a player down to a certain velocity depending on the liquid a player is in
 
-        velocity.setY(velocity.getY() - 0.1);
-
         double y;
 
-        if (predictGround()) {
+        if (groundTicks > 0) {
             velocity.setY(0);
             addFriction();
             y = 0;
@@ -140,7 +160,16 @@ public class Bot extends EntityPlayer {
             y = velocity.getY();
         }
 
+        velocity.setY(velocity.getY() - 0.1);
+
         this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), y, velocity.getZ()));
+    }
+
+    public void jump(Vector vel) {
+        if (jumpTicks == 0 && groundTicks > 1) {
+            jumpTicks = 4;
+            velocity = vel;
+        }
     }
 
     public boolean predictGround() {
@@ -165,13 +194,7 @@ public class Bot extends EntityPlayer {
 
         for (double x : xVals) {
             for (double z : zVals) {
-                double i = locY();
-
-                Location test = new Location(world, x, i - 0.05, z);
-
-                if (test.getBlock().getType().isSolid()) {
-                    return true;
-                }
+                return world.getBlockAt(new Location(world, x, locY() - 0.01, z)).getType().isSolid();
             }
         }
 
@@ -179,11 +202,18 @@ public class Bot extends EntityPlayer {
     }
 
     public void addFriction() {
-        velocity.setX(velocity.getX() * 0.5);
-        velocity.setZ(velocity.getZ() * 0.5);
+        double x = velocity.getX();
+        double z = velocity.getZ();
+
+        velocity.setX(x < frictionMin ? 0 : x * 0.5);
+        velocity.setZ(z < frictionMin ? 0 : z * 0.5);
     }
 
     public void despawn() {
+        getBukkitEntity().remove();
+    }
+
+    public void remove() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
             connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
@@ -245,10 +275,14 @@ public class Bot extends EntityPlayer {
 
     private void kb(Location loc1, Location loc2) {
         Vector diff = loc1.toVector().subtract(loc2.toVector()).normalize();
-        diff.multiply(0.25);
-        diff.setY(0.5);
+        diff.multiply(0.5);
+        diff.setY(kbUp);
 
-        velocity.add(diff);
+        Vector vel = velocity.clone().add(diff);
+        if (vel.length() > 1) vel.normalize();
+        if (vel.getY() > kbUp) vel.setY(kbUp);
+
+        velocity = vel;
         kbTicks = 10;
     }
 
