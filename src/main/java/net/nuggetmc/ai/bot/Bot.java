@@ -4,12 +4,12 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.MojangAPI;
 import net.nuggetmc.ai.utils.SteveUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
@@ -35,7 +35,7 @@ public class Bot extends EntityPlayer {
         kbTicks = 0;
     }
 
-    public static Bot createBot(String name, Location loc, String skin) {
+    public static Bot createBot(Location loc, String name, String skin) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer nmsWorld = ((CraftWorld) loc.getWorld()).getHandle();
 
@@ -107,11 +107,11 @@ public class Bot extends EntityPlayer {
         if (noDamageTicks > 0) --noDamageTicks;
         if (kbTicks > 0) --kbTicks;
 
-        Player playerNPC = this.getBukkitEntity();
-        if (playerNPC.isDead()) return;
+        Player botPlayer = this.getBukkitEntity();
+        if (botPlayer.isDead()) return;
 
-        double health = playerNPC.getHealth();
-        double maxHealth = playerNPC.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue();
+        double health = botPlayer.getHealth();
+        double maxHealth = botPlayer.getHealthScale();
         double amount;
 
         if (health < maxHealth - regenAmount) {
@@ -120,7 +120,7 @@ public class Bot extends EntityPlayer {
             amount = maxHealth;
         }
 
-        playerNPC.setHealth(amount);
+        botPlayer.setHealth(amount);
 
         updateLocation();
     }
@@ -184,6 +184,11 @@ public class Bot extends EntityPlayer {
     }
 
     public void despawn() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
+            connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
+        }
+
         getBukkitEntity().remove();
     }
 
@@ -232,13 +237,13 @@ public class Bot extends EntityPlayer {
             Location loc1 = player.getLocation();
             Location loc2 = entity.getLocation();
 
-            kb(player, loc1, loc2);
+            kb(loc1, loc2);
         }
 
         return damaged;
     }
 
-    private void kb(Player playerBot, Location loc1, Location loc2) {
+    private void kb(Location loc1, Location loc2) {
         Vector diff = loc1.toVector().subtract(loc2.toVector()).normalize();
         diff.multiply(0.25);
         diff.setY(0.5);
@@ -252,17 +257,17 @@ public class Bot extends EntityPlayer {
     }
 
     public void faceLocation(Location loc) {
-        try {
-            CraftPlayer playerBot = this.getBukkitEntity();
-            Vector dir = loc.toVector().subtract(playerBot.getLocation().toVector()).normalize();
-            Location facing = playerBot.getLocation().setDirection(dir);
-            playerBot.teleport(facing);
+        CraftPlayer botPlayer = getBukkitEntity();
+        Vector dir = loc.toVector().subtract(botPlayer.getLocation().toVector());
 
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-                connection.sendPacket(new PacketPlayOutEntityHeadRotation(playerBot.getHandle(), (byte) (facing.getYaw() * 256 / 360)));
-            }
-        } catch (IllegalArgumentException ignored) { }
+        float[] vals = MathUtils.fetchYawPitch(dir);
+
+        setYawPitch(vals[0], vals[1]);
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
+            connection.sendPacket(new PacketPlayOutEntityHeadRotation(botPlayer.getHandle(), (byte) (vals[0] * 256 / 360f)));
+        }
     }
 
     @Override

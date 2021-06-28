@@ -30,8 +30,8 @@ public class PlayerAI extends JavaPlugin {
         instance = this;
 
         // Create Instances
-        this.handler = new CommandHandler(this);
         this.manager = new BotManager(this);
+        this.handler = new CommandHandler(this);
 
         // Register all the things
         this.registerEvents();

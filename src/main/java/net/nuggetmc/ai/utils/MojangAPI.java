@@ -6,12 +6,25 @@ import com.google.gson.JsonParser;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MojangAPI {
 
-    // Eventually create some sort of cache that stores the skin data so it doesn't have to keep pulling from the API
-    // CATCHING NULLPOINTEREXCEPTION BAD!!!! eventually fix from the getAsJsonObject thingy
+    private static final Map<String, String[]> CACHE = new HashMap<>();
+
     public static String[] getSkin(String name) {
+        if (CACHE.containsKey(name)) {
+            return CACHE.get(name);
+        }
+
+        String[] values = pullFromAPI(name);
+        CACHE.put(name, values);
+        return values;
+    }
+
+    // CATCHING NULLPOINTEREXCEPTION BAD!!!! eventually fix from the getAsJsonObject thingy
+    public static String[] pullFromAPI(String name) {
         try {
             String uuid = new JsonParser().parse(new InputStreamReader(new URL("https://api.mojang.com/users/profiles/minecraft/" + name)
                     .openStream())).getAsJsonObject().get("id").getAsString();
@@ -19,7 +32,7 @@ public class MojangAPI {
                     .parse(new InputStreamReader(new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false")
                             .openStream())).getAsJsonObject().get("properties").getAsJsonArray().get(0).getAsJsonObject();
             return new String[] {property.get("value").getAsString(), property.get("signature").getAsString()};
-        } catch (IOException | NullPointerException e) {
+        } catch (IOException | IllegalStateException e) {
             return null;
         }
     }
