@@ -17,7 +17,6 @@ public class MojangAPI {
                             .openStream())).getAsJsonObject().get("properties").getAsJsonArray().get(0).getAsJsonObject();
             return new String[] {property.get("value").getAsString(), property.get("signature").getAsString()};
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

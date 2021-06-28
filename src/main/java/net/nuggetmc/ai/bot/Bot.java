@@ -44,9 +44,7 @@ public class Bot extends EntityPlayer {
         GameProfile profile = new GameProfile(uuid, name);
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
 
-        if (skin != null) {
-            setSkin(profile, skin);
-        }
+        setSkin(profile, skin);
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
 
@@ -130,12 +128,17 @@ public class Bot extends EntityPlayer {
     private void updateLocation() {
         velocity.setY(velocity.getY() - 0.1);
 
+        double y;
+
         if (predictGround()) {
             velocity.setY(0);
             addFriction();
+            y = 0;
+        } else {
+            y = velocity.getY();
         }
 
-        this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), velocity.getY(), velocity.getZ()));
+        this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), y, velocity.getZ()));
     }
 
     public boolean predictGround() {
@@ -144,8 +147,6 @@ public class Bot extends EntityPlayer {
         if (vy > 0) {
             return false;
         }
-
-        double m = vy / 20.0;
 
         World world = getBukkitEntity().getWorld();
         AxisAlignedBB box = getBoundingBox();
@@ -164,14 +165,10 @@ public class Bot extends EntityPlayer {
             for (double z : zVals) {
                 double i = locY();
 
-                for (int n = 0; n < 20; n++) {
-                    Location test = new Location(world, x, i, z);
+                Location test = new Location(world, x, i - 0.05, z);
 
-                    if (test.getBlock().getType().isSolid()) {
-                        return true;
-                    }
-
-                    i += m;
+                if (test.getBlock().getType().isSolid()) {
+                    return true;
                 }
             }
         }
