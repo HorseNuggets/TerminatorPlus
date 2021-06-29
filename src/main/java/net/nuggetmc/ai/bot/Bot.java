@@ -23,6 +23,7 @@ public class Bot extends EntityPlayer {
 
     public Vector velocity;
 
+    private byte aliveTicks;
     private byte kbTicks;
     private byte jumpTicks;
     private byte groundTicks;
@@ -32,11 +33,13 @@ public class Bot extends EntityPlayer {
     private final double frictionMin = 0.01;
     private final double kbUp = 0.3;
 
+    private Vector offset;
+
     public Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
 
-        velocity = new Vector(0, 0, 0);
-        kbTicks = 0;
+        this.velocity = new Vector(0, 0, 0);
+        this.offset = MathUtils.circleOffset(3);
     }
 
     public static Bot createBot(Location loc, String name, String skin) {
@@ -96,6 +99,14 @@ public class Bot extends EntityPlayer {
         }
     }
 
+    public void setOffset(Vector vector) {
+        this.offset = vector;
+    }
+
+    public Vector getOffset() {
+        return offset;
+    }
+
     public Vector getVelocity() {
         return velocity.clone();
     }
@@ -115,15 +126,21 @@ public class Bot extends EntityPlayer {
         this.velocity.add(vector);
     }
 
+    public boolean tickDelay(int i) {
+        return aliveTicks % i == 0;
+    }
+
     @Override
     public void tick() {
         super.tick();
+
+        aliveTicks++;
 
         if (noDamageTicks > 0) --noDamageTicks;
         if (kbTicks > 0) --kbTicks;
         if (jumpTicks > 0) --jumpTicks;
 
-        if (predictGround()) {
+        if (isOnGround()) {
             groundTicks++;
         } else {
             groundTicks = 0;
@@ -152,7 +169,7 @@ public class Bot extends EntityPlayer {
 
         double y;
 
-        if (groundTicks > 0) {
+        if (isOnGround()) {
             velocity.setY(0);
             addFriction();
             y = 0;
@@ -172,7 +189,21 @@ public class Bot extends EntityPlayer {
         }
     }
 
-    public boolean predictGround() {
+    public void attack(org.bukkit.entity.Entity entity) {
+        faceLocation(entity.getLocation());
+        punch();
+        attack(((CraftEntity) entity).getHandle());
+    }
+
+    public void punch() {
+        PacketPlayOutAnimation packet = new PacketPlayOutAnimation(this, 0);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
+        }
+    }
+
+    @Override
+    public boolean isOnGround() {
         double vy = velocity.getY();
 
         if (vy > 0) {
@@ -183,18 +214,20 @@ public class Bot extends EntityPlayer {
         AxisAlignedBB box = getBoundingBox();
 
         double[] xVals = new double[] {
-            box.minX + bbOffset,
-            box.maxX - bbOffset
+            box.minX,
+            box.maxX
         };
 
         double[] zVals = new double[] {
-            box.minZ + bbOffset,
-            box.maxZ - bbOffset
+            box.minZ,
+            box.maxZ
         };
 
         for (double x : xVals) {
             for (double z : zVals) {
-                return world.getBlockAt(new Location(world, x, locY() - 0.01, z)).getType().isSolid();
+                if (world.getBlockAt(new Location(world, x, locY() - 0.01, z)).getType().isSolid()) {
+                    return true;
+                }
             }
         }
 

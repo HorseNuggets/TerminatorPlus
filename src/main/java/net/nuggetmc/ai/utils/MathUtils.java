@@ -27,4 +27,13 @@ public class MathUtils {
 
         return out;
     }
+
+    public static Vector circleOffset(double r) {
+        double rad = 2 * Math.random() * Math.PI;
+
+        double x = r * Math.random() * Math.cos(rad);
+        double z = r * Math.random() * Math.sin(rad);
+
+        return new Vector(x, 0, z);
+    }
 }

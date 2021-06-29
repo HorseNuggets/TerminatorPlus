@@ -3,6 +3,7 @@ package net.nuggetmc.ai.bot.agent;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -10,18 +11,17 @@ import org.bukkit.util.Vector;
 
 public class BotAgent {
 
+    private PlayerAI plugin;
     private BotManager manager;
 
-    private byte quarterTick = 0;
-
     public BotAgent(BotManager manager) {
+        this.plugin = PlayerAI.getInstance();
         this.manager = manager;
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(PlayerAI.getInstance(), this::tick, 0, 1);
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::tick, 0, 1);
     }
 
     private void tick() {
-        quarterTick = (byte) ((quarterTick + 1) % 5);
         manager.fetch().forEach(this::tickBot);
     }
 
@@ -32,11 +32,30 @@ public class BotAgent {
         if (player == null) return;
 
         Location target = player.getLocation();
+
+        if (manager.fetch().size() > 1) {
+            target.add(bot.getOffset());
+        }
+
+        // Make the XZ offsets stored in the bot object (so they don't form a straight line),
+        // and make it so when mining and stuff, the offset is not taken into account
+
+        if (bot.tickDelay(3)) attack(bot, player, loc);
+        move(bot, player, loc, target);
+    }
+
+    private void attack(Bot bot, Player player, Location loc) {
+        if (!PlayerUtils.isVulnerableGamemode(player.getGameMode())
+                || player.getNoDamageTicks() >= 5
+                || loc.distance(player.getLocation()) >= 4) return;
+
+        bot.attack(player);
+    }
+
+    private void move(Bot bot, Player player, Location loc, Location target) {
         Vector vel = target.toVector().subtract(loc.toVector()).normalize();
 
-        if (quarterTick == 0) {
-            bot.faceLocation(target);
-        }
+        if (bot.tickDelay(5)) bot.faceLocation(player.getLocation());
 
         try {
             vel.checkFinite();
@@ -46,12 +65,9 @@ public class BotAgent {
         }
 
         if (vel.length() > 1) vel.normalize();
-        vel.multiply(0.3);
-        vel.setY(0.5);
+        vel.multiply(0.4).setY(0.4);
 
-        if (bot.predictGround()) {
-            bot.jump(vel);
-        }
+        bot.jump(vel);
     }
 
     private Player nearestPlayer(Location loc) {
