@@ -12,11 +12,8 @@ import net.nuggetmc.ai.commands.CommandInstance;
 import net.nuggetmc.ai.utils.ChatUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.text.NumberFormat;
 import java.util.Locale;

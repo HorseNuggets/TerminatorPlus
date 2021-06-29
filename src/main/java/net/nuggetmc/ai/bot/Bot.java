@@ -37,6 +37,8 @@ public class Bot extends EntityPlayer {
 
         this.velocity = new Vector(0, 0, 0);
         this.offset = MathUtils.circleOffset(3);
+
+        datawatcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
     }
 
     public static Bot createBot(Location loc, String name, String skin) {
@@ -45,10 +47,8 @@ public class Bot extends EntityPlayer {
 
         UUID uuid = SteveUUID.generate();
 
-        CustomGameProfile profile = new CustomGameProfile(uuid, name);
+        CustomGameProfile profile = new CustomGameProfile(uuid, name, skin);
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
-
-        profile.setSkin(skin);
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
 
@@ -57,16 +57,14 @@ public class Bot extends EntityPlayer {
         bot.getBukkitEntity().setNoDamageTicks(0);
         nmsWorld.addEntity(bot);
 
-        bot.sendSpawnPackets();
+        bot.renderAll();
 
         PlayerAI.getInstance().getManager().add(bot);
 
         return bot;
     }
 
-    private void sendSpawnPackets() {
-        getDataWatcher().set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
-
+    private void renderAll() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
             render(connection, false);
@@ -130,7 +128,7 @@ public class Bot extends EntityPlayer {
             groundTicks = 0;
         }
 
-        Player botPlayer = this.getBukkitEntity();
+        Player botPlayer = getBukkitEntity();
         if (botPlayer.isDead()) return;
 
         double health = botPlayer.getHealth();

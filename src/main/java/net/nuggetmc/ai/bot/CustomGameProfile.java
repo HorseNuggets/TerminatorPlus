@@ -8,8 +8,10 @@ import java.util.UUID;
 
 public class CustomGameProfile extends GameProfile {
 
-    public CustomGameProfile(UUID uuid, String name) {
+    public CustomGameProfile(UUID uuid, String name, String skin) {
         super(uuid, name);
+
+        setSkin(skin);
     }
 
     public void setSkin(String skin) {
