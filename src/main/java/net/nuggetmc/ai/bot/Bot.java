@@ -1,11 +1,9 @@
 package net.nuggetmc.ai.bot;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.utils.MathUtils;
-import net.nuggetmc.ai.utils.MojangAPI;
 import net.nuggetmc.ai.utils.SteveUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -29,7 +27,6 @@ public class Bot extends EntityPlayer {
     private byte groundTicks;
 
     private final double regenAmount = 0.05;
-    private final double bbOffset = 0.05;
     private final double frictionMin = 0.01;
     private final double kbUp = 0.3;
 
@@ -48,10 +45,10 @@ public class Bot extends EntityPlayer {
 
         UUID uuid = SteveUUID.generate();
 
-        GameProfile profile = new GameProfile(uuid, name);
+        CustomGameProfile profile = new CustomGameProfile(uuid, name);
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
 
-        setSkin(profile, skin);
+        profile.setSkin(skin);
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
 
@@ -60,28 +57,19 @@ public class Bot extends EntityPlayer {
         bot.getBukkitEntity().setNoDamageTicks(0);
         nmsWorld.addEntity(bot);
 
-        sendSpawnPackets(bot);
+        bot.sendSpawnPackets();
 
         PlayerAI.getInstance().getManager().add(bot);
 
         return bot;
     }
 
-    private static void setSkin(GameProfile profile, String skin) {
-        String[] vals = MojangAPI.getSkin(skin);
-
-        if (vals != null) {
-            profile.getProperties().put("textures", new Property("textures", vals[0], vals[1]));
-        }
-    }
-
-    private static void sendSpawnPackets(Bot bot) {
-        DataWatcher watcher = bot.getDataWatcher();
-        watcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
+    private void sendSpawnPackets() {
+        getDataWatcher().set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-            bot.render(connection, false);
+            render(connection, false);
         }
     }
 
@@ -97,10 +85,6 @@ public class Bot extends EntityPlayer {
         } else {
             connection.sendPacket(rotationPacket);
         }
-    }
-
-    public void setOffset(Vector vector) {
-        this.offset = vector;
     }
 
     public Vector getOffset() {
