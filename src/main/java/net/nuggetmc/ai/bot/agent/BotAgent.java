@@ -7,6 +7,7 @@ import net.nuggetmc.ai.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 public class BotAgent {
@@ -14,11 +15,32 @@ public class BotAgent {
     private PlayerAI plugin;
     private BotManager manager;
 
+    private final BukkitScheduler scheduler;
+
+    private boolean enabled;
+
+    private int taskID;
+
     public BotAgent(BotManager manager) {
         this.plugin = PlayerAI.getInstance();
         this.manager = manager;
+        this.scheduler = Bukkit.getScheduler();
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::tick, 0, 1);
+        setEnabled(true);
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean b) {
+        enabled = b;
+
+        if (b) {
+            taskID = scheduler.scheduleSyncRepeatingTask(plugin, this::tick, 0, 1);
+        } else {
+            scheduler.cancelTask(taskID);
+        }
     }
 
     private void tick() {
@@ -61,7 +83,7 @@ public class BotAgent {
             vel.checkFinite();
             vel.add(bot.velocity);
         } catch (IllegalArgumentException e) {
-            vel = bot.velocity;
+            vel = new Vector(0, 0.5, 0);
         }
 
         if (vel.length() > 1) vel.normalize();

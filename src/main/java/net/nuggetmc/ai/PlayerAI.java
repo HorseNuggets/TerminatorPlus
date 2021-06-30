@@ -1,7 +1,7 @@
 package net.nuggetmc.ai;
 
-import net.nuggetmc.ai.commands.CommandHandler;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.commands.CommandHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PlayerAI extends JavaPlugin {

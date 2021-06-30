@@ -151,7 +151,7 @@ public class Bot extends EntityPlayer {
 
         double y;
 
-        if (isOnGround()) {
+        if (groundTicks != 0) {
             velocity.setY(0);
             addFriction();
             y = 0;
@@ -289,13 +289,12 @@ public class Bot extends EntityPlayer {
     }
 
     private void kb(Location loc1, Location loc2) {
-        Vector diff = loc1.toVector().subtract(loc2.toVector()).normalize();
-        diff.multiply(0.5);
-        diff.setY(kbUp);
+        Vector diff = loc1.toVector().subtract(loc2.toVector()).normalize().setY(kbUp);
+        Vector vel = velocity.clone().add(diff).multiply(0.5);
 
-        Vector vel = velocity.clone().add(diff);
         if (vel.length() > 1) vel.normalize();
-        if (vel.getY() > kbUp) vel.setY(kbUp);
+        if (groundTicks != 0) vel.multiply(0.8).setY(0.4);
+        else if (vel.getY() > kbUp) vel.setY(kbUp);
 
         velocity = vel;
         kbTicks = 10;

@@ -5,13 +5,13 @@ import com.jonahseguin.drink.annotation.OptArg;
 import com.jonahseguin.drink.annotation.Require;
 import com.jonahseguin.drink.annotation.Sender;
 import net.nuggetmc.ai.PlayerAI;
-import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.bot.agent.BotAgent;
 import net.nuggetmc.ai.commands.CommandHandler;
 import net.nuggetmc.ai.commands.CommandInstance;
 import net.nuggetmc.ai.utils.ChatUtils;
+import net.nuggetmc.ai.utils.Debugger;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -20,12 +20,14 @@ import java.util.Locale;
 
 public class PlayerAICommand extends CommandInstance {
 
+    private PlayerAI plugin;
     private BotManager manager;
 
     public PlayerAICommand(CommandHandler commandHandler) {
         super(commandHandler);
 
-        this.manager = PlayerAI.getInstance().getManager();
+        this.plugin = PlayerAI.getInstance();
+        this.manager = plugin.getManager();
     }
 
     @Command(name = "", desc = "The PlayerAI main command.")
@@ -34,7 +36,7 @@ public class PlayerAICommand extends CommandInstance {
         sender.sendMessage(ChatUtils.LINE);
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.VERSION + ChatColor.GRAY + "]");
 
-        for (String line : getCommandHandler().getHelp(getClass())) {
+        for (String line : commandHandler.getHelp(getClass())) {
             sender.sendMessage(line);
         }
 
@@ -53,22 +55,16 @@ public class PlayerAICommand extends CommandInstance {
         manager.createBots(sender, name, skin, n);
     }
 
-    @Command(name = "debug", desc = "Debug bot stats.")
+    @Command(name = "debug", desc = "Debug plugin code.", usage = "<expression>")
     @Require("playerai.manage")
-    public void debugCommand(@Sender Player sender) {
-        // This will be used for miscellaneous code for testing as the plugin is worked on
-
-        Location loc = sender.getLocation();
-
-        for (Bot bot : PlayerAI.getInstance().getManager().fetch()) {
-            bot.faceLocation(loc);
-        }
+    public void debugCommand(@Sender CommandSender sender, String cmd) {
+        (new Debugger(sender)).execute(cmd);
     }
 
     @Command(name = "info", desc = "Information about loaded bots.")
     @Require("playerai.manage")
-    public void infoCommand(@Sender Player player) {
-        // This will be the future GUI where players can view information about every loaded bot
+    public void infoCommand(@Sender Player sender) {
+        sender.sendMessage("Bot GUI coming soon!");
     }
 
     @Command(name = "reset", desc = "Remove all loaded bots.")

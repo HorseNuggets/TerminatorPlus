@@ -2,7 +2,7 @@ package net.nuggetmc.ai.commands;
 
 public abstract class CommandInstance {
 
-    private final CommandHandler commandHandler;
+    protected final CommandHandler commandHandler;
 
     public CommandInstance(CommandHandler commandHandler) {
         this.commandHandler = commandHandler;

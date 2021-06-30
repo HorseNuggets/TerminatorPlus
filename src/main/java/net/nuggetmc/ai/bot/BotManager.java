@@ -27,6 +27,12 @@ public class BotManager implements Listener {
 
     private final Set<Bot> bots = new HashSet<>();
 
+    public BotManager(PlayerAI plugin) {
+        this.plugin = plugin;
+        this.agent = new BotAgent(this);
+        this.numberFormat = NumberFormat.getInstance(Locale.US);
+    }
+
     public Set<Bot> fetch() {
         return bots;
     }
@@ -35,10 +41,8 @@ public class BotManager implements Listener {
         bots.add(bot);
     }
 
-    public BotManager(PlayerAI plugin) {
-        this.plugin = plugin;
-        this.agent = new BotAgent(this);
-        this.numberFormat = NumberFormat.getInstance(Locale.US);
+    public BotAgent getAgent() {
+        return agent;
     }
 
     public void createBots(Player sender, String name, String skin, int n) {

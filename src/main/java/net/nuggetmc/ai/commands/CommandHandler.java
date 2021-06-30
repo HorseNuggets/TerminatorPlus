@@ -18,7 +18,7 @@ public class CommandHandler {
 
     public CommandHandler(PlayerAI plugin) {
         drink = (DrinkCommandService) Drink.get(plugin);
-        drink.register(new PlayerAICommand(this), "bot", "playerai", "pai", "ai", "npc", "k");
+        drink.register(new PlayerAICommand(this), "bot", "playerai", "pai", "ai", "npc");
         drink.registerCommands();
 
         help = new HashMap<>();
