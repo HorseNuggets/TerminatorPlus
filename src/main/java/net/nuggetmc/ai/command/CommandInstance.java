@@ -1,4 +1,4 @@
-package net.nuggetmc.ai.commands;
+package net.nuggetmc.ai.command;
 
 public abstract class CommandInstance {
 

@@ -1,12 +1,12 @@
 package net.nuggetmc.ai;
 
 import net.nuggetmc.ai.bot.BotManager;
-import net.nuggetmc.ai.commands.CommandHandler;
+import net.nuggetmc.ai.command.CommandHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PlayerAI extends JavaPlugin {
 
-    public static final double VERSION = 1.0;
+    public static final double VERSION = 3.0;
 
     private static PlayerAI instance;
 

@@ -171,6 +171,10 @@ public class Bot extends EntityPlayer {
         }
     }
 
+    public void jump() {
+        jump(new Vector(0, 0.5, 0));
+    }
+
     public void attack(org.bukkit.entity.Entity entity) {
         faceLocation(entity.getLocation());
         punch();

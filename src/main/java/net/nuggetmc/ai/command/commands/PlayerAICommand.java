@@ -1,15 +1,11 @@
-package net.nuggetmc.ai.commands.commands;
+package net.nuggetmc.ai.command.commands;
 
-import com.jonahseguin.drink.annotation.Command;
-import com.jonahseguin.drink.annotation.OptArg;
-import com.jonahseguin.drink.annotation.Require;
-import com.jonahseguin.drink.annotation.Sender;
+import com.jonahseguin.drink.annotation.*;
+import com.jonahseguin.drink.utils.ChatUtils;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.BotManager;
-import net.nuggetmc.ai.bot.agent.BotAgent;
-import net.nuggetmc.ai.commands.CommandHandler;
-import net.nuggetmc.ai.commands.CommandInstance;
-import net.nuggetmc.ai.utils.ChatUtils;
+import net.nuggetmc.ai.command.CommandHandler;
+import net.nuggetmc.ai.command.CommandInstance;
 import net.nuggetmc.ai.utils.Debugger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -35,11 +31,7 @@ public class PlayerAICommand extends CommandInstance {
     public void rootCommand(@Sender Player sender) {
         sender.sendMessage(ChatUtils.LINE);
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.VERSION + ChatColor.GRAY + "]");
-
-        for (String line : commandHandler.getHelp(getClass())) {
-            sender.sendMessage(line);
-        }
-
+        commandHandler.getHelp(getClass()).forEach(sender::sendMessage);
         sender.sendMessage(ChatUtils.LINE);
     }
 
@@ -57,8 +49,8 @@ public class PlayerAICommand extends CommandInstance {
 
     @Command(name = "debug", desc = "Debug plugin code.", usage = "<expression>")
     @Require("playerai.manage")
-    public void debugCommand(@Sender CommandSender sender, String cmd) {
-        (new Debugger(sender)).execute(cmd);
+    public void debugCommand(@Sender CommandSender sender, @Text String cmd) {
+        new Debugger(sender).execute(cmd);
     }
 
     @Command(name = "info", desc = "Information about loaded bots.")

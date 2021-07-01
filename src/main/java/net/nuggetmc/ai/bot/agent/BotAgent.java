@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
+import java.util.Set;
+
 public class BotAgent {
 
     private PlayerAI plugin;
@@ -20,6 +22,8 @@ public class BotAgent {
     private boolean enabled;
 
     private int taskID;
+
+    private int count;
 
     public BotAgent(BotManager manager) {
         this.plugin = PlayerAI.getInstance();
@@ -44,23 +48,27 @@ public class BotAgent {
     }
 
     private void tick() {
-        manager.fetch().forEach(this::tickBot);
+        Set<Bot> bots = manager.fetch();
+        count = bots.size();
+        bots.forEach(this::tickBot);
     }
 
     private void tickBot(Bot bot) {
         Location loc = bot.getLocation();
+
+        // if bot.hasHoldState() return; << This will be to check if a bot is mining or something similar where it can't move
 
         Player player = nearestPlayer(loc);
         if (player == null) return;
 
         Location target = player.getLocation();
 
-        if (manager.fetch().size() > 1) {
-            target.add(bot.getOffset());
-        }
+        if (count > 1) target.add(bot.getOffset());
 
         // Make the XZ offsets stored in the bot object (so they don't form a straight line),
         // and make it so when mining and stuff, the offset is not taken into account
+
+        // if checkVertical(bot) { break block action add; return; }
 
         if (bot.tickDelay(3)) attack(bot, player, loc);
         move(bot, player, loc, target);
