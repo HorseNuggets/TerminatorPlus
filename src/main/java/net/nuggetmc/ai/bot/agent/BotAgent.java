@@ -3,6 +3,7 @@ package net.nuggetmc.ai.bot.agent;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -91,7 +92,7 @@ public class BotAgent {
             vel.checkFinite();
             vel.add(bot.velocity);
         } catch (IllegalArgumentException e) {
-            vel = new Vector(0, 0.5, 0);
+            return;
         }
 
         if (vel.length() > 1) vel.normalize();

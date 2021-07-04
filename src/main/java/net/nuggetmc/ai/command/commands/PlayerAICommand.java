@@ -26,42 +26,56 @@ public class PlayerAICommand extends CommandInstance {
         this.manager = plugin.getManager();
     }
 
-    @Command(name = "", desc = "The PlayerAI main command.")
-    @Require("playerai.manage")
-    public void rootCommand(@Sender Player sender) {
+    @Command(
+        desc = "The PlayerAI main command."
+    )
+    public void root(@Sender Player sender) {
         sender.sendMessage(ChatUtils.LINE);
         sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.VERSION + ChatColor.GRAY + "]");
         commandHandler.getHelp(getClass()).forEach(sender::sendMessage);
         sender.sendMessage(ChatUtils.LINE);
     }
 
-    @Command(name = "create", desc = "Create bots.", usage = "<name> [skin]")
-    @Require("playerai.manage")
-    public void createBotCommand(@Sender Player sender, String name, @OptArg String skin) {
+    @Command(
+        name = "create",
+        desc = "Create bots.",
+        usage = "<name> [skin]"
+    )
+    public void create(@Sender Player sender, String name, @OptArg String skin) {
         manager.createBots(sender, name, skin, 1);
     }
 
-    @Command(name = "multi", desc = "Create multiple bots at once.", usage = "<amount> <name> [skin]")
-    @Require("playerai.manage")
-    public void multiBotCommand(@Sender Player sender, int n, String name, @OptArg String skin) {
+    @Command(
+        name = "multi",
+        desc = "Create multiple bots at once.",
+        usage = "<amount> <name> [skin]"
+    )
+    public void multi(@Sender Player sender, int n, String name, @OptArg String skin) {
         manager.createBots(sender, name, skin, n);
     }
 
-    @Command(name = "debug", desc = "Debug plugin code.", usage = "<expression>")
-    @Require("playerai.manage")
-    public void debugCommand(@Sender CommandSender sender, @Text String cmd) {
+    @Command(
+        name = "debug",
+        desc = "Debug plugin code.",
+        usage = "<expression>"
+    )
+    public void debug(@Sender CommandSender sender, @Text String cmd) {
         new Debugger(sender).execute(cmd);
     }
 
-    @Command(name = "info", desc = "Information about loaded bots.")
-    @Require("playerai.manage")
-    public void infoCommand(@Sender Player sender) {
-        sender.sendMessage("Bot GUI coming soon!");
+    @Command(
+        name = "info",
+        desc = "Information about loaded bots."
+    )
+    public void info(@Sender Player sender) {
+        sender.sendMessage(ChatColor.YELLOW + "Bot GUI coming soon!");
     }
 
-    @Command(name = "reset", desc = "Remove all loaded bots.")
-    @Require("playerai.manage")
-    public void resetCommand(@Sender CommandSender sender) {
+    @Command(
+        name = "reset",
+        desc = "Remove all loaded bots."
+    )
+    public void reset(@Sender CommandSender sender) {
         sender.sendMessage("Removing every bot...");
 
         BotManager manager = PlayerAI.getInstance().getManager();

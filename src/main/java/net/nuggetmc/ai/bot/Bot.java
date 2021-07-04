@@ -128,11 +128,13 @@ public class Bot extends EntityPlayer {
             groundTicks = 0;
         }
 
-        Player botPlayer = getBukkitEntity();
-        if (botPlayer.isDead()) return;
+        Player player = getBukkitEntity();
+        if (player.isDead()) return;
 
-        double health = botPlayer.getHealth();
-        double maxHealth = botPlayer.getHealthScale();
+        updateLocation();
+
+        double health = player.getHealth();
+        double maxHealth = player.getHealthScale();
         double amount;
 
         if (health < maxHealth - regenAmount) {
@@ -141,9 +143,7 @@ public class Bot extends EntityPlayer {
             amount = maxHealth;
         }
 
-        botPlayer.setHealth(amount);
-
-        updateLocation();
+        player.setHealth(amount);
     }
 
     private void updateLocation() {
@@ -182,10 +182,7 @@ public class Bot extends EntityPlayer {
     }
 
     public void punch() {
-        PacketPlayOutAnimation packet = new PacketPlayOutAnimation(this, 0);
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
-        }
+        swingHand(EnumHand.MAIN_HAND);
     }
 
     @Override
@@ -293,8 +290,10 @@ public class Bot extends EntityPlayer {
     }
 
     private void kb(Location loc1, Location loc2) {
-        Vector diff = loc1.toVector().subtract(loc2.toVector()).normalize().setY(kbUp);
-        Vector vel = velocity.clone().add(diff).multiply(0.5);
+        double f = 4;
+
+        Vector diff = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(f).setY(kbUp);
+        Vector vel = velocity.clone().add(diff).multiply(0.3 / f);
 
         if (vel.length() > 1) vel.normalize();
         if (groundTicks != 0) vel.multiply(0.8).setY(0.4);

@@ -23,7 +23,7 @@ public class MojangAPI {
         return values;
     }
 
-    // CATCHING NULLPOINTEREXCEPTION BAD!!!! eventually fix from the getAsJsonObject thingy
+    // CATCHING NULL ILLEGALSTATEEXCEPTION BAD!!!! eventually fix from the getAsJsonObject thingy
     public static String[] pullFromAPI(String name) {
         try {
             String uuid = new JsonParser().parse(new InputStreamReader(new URL("https://api.mojang.com/users/profiles/minecraft/" + name)

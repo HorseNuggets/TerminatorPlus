@@ -36,4 +36,13 @@ public class MathUtils {
 
         return new Vector(x, 0, z);
     }
+
+    public static boolean isFinite(Vector vector) {
+        try {
+            vector.checkFinite();
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 }

@@ -9,7 +9,10 @@ import net.nuggetmc.ai.command.commands.PlayerAICommand;
 import org.bukkit.ChatColor;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CommandHandler {
@@ -19,7 +22,7 @@ public class CommandHandler {
 
     public CommandHandler(PlayerAI plugin) {
         drink = (DrinkCommandService) Drink.get(plugin);
-        drink.register(new PlayerAICommand(this), "bot", "playerai", "pai", "ai", "npc");
+        drink.register(new PlayerAICommand(this), "playerai.manage", "bot", "playerai", "pai", "ai", "npc");
         drink.registerCommands();
 
         help = new HashMap<>();
