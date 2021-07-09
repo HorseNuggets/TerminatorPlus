@@ -11,10 +11,12 @@ import java.util.Map;
 
 public class MojangAPI {
 
+    private static final boolean CACHE_ENABLED = false;
+
     private static final Map<String, String[]> CACHE = new HashMap<>();
 
     public static String[] getSkin(String name) {
-        if (CACHE.containsKey(name)) {
+        if (CACHE_ENABLED && CACHE.containsKey(name)) {
             return CACHE.get(name);
         }
 

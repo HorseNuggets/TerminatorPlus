@@ -1,14 +1,21 @@
 package net.nuggetmc.ai.utils;
 
 import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.BotAgent;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 
 import java.beans.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class Debugger {
 
@@ -56,6 +63,84 @@ public class Debugger {
         }
 
         return list.toArray();
+    }
+
+    public void t(String content) {
+        Object[] obj = buildObjects(content);
+
+        if (obj.length != 1 || obj[0] instanceof Boolean) {
+            print("Invalid arguments!");
+            return;
+        }
+
+        PlayerUtils.setAllTargetable(Boolean.parseBoolean((String) obj[0]));
+        String var = "PlayerUtils.allTargetable";
+
+        if (PlayerUtils.getAllTargetable()) {
+            print(var + " is now " + ChatColor.GREEN + "TRUE" + ChatColor.RESET + ".");
+        } else {
+            print(var + " is now " + ChatColor.RED + "FALSE" + ChatColor.RESET + ".");
+        }
+    }
+
+    public void hideNametags(String content) { // this works for some reason
+        Set<Bot> bots = PlayerAI.getInstance().getManager().fetch();
+
+        for (Bot bot : bots) {
+            Location loc = bot.getLocation();
+            World world = loc.getWorld();
+
+            if (world == null) continue;
+
+            loc.setX(loc.getBlockX());
+            loc.setY(loc.getBlockY());
+            loc.setZ(loc.getBlockZ());
+
+            loc.add(0.5, 0.5, 0.5);
+
+            ArmorStand seat = (ArmorStand) world.spawnEntity(loc, EntityType.ARMOR_STAND);
+            seat.setVisible(false);
+            seat.setSmall(true);
+
+            bot.getBukkitEntity().setPassenger(seat);
+        }
+    }
+
+    public void sit(String content) {
+        Set<Bot> bots = PlayerAI.getInstance().getManager().fetch();
+
+        for (Bot bot : bots) {
+            Location loc = bot.getLocation();
+            World world = loc.getWorld();
+
+            if (world == null) continue;
+
+            loc.setX(loc.getBlockX());
+            loc.setY(loc.getBlockY());
+            loc.setZ(loc.getBlockZ());
+
+            loc.add(0.5, -1.5, 0.5);
+
+            ArmorStand seat = (ArmorStand) world.spawnEntity(loc, EntityType.ARMOR_STAND);
+            seat.setVisible(false);
+            seat.setGravity(false);
+            seat.setSmall(true);
+
+            seat.addPassenger(bot.getBukkitEntity());
+        }
+    }
+
+    public void look(String content) {
+        if (!(sender instanceof Player)) {
+            print("Unspecified player.");
+            return;
+        }
+
+        Player player = (Player) sender;
+
+        for (Bot bot : PlayerAI.getInstance().getManager().fetch()) {
+            bot.faceLocation(player.getEyeLocation());
+        }
     }
 
     public void printObj(String content) {

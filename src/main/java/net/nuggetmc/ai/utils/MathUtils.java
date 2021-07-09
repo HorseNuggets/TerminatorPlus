@@ -45,4 +45,10 @@ public class MathUtils {
             return false;
         }
     }
+
+    public static void clean(Vector vector) {
+        if (!NumberConversions.isFinite(vector.getX())) vector.setX(0);
+        if (!NumberConversions.isFinite(vector.getY())) vector.setY(0);
+        if (!NumberConversions.isFinite(vector.getZ())) vector.setZ(0);
+    }
 }

@@ -71,14 +71,17 @@ public class BotAgent {
 
         // if checkVertical(bot) { break block action add; return; }
 
+        // BotSituation situation = BotSituation.create(bot);
+
+        // based on the situation, the bot can perform different actions
+        // there can be priorities assigned
+
         if (bot.tickDelay(3)) attack(bot, player, loc);
         move(bot, player, loc, target);
     }
 
     private void attack(Bot bot, Player player, Location loc) {
-        if (!PlayerUtils.isVulnerableGamemode(player.getGameMode())
-                || player.getNoDamageTicks() >= 5
-                || loc.distance(player.getLocation()) >= 4) return;
+        if (player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
 
         bot.attack(player);
     }
@@ -92,7 +95,9 @@ public class BotAgent {
             vel.checkFinite();
             vel.add(bot.velocity);
         } catch (IllegalArgumentException e) {
-            return;
+            if (!MathUtils.isFinite(vel)) {
+                MathUtils.clean(vel);
+            }
         }
 
         if (vel.length() > 1) vel.normalize();
@@ -105,7 +110,7 @@ public class BotAgent {
         Player result = null;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (loc.getWorld() != player.getWorld()) continue;
+            if (!PlayerUtils.isTargetable(player.getGameMode()) || loc.getWorld() != player.getWorld()) continue;
 
             if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                 result = player;

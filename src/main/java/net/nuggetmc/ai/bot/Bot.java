@@ -15,6 +15,7 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class Bot extends EntityPlayer {
@@ -26,11 +27,7 @@ public class Bot extends EntityPlayer {
     private byte jumpTicks;
     private byte groundTicks;
 
-    private final double regenAmount = 0.05;
-    private final double frictionMin = 0.01;
-    private final double kbUp = 0.3;
-
-    private Vector offset;
+    private final Vector offset;
 
     public Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
@@ -43,7 +40,7 @@ public class Bot extends EntityPlayer {
 
     public static Bot createBot(Location loc, String name, String skin) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
-        WorldServer nmsWorld = ((CraftWorld) loc.getWorld()).getHandle();
+        WorldServer nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
 
         UUID uuid = SteveUUID.generate();
 
@@ -135,6 +132,7 @@ public class Bot extends EntityPlayer {
 
         double health = player.getHealth();
         double maxHealth = player.getHealthScale();
+        double regenAmount = 0.05;
         double amount;
 
         if (health < maxHealth - regenAmount) {
@@ -218,6 +216,8 @@ public class Bot extends EntityPlayer {
     }
 
     public void addFriction() {
+        double frictionMin = 0.01;
+
         double x = velocity.getX();
         double z = velocity.getZ();
 
@@ -291,6 +291,7 @@ public class Bot extends EntityPlayer {
 
     private void kb(Location loc1, Location loc2) {
         double f = 4;
+        double kbUp = 0.3;
 
         Vector diff = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(f).setY(kbUp);
         Vector vel = velocity.clone().add(diff).multiply(0.3 / f);
