@@ -3,6 +3,7 @@ package net.nuggetmc.ai.bot;
 import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.agent.BotAgent;
+import net.nuggetmc.ai.utils.MojangAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -45,7 +46,7 @@ public class BotManager implements Listener {
         return agent;
     }
 
-    public void createBots(Player sender, String name, String skin, int n) {
+    public void createBots(Player sender, String name, String skinName, int n) {
         long timestamp = System.currentTimeMillis();
 
         if (n < 1) n = 1;
@@ -54,16 +55,18 @@ public class BotManager implements Listener {
         Location loc = sender.getLocation();
 
         if (name.length() > 16) name = name.substring(0, 16);
-        if (skin != null && skin.length() > 16) skin = skin.substring(0, 16);
+        if (skinName != null && skinName.length() > 16) skinName = skinName.substring(0, 16);
 
         sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + numberFormat.format(n) + ChatColor.RESET + " new bots")
                 + " with name " + ChatColor.GREEN + name
-                + (skin == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skin)
+                + (skinName == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skinName)
                 + ChatColor.RESET + "...");
 
-        skin = skin == null ? name : skin;
+        skinName = skinName == null ? name : skinName;
 
         double f = n < 100 ? .004 * n : .4;
+
+        String[] skin = MojangAPI.getSkin(skinName);
 
         for (int i = 0; i < n; i++) {
             Bot bot = Bot.createBot(loc, name, skin);
@@ -76,19 +79,13 @@ public class BotManager implements Listener {
     }
 
     public void reset() {
-        for (Bot bot : bots) {
-            bot.remove();
-        }
-
+        bots.forEach(Bot::remove);
         bots.clear();
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         PlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().playerConnection;
-
-        for (Bot bot : bots) {
-            bot.render(connection, true);
-        }
+        bots.forEach(b -> b.render(connection, true));
     }
 }

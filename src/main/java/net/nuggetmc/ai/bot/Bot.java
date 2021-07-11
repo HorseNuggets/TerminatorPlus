@@ -1,20 +1,28 @@
 package net.nuggetmc.ai.bot;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.utils.MathUtils;
+import net.nuggetmc.ai.utils.MojangAPI;
 import net.nuggetmc.ai.utils.SteveUUID;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -38,7 +46,7 @@ public class Bot extends EntityPlayer {
         datawatcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
     }
 
-    public static Bot createBot(Location loc, String name, String skin) {
+    public static Bot createBot(Location loc, String name, String[] skin) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
 
@@ -61,25 +69,41 @@ public class Bot extends EntityPlayer {
         return bot;
     }
 
+    public Vector prevVel = new Vector(0, 0, 0);
+    public int velCount;
+
+    public static Bot createBot(Location loc, String name, String skinName) {
+        return createBot(loc, name, MojangAPI.getSkin(skinName));
+    }
+
     private void renderAll() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-            render(connection, false);
+        Packet<?>[] packets = getRenderPackets();
+        Bukkit.getOnlinePlayers().forEach(p -> render(((CraftPlayer) p).getHandle().playerConnection, packets, false));
+    }
+
+    public void render(PlayerConnection connection, Packet<?>[] packets, boolean login) {
+        connection.sendPacket(packets[0]);
+        connection.sendPacket(packets[1]);
+        connection.sendPacket(packets[2]);
+
+        if (login) {
+            Bukkit.getScheduler().runTaskLater(PlayerAI.getInstance(), () -> connection.sendPacket(packets[3]), 10);
+        } else {
+            connection.sendPacket(packets[3]);
         }
     }
 
     public void render(PlayerConnection connection, boolean login) {
-        connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, this));
-        connection.sendPacket(new PacketPlayOutNamedEntitySpawn(this));
-        connection.sendPacket(new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true));
+        render(connection, getRenderPackets(), login);
+    }
 
-        PacketPlayOutEntityHeadRotation rotationPacket = new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f));
-
-        if (login) {
-            Bukkit.getScheduler().runTaskLater(PlayerAI.getInstance(), () -> connection.sendPacket(rotationPacket), 10);
-        } else {
-            connection.sendPacket(rotationPacket);
-        }
+    private Packet<?>[] getRenderPackets() {
+        return new Packet[] {
+            new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, this),
+            new PacketPlayOutNamedEntitySpawn(this),
+            new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true),
+            new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f))
+        };
     }
 
     public Vector getOffset() {
@@ -119,8 +143,8 @@ public class Bot extends EntityPlayer {
         if (kbTicks > 0) --kbTicks;
         if (jumpTicks > 0) --jumpTicks;
 
-        if (isOnGround()) {
-            groundTicks++;
+        if (checkGround()) {
+            if (groundTicks < 5) groundTicks++;
         } else {
             groundTicks = 0;
         }
@@ -157,7 +181,7 @@ public class Bot extends EntityPlayer {
             y = velocity.getY();
         }
 
-        velocity.setY(velocity.getY() - 0.1);
+        velocity.setY(Math.max(velocity.getY() - 0.1, -3.5));
 
         this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), y, velocity.getZ()));
     }
@@ -183,8 +207,8 @@ public class Bot extends EntityPlayer {
         swingHand(EnumHand.MAIN_HAND);
     }
 
-    @Override
-    public boolean isOnGround() {
+    public boolean checkGround() {
+        double k = 0.01;
         double vy = velocity.getY();
 
         if (vy > 0) {
@@ -195,13 +219,13 @@ public class Bot extends EntityPlayer {
         AxisAlignedBB box = getBoundingBox();
 
         double[] xVals = new double[] {
-            box.minX,
-            box.maxX
+            box.minX + k,
+            box.maxX - k
         };
 
         double[] zVals = new double[] {
-            box.minZ,
-            box.maxZ
+            box.minZ + k,
+            box.maxZ - k
         };
 
         for (double x : xVals) {
@@ -215,14 +239,19 @@ public class Bot extends EntityPlayer {
         return false;
     }
 
+    @Override
+    public boolean isOnGround() {
+        return groundTicks != 0;
+    }
+
     public void addFriction() {
         double frictionMin = 0.01;
 
         double x = velocity.getX();
         double z = velocity.getZ();
 
-        velocity.setX(x < frictionMin ? 0 : x * 0.5);
-        velocity.setZ(z < frictionMin ? 0 : z * 0.5);
+        velocity.setX(Math.abs(x) < frictionMin ? 0 : x * 0.5);
+        velocity.setZ(Math.abs(z) < frictionMin ? 0 : z * 0.5);
     }
 
     public void despawn() {
@@ -290,14 +319,11 @@ public class Bot extends EntityPlayer {
     }
 
     private void kb(Location loc1, Location loc2) {
-        double f = 4;
         double kbUp = 0.3;
 
-        Vector diff = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(f).setY(kbUp);
-        Vector vel = velocity.clone().add(diff).multiply(0.3 / f);
+        Vector vel = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(0.3);
 
-        if (vel.length() > 1) vel.normalize();
-        if (groundTicks != 0) vel.multiply(0.8).setY(0.4);
+        if (isOnGround()) vel.multiply(0.8).setY(0.4);
         else if (vel.getY() > kbUp) vel.setY(kbUp);
 
         velocity = vel;
@@ -309,17 +335,73 @@ public class Bot extends EntityPlayer {
     }
 
     public void faceLocation(Location loc) {
-        CraftPlayer botPlayer = getBukkitEntity();
-        Vector dir = loc.toVector().subtract(botPlayer.getLocation().toVector());
+        look(loc.toVector().subtract(getLocation().toVector()), false);
+    }
 
-        float[] vals = MathUtils.fetchYawPitch(dir);
+    public void look(BlockFace face) {
+        look(face.getDirection(), face == BlockFace.DOWN || face == BlockFace.UP);
+    }
 
-        setYawPitch(vals[0], vals[1]);
+    private void look(Vector dir, boolean keepYaw) {
+        float yaw, pitch;
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-            connection.sendPacket(new PacketPlayOutEntityHeadRotation(botPlayer.getHandle(), (byte) (vals[0] * 256 / 360f)));
+        if (keepYaw) {
+            yaw = this.yaw;
+            pitch = MathUtils.fetchPitch(dir);
+        } else {
+            float[] vals = MathUtils.fetchYawPitch(dir);
+            yaw = vals[0];
+            pitch = vals[1];
         }
+
+        setYawPitch(yaw, pitch);
+
+        PacketPlayOutEntityHeadRotation packet = new PacketPlayOutEntityHeadRotation(getBukkitEntity().getHandle(), (byte) (yaw * 256 / 360f));
+        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+    }
+
+    public void attemptBlockPlace(Location loc, Material type) {
+        setItem(new org.bukkit.inventory.ItemStack(Material.COBBLESTONE));
+        punch();
+
+        Block block = loc.getBlock();
+        World world = loc.getWorld();
+
+        if (!block.getType().isSolid()) {
+            block.setType(type);
+            if (world != null) world.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+        }
+    }
+
+    public void setItem(org.bukkit.inventory.ItemStack item) {
+        if (item == null) item = new org.bukkit.inventory.ItemStack(Material.AIR);
+
+        CraftPlayer player = getBukkitEntity();
+        player.getInventory().setItemInMainHand(item);
+
+        List<Pair<EnumItemSlot, ItemStack>> equipment = new ArrayList<>();
+        equipment.add(new Pair<>(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(item)));
+
+        PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment(player.getEntityId(), equipment);
+        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+    }
+
+    public void swim() {
+        registerPose(EntityPose.SWIMMING);
+    }
+
+    public void sneak() {
+        registerPose(EntityPose.CROUCHING);
+    }
+
+    public void stand() {
+        registerPose(EntityPose.STANDING);
+    }
+
+    private void registerPose(EntityPose pose) {
+        datawatcher.set(DataWatcherRegistry.s.a(6), pose);
+        PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(getId(), datawatcher, false);
+        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
     }
 
     @Override

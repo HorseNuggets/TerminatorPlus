@@ -15,15 +15,12 @@ import java.util.Set;
 
 public class BotAgent {
 
-    private PlayerAI plugin;
-    private BotManager manager;
-
+    private final PlayerAI plugin;
+    private final BotManager manager;
     private final BukkitScheduler scheduler;
 
     private boolean enabled;
-
     private int taskID;
-
     private int count;
 
     public BotAgent(BotManager manager) {
@@ -54,6 +51,7 @@ public class BotAgent {
         bots.forEach(this::tickBot);
     }
 
+    // This is where the code starts to get spicy
     private void tickBot(Bot bot) {
         Location loc = bot.getLocation();
 
@@ -71,17 +69,45 @@ public class BotAgent {
 
         // if checkVertical(bot) { break block action add; return; }
 
-        // BotSituation situation = BotSituation.create(bot);
+        BotSituation situation = new BotSituation(bot, target);
 
         // based on the situation, the bot can perform different actions
         // there can be priorities assigned
 
-        if (bot.tickDelay(3)) attack(bot, player, loc);
+        // for building up, bot.setAction(BotAction.TOWER) or bot.startBuildingUp()
+
+        VerticalDisplacement disp = situation.getVerticalDisplacement();
+
+        // Later on maybe do bot.setAction(Action.MOVE) and what not instead of hardcoding it here
+
+        // bot.setSneaking(false);
         move(bot, player, loc, target);
+        /*if (disp == VerticalDisplacement.ABOVE) {
+            if (bot.isOnGround()) { // checks this twice, again during .jump()
+                bot.sneak();
+                bot.look(BlockFace.DOWN);
+                bot.jump();
+                // bot.setSneaking(true);
+
+                // delay -> block place underneath and .setSneaking(false) << check possibilities of cancelling (add a cancel system)
+                // catch exceptions for slabs
+                scheduler.runTaskLater(plugin, () -> {
+                    if (bot.isAlive()) {
+                        bot.setItem(new ItemStack(Material.COBBLESTONE));
+                        bot.attemptBlockPlace(loc, Material.COBBLESTONE);
+                    }
+                }, 6);
+
+            } // maybe they will be in water or something, do not make them just do nothing here
+        } else {
+            move(bot, player, loc, target);
+        }*/
+
+        if (bot.tickDelay(3)) attack(bot, player, loc);
     }
 
     private void attack(Bot bot, Player player, Location loc) {
-        if (player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
+        if (!PlayerUtils.isVulnerableGameMode(player.getGameMode()) || player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
 
         bot.attack(player);
     }
@@ -90,9 +116,12 @@ public class BotAgent {
         Vector vel = target.toVector().subtract(loc.toVector()).normalize();
 
         if (bot.tickDelay(5)) bot.faceLocation(player.getLocation());
+        if (!bot.isOnGround()) return; // calling this a second time later on
+
+        bot.stand(); // eventually create a memory system so packets do not have to be sent every tick
+        bot.setItem(null); // method to check item in main hand, bot.getItemInHand()
 
         try {
-            vel.checkFinite();
             vel.add(bot.velocity);
         } catch (IllegalArgumentException e) {
             if (!MathUtils.isFinite(vel)) {

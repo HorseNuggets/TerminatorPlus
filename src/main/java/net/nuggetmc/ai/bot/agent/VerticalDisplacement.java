@@ -1,0 +1,16 @@
+package net.nuggetmc.ai.bot.agent;
+
+public enum VerticalDisplacement {
+    AT,
+    ABOVE,
+    BELOW;
+
+    public static VerticalDisplacement fetch(int botY, int targetY) {
+        int diff = botY - targetY;
+
+        if (diff >= 2) return BELOW;
+        if (diff <= -2) return ABOVE;
+
+        return AT;
+    }
+}

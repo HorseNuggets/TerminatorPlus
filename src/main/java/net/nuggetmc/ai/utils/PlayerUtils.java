@@ -7,7 +7,11 @@ public class PlayerUtils {
     public static boolean allTargetable;
 
     public static boolean isTargetable(GameMode mode) {
-        return allTargetable || mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE;
+        return allTargetable || isVulnerableGameMode(mode);
+    }
+
+    public static boolean isVulnerableGameMode(GameMode mode) {
+        return mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE;
     }
 
     public static void setAllTargetable(boolean b) {

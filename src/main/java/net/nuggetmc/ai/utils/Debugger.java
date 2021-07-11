@@ -3,6 +3,7 @@ package net.nuggetmc.ai.utils;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.BotAgent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.ServerOperator;
 
 import java.beans.Statement;
 import java.util.ArrayList;
@@ -27,9 +29,17 @@ public class Debugger {
         this.sender = sender;
     }
 
+    public static void log(Object... objects) {
+        String[] values = formStringArray(objects);
+        Bukkit.getOnlinePlayers().stream().filter(ServerOperator::isOp).forEach(p -> p.sendMessage(PREFIX + String.join(" ", values)));
+    }
+
+    private static String[] formStringArray(Object[] objects) {
+        return Arrays.stream(objects).map(Object::toString).toArray(String[]::new);
+    }
+
     private void print(Object... objects) {
-        String[] values = Arrays.stream(objects).map(Object::toString).toArray(String[]::new);
-        sender.sendMessage(PREFIX + String.join(" ", values));
+        sender.sendMessage(PREFIX + String.join(" ", formStringArray(objects)));
     }
 
     public void execute(String cmd) {
@@ -40,7 +50,7 @@ public class Debugger {
             String name = cmd.substring(0, pts[0]);
             String content = cmd.substring(pts[0] + 1, pts[1]);
 
-            Statement statement = new Statement(this, name, new Object[]{content});
+            Statement statement = new Statement(this, name, content.isEmpty() ? null : new Object[]{content});
             print("Running the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\"...");
             statement.execute();
         }
@@ -65,6 +75,20 @@ public class Debugger {
         return list.toArray();
     }
 
+    public void trackYVel() {
+        if (!(sender instanceof Player)) return;
+
+        Player player = (Player) sender;
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(PlayerAI.getInstance(), () -> {
+            print(player.getVelocity().getY());
+        }, 0, 1);
+    }
+
+    public void t() {
+        Bukkit.dispatchCommand(sender, "bot debug t(" + !PlayerUtils.getAllTargetable() + ")");
+    }
+
     public void t(String content) {
         Object[] obj = buildObjects(content);
 
@@ -83,7 +107,7 @@ public class Debugger {
         }
     }
 
-    public void hideNametags(String content) { // this works for some reason
+    public void hideNametags() { // this works for some reason
         Set<Bot> bots = PlayerAI.getInstance().getManager().fetch();
 
         for (Bot bot : bots) {
@@ -106,7 +130,7 @@ public class Debugger {
         }
     }
 
-    public void sit(String content) {
+    public void sit() {
         Set<Bot> bots = PlayerAI.getInstance().getManager().fetch();
 
         for (Bot bot : bots) {
@@ -130,7 +154,7 @@ public class Debugger {
         }
     }
 
-    public void look(String content) {
+    public void look() {
         if (!(sender instanceof Player)) {
             print("Unspecified player.");
             return;
@@ -152,7 +176,7 @@ public class Debugger {
         Arrays.stream(buildObjects(content)).forEach(this::print);
     }
 
-    public void toggleAgent(String content) {
+    public void toggleAgent() {
         BotAgent agent = PlayerAI.getInstance().getManager().getAgent();
 
         boolean b = agent.isEnabled();

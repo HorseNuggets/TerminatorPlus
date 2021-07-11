@@ -28,6 +28,26 @@ public class MathUtils {
         return out;
     }
 
+    public static float fetchPitch(Vector dir) {
+        double x = dir.getX();
+        double z = dir.getZ();
+
+        float result;
+
+        if (x == 0.0D && z == 0.0D) {
+            result = (float) (dir.getY() > 0.0D ? -90 : 90);
+        }
+
+        else {
+            double x2 = NumberConversions.square(x);
+            double z2 = NumberConversions.square(z);
+            double xz = Math.sqrt(x2 + z2);
+            result = (float) Math.toDegrees(Math.atan(-dir.getY() / xz));
+        }
+
+        return result;
+    }
+
     public static Vector circleOffset(double r) {
         double rad = 2 * Math.random() * Math.PI;
 

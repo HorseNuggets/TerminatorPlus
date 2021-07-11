@@ -14,12 +14,12 @@ import org.bukkit.entity.Player;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-public class PlayerAICommand extends CommandInstance {
+public class MainCommand extends CommandInstance {
 
     private PlayerAI plugin;
     private BotManager manager;
 
-    public PlayerAICommand(CommandHandler commandHandler) {
+    public MainCommand(CommandHandler commandHandler) {
         super(commandHandler);
 
         this.plugin = PlayerAI.getInstance();
