@@ -4,9 +4,9 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.utils.BotUtils;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.MojangAPI;
-import net.nuggetmc.ai.utils.SteveUUID;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -50,7 +50,7 @@ public class Bot extends EntityPlayer {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
 
-        UUID uuid = SteveUUID.generate();
+        UUID uuid = BotUtils.randomSteveUUID();
 
         CustomGameProfile profile = new CustomGameProfile(uuid, name, skin);
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);

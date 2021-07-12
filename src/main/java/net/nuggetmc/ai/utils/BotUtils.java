@@ -1,11 +1,23 @@
-package net.nuggetmc.ai.bot;
+package net.nuggetmc.ai.utils;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.UUID;
+
 public class BotUtils {
+
+    public static UUID randomSteveUUID() {
+        UUID uuid = UUID.randomUUID();
+
+        if (uuid.hashCode() % 2 == 0) {
+            return uuid;
+        }
+
+        return randomSteveUUID();
+    }
 
     public static boolean solidAt(Location loc) { // not perfect, still cuts corners of fences
         Block block = loc.getBlock();
