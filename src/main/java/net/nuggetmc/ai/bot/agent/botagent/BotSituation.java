@@ -1,4 +1,4 @@
-package net.nuggetmc.ai.bot.agent;
+package net.nuggetmc.ai.bot.agent.botagent;
 
 import net.nuggetmc.ai.bot.Bot;
 import org.bukkit.Location;

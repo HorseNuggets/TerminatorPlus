@@ -1,8 +1,8 @@
 package net.nuggetmc.ai.bot;
 
 import net.minecraft.server.v1_16_R3.PlayerConnection;
-import net.nuggetmc.ai.PlayerAI;
-import net.nuggetmc.ai.bot.agent.BotAgent;
+import net.nuggetmc.ai.bot.agent.Agent;
+import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.ai.utils.MojangAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -22,15 +22,13 @@ import java.util.Set;
 
 public class BotManager implements Listener {
 
-    private final PlayerAI plugin;
-    private final BotAgent agent;
+    private final Agent agent;
     private final NumberFormat numberFormat;
 
     private final Set<Bot> bots = new HashSet<>();
 
-    public BotManager(PlayerAI plugin) {
-        this.plugin = plugin;
-        this.agent = new BotAgent(this);
+    public BotManager() {
+        this.agent = new LegacyAgent(this);
         this.numberFormat = NumberFormat.getInstance(Locale.US);
     }
 
@@ -42,7 +40,7 @@ public class BotManager implements Listener {
         bots.add(bot);
     }
 
-    public BotAgent getAgent() {
+    public Agent getAgent() {
         return agent;
     }
 
@@ -76,6 +74,10 @@ public class BotManager implements Listener {
         world.spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
 
         sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
+    }
+
+    public void remove(Bot bot) {
+        bots.remove(bot);
     }
 
     public void reset() {

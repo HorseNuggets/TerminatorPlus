@@ -1,51 +1,27 @@
-package net.nuggetmc.ai.bot.agent;
+package net.nuggetmc.ai.bot.agent.botagent;
 
-import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.Set;
 
-public class BotAgent {
+public class BotAgent extends Agent {
 
-    private final PlayerAI plugin;
-    private final BotManager manager;
-    private final BukkitScheduler scheduler;
-
-    private boolean enabled;
-    private int taskID;
     private int count;
 
     public BotAgent(BotManager manager) {
-        this.plugin = PlayerAI.getInstance();
-        this.manager = manager;
-        this.scheduler = Bukkit.getScheduler();
-
-        setEnabled(true);
+        super(manager);
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean b) {
-        enabled = b;
-
-        if (b) {
-            taskID = scheduler.scheduleSyncRepeatingTask(plugin, this::tick, 0, 1);
-        } else {
-            scheduler.cancelTask(taskID);
-        }
-    }
-
-    private void tick() {
+    @Override
+    protected void tick() {
         Set<Bot> bots = manager.fetch();
         count = bots.size();
         bots.forEach(this::tickBot);
@@ -53,6 +29,8 @@ public class BotAgent {
 
     // This is where the code starts to get spicy
     private void tickBot(Bot bot) {
+        if (!bot.isAlive()) return;
+
         Location loc = bot.getLocation();
 
         // if bot.hasHoldState() return; << This will be to check if a bot is mining or something similar where it can't move
@@ -130,7 +108,14 @@ public class BotAgent {
         }
 
         if (vel.length() > 1) vel.normalize();
-        vel.multiply(0.4).setY(0.4);
+
+        if (loc.distance(target) <= 5) {
+            vel.multiply(0.3);
+        } else {
+            vel.multiply(0.4);
+        }
+
+        vel.setY(0.4);
 
         bot.jump(vel);
     }

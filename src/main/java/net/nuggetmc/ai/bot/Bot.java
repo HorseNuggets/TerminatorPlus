@@ -169,21 +169,46 @@ public class Bot extends EntityPlayer {
     }
 
     private void updateLocation() {
-        // Eventually there will be a whole algorithm here to slow a player down to a certain velocity depending on the liquid a player is in
-
         double y;
 
-        if (groundTicks != 0) {
-            velocity.setY(0);
-            addFriction();
-            y = 0;
-        } else {
-            y = velocity.getY();
+        // Check to reset y velocity if staying in the same position
+
+        if (isInWater()) {
+            y = Math.min(velocity.getY() + 0.1, 0.1);
+            addFriction(0.8);
+            velocity.setY(y);
         }
 
-        velocity.setY(Math.max(velocity.getY() - 0.1, -3.5));
+        else {
+            if (groundTicks != 0) {
+                velocity.setY(0);
+                addFriction(0.5);
+                y = 0;
+            } else {
+                y = velocity.getY();
+            }
+
+            velocity.setY(Math.max(velocity.getY() - 0.1, -3.5));
+        }
 
         this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), y, velocity.getZ()));
+    }
+
+    @Override
+    public boolean isInWater() {
+        Location loc = getLocation();
+
+        for (int i = 0; i <= 2; i++) {
+            Material type = loc.getBlock().getType();
+
+            if (type == Material.WATER || type == Material.LAVA) {
+                return true;
+            }
+
+            loc.add(0, 0.9, 0);
+        }
+
+        return false;
     }
 
     public void jump(Vector vel) {
@@ -208,7 +233,6 @@ public class Bot extends EntityPlayer {
     }
 
     public boolean checkGround() {
-        double k = 0.01;
         double vy = velocity.getY();
 
         if (vy > 0) {
@@ -219,18 +243,21 @@ public class Bot extends EntityPlayer {
         AxisAlignedBB box = getBoundingBox();
 
         double[] xVals = new double[] {
-            box.minX + k,
-            box.maxX - k
+            box.minX,
+            box.maxX
         };
 
         double[] zVals = new double[] {
-            box.minZ + k,
-            box.maxZ - k
+            box.minZ,
+            box.maxZ
         };
 
         for (double x : xVals) {
             for (double z : zVals) {
-                if (world.getBlockAt(new Location(world, x, locY() - 0.01, z)).getType().isSolid()) {
+                Location loc = new Location(world, x, locY() - 0.01, z);
+                Block block = world.getBlockAt(loc);
+
+                if (block.getType().isSolid() && BotUtils.solidAt(loc)) {
                     return true;
                 }
             }
@@ -244,14 +271,14 @@ public class Bot extends EntityPlayer {
         return groundTicks != 0;
     }
 
-    public void addFriction() {
+    public void addFriction(double factor) {
         double frictionMin = 0.01;
 
         double x = velocity.getX();
         double z = velocity.getZ();
 
-        velocity.setX(Math.abs(x) < frictionMin ? 0 : x * 0.5);
-        velocity.setZ(Math.abs(z) < frictionMin ? 0 : z * 0.5);
+        velocity.setX(Math.abs(x) < frictionMin ? 0 : x * factor);
+        velocity.setZ(Math.abs(z) < frictionMin ? 0 : z * factor);
     }
 
     public void despawn() {
@@ -352,12 +379,16 @@ public class Bot extends EntityPlayer {
             float[] vals = MathUtils.fetchYawPitch(dir);
             yaw = vals[0];
             pitch = vals[1];
+
+            PacketPlayOutEntityHeadRotation packet = new PacketPlayOutEntityHeadRotation(getBukkitEntity().getHandle(), (byte) (yaw * 256 / 360f));
+            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
         }
 
         setYawPitch(yaw, pitch);
 
-        PacketPlayOutEntityHeadRotation packet = new PacketPlayOutEntityHeadRotation(getBukkitEntity().getHandle(), (byte) (yaw * 256 / 360f));
-        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+        // this causes a lot of lag lol
+        //PacketPlayOutEntity.PacketPlayOutEntityLook packet = new PacketPlayOutEntity.PacketPlayOutEntityLook(getId(), (byte) (yaw * 256 / 360f), (byte) (pitch * 256 / 360f), isOnGround());
+        //Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
     }
 
     public void attemptBlockPlace(Location loc, Material type) {
@@ -387,14 +418,20 @@ public class Bot extends EntityPlayer {
     }
 
     public void swim() {
+        getBukkitEntity().setSwimming(true);
         registerPose(EntityPose.SWIMMING);
     }
 
     public void sneak() {
+        getBukkitEntity().setSneaking(true);
         registerPose(EntityPose.CROUCHING);
     }
 
     public void stand() {
+        Player player = getBukkitEntity();
+        player.setSneaking(false);
+        player.setSwimming(false);
+
         registerPose(EntityPose.STANDING);
     }
 

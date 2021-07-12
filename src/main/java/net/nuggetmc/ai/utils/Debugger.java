@@ -2,7 +2,7 @@ package net.nuggetmc.ai.utils;
 
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.Bot;
-import net.nuggetmc.ai.bot.agent.BotAgent;
+import net.nuggetmc.ai.bot.agent.Agent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -177,7 +177,7 @@ public class Debugger {
     }
 
     public void toggleAgent() {
-        BotAgent agent = PlayerAI.getInstance().getManager().getAgent();
+        Agent agent = PlayerAI.getInstance().getManager().getAgent();
 
         boolean b = agent.isEnabled();
         agent.setEnabled(!b);
