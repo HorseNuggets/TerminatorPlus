@@ -1,5 +1,6 @@
 package net.nuggetmc.ai.utils;
 
+import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.Agent;
@@ -8,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -23,7 +25,7 @@ public class Debugger {
 
     private static final String PREFIX = ChatColor.YELLOW + "[DEBUG] " + ChatColor.RESET;
 
-    private CommandSender sender;
+    private final CommandSender sender;
 
     public Debugger(CommandSender sender) {
         this.sender = sender;
@@ -35,7 +37,7 @@ public class Debugger {
     }
 
     private static String[] formStringArray(Object[] objects) {
-        return Arrays.stream(objects).map(Object::toString).toArray(String[]::new);
+        return Arrays.stream(objects).map(String::valueOf).toArray(String[]::new);
     }
 
     private void print(Object... objects) {
@@ -75,6 +77,50 @@ public class Debugger {
         return list.toArray();
     }
 
+    public void fire(String content) {
+        Object[] obj = buildObjects(content);
+
+        if (obj.length != 1) {
+            print("Invalid arguments!");
+            return;
+        }
+
+        boolean b = Boolean.parseBoolean((String) obj[0]);
+
+        PlayerAI.getInstance().getManager().fetch().forEach(bot -> bot.setOnFirePackets(b));
+    }
+
+    public void sendPackets(String content) {
+        Object[] obj = buildObjects(content);
+
+        if (obj.length != 1) {
+            print("Invalid arguments!");
+            return;
+        }
+
+        byte b;
+
+        try {
+            b = Byte.parseByte((String) obj[0]);
+        } catch (NumberFormatException e) {
+            print("Invalid arguments!");
+            return;
+        }
+
+        PlayerAI.getInstance().getManager().fetch().forEach(bot -> {
+            /*DataWatcher datawatcher = bot.getDataWatcher();
+            datawatcher.set(DataWatcherRegistry.s.a(6), EntityPose.DYING);
+            PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(bot.getId(), datawatcher, false);
+            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(metadata));
+
+            PacketPlayOutEntityStatus packet = new PacketPlayOutEntityStatus(bot, b);
+            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));*/
+            bot.setHealth(0);
+        });
+
+        Debugger.log("PACKETS_SENT");
+    }
+
     public void trackYVel() {
         if (!(sender instanceof Player)) return;
 
@@ -92,7 +138,7 @@ public class Debugger {
     public void t(String content) {
         Object[] obj = buildObjects(content);
 
-        if (obj.length != 1 || obj[0] instanceof Boolean) {
+        if (obj.length != 1) {
             print("Invalid arguments!");
             return;
         }

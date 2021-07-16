@@ -130,15 +130,15 @@ public class LegacyBlockCheck {
     }
 
     public void clutch(Bot bot, Player target) {
-        Player player = bot.getBukkitEntity();
+        Location botLoc = bot.getLocation();
 
-        Material type = player.getLocation().add(0, -1, 0).getBlock().getType();
-        Material type2 = player.getLocation().add(0, -2, 0).getBlock().getType();
+        Material type = botLoc.clone().add(0, -1, 0).getBlock().getType();
+        Material type2 = botLoc.clone().add(0, -2, 0).getBlock().getType();
 
         if (!(LegacyMats.SPAWN.contains(type) && LegacyMats.SPAWN.contains(type2))) return;
 
-        if (target.getLocation().getBlockY() >= player.getLocation().getBlockY()) {
-            Location loc = player.getLocation().add(0, -1, 0);
+        if (target.getLocation().getBlockY() >= botLoc.getBlockY()) {
+            Location loc = botLoc.clone().add(0, -1, 0);
 
             Set<Block> face = new HashSet<>(Arrays.asList(
                 loc.clone().add(1, 0, 0).getBlock(),
@@ -155,23 +155,25 @@ public class LegacyBlockCheck {
             }
 
             if (at != null) {
-
-                //agent.slow.add(player);
+                agent.slow.add(bot);
                 agent.noFace.add(bot);
 
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     bot.stand();
-                    //agent.slow.remove(player);
+                    agent.slow.remove(bot);
                 }, 12);
 
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     agent.noFace.remove(bot);
                 }, 15);
 
+                Location faceLoc = at.clone().add(0, -1.5, 0);
+
+                bot.faceLocation(faceLoc);
                 bot.look(BlockFace.DOWN);
 
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    bot.look(BlockFace.DOWN);
+                    bot.faceLocation(faceLoc);
                 }, 1);
 
                 bot.punch();

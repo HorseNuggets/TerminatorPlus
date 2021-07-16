@@ -82,6 +82,7 @@ public class LegacyMats {
     ));
 
     public static final Set<Material> WATER = new HashSet<>(Arrays.asList(
+        Material.WATER,
         Material.SEAGRASS,
         Material.TALL_SEAGRASS,
         Material.KELP,

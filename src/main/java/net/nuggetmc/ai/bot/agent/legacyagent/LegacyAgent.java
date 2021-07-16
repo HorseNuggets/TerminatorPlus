@@ -17,10 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 // Yes, this code is very unoptimized, I know.
 public class LegacyAgent extends Agent {
@@ -49,9 +46,17 @@ public class LegacyAgent extends Agent {
     public final Set<Bot> noFace = new HashSet<>();
     public final Set<Player> noJump = new HashSet<>();
 
+    public final Set<Bot> slow = new HashSet<>();
+
     @Override
     protected void tick() {
-        manager.fetch().forEach(this::tickBot);
+        try {
+            manager.fetch().forEach(this::tickBot);
+        } catch (ConcurrentModificationException e) {
+            // Yes this is a really bad way to deal with this issue, but in the future I will have a thing
+            // where when bots die they will be added to a cleanup cache that will be ticked after this (which will be refactored
+            // to the BotManager) and will be removed separately from the set.
+        }
     }
 
     private void center(Bot bot) {
@@ -88,7 +93,7 @@ public class LegacyAgent extends Agent {
 
         Location loc = bot.getLocation();
 
-        Player player = nearestPlayer(loc);
+        Player player = nearestPlayer(bot, loc);
         if (player == null) {
             // LESSLAG if (bot.tickDelay(20))
             stopMining(bot);
@@ -169,9 +174,41 @@ public class LegacyAgent extends Agent {
                         return;
                 }
             }
-        }/* else if (lc && !bot.isOnGround()) {
-            moveSmall(bot, loc, target);
-        }*/
+        } else if (LegacyMats.WATER.contains(loc.getBlock().getType())) {
+            swim(bot, target, playerBot, player, LegacyMats.WATER.contains(loc.clone().add(0, -1, 0).getBlock().getType()));
+        }
+    }
+
+    private void swim(Bot bot, Location loc, Player playerNPC, Player ply, boolean anim) {
+        playerNPC.setSneaking(false);
+
+        Location at = bot.getLocation();
+
+        Vector vector = loc.toVector().subtract(at.toVector());
+        if (at.getBlockY() < ply.getLocation().getBlockY()) {
+            vector.setY(0);
+        }
+
+        vector.normalize().multiply(0.05);
+        vector.setY(vector.getY() * 1.2);
+
+        if (miningAnim.containsKey(playerNPC)) {
+            BukkitRunnable task = miningAnim.get(playerNPC);
+            if (task != null) {
+                task.cancel();
+                miningAnim.remove(playerNPC);
+            }
+        }
+
+        if (anim) {
+            bot.swim();
+        } else {
+            vector.setY(0);
+            vector.multiply(0.7);
+        }
+
+        bot.faceLocation(ply.getLocation());
+        bot.addVelocity(vector);
     }
 
     private void stopMining(Bot bot) {
@@ -222,7 +259,11 @@ public class LegacyAgent extends Agent {
             vel.multiply(0.4);
         }
 
-        vel.setY(0.4);
+        if (slow.contains(bot)) {
+            vel.setY(0).multiply(0.5);
+        } else {
+            vel.setY(0.4);
+        }
 
         bot.jump(vel);
     }
@@ -421,7 +462,7 @@ public class LegacyAgent extends Agent {
                             vector.multiply(0.1);
                             vector.setY(0.5);
 
-                            npc.setVelocity(npc.getVelocity().add(vector));
+                            npc.addVelocity(vector);
                             return true;
                         }
                     }
@@ -444,7 +485,7 @@ public class LegacyAgent extends Agent {
                     vector.multiply(0.1);
                     vector.setY(0);
 
-                    npc.setVelocity(npc.getVelocity().add(vector));
+                    npc.addVelocity(vector);
                 }
 
                 return true;
@@ -761,7 +802,11 @@ public class LegacyAgent extends Agent {
         bot.attack(player);
     }
 
-    private Player nearestPlayer(Location loc) {
+    private Player nearestPlayer(Bot bot, Location loc) {
+        return nearestBot(bot, loc);
+    }
+
+    private Player nearestRealPlayer(Location loc) {
         Player result = null;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -769,6 +814,26 @@ public class LegacyAgent extends Agent {
 
             if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                 result = player;
+            }
+        }
+
+        return result;
+    }
+
+    private Player nearestBot(Bot bot, Location loc) {
+        Player result = null;
+
+        for (Bot otherBot : manager.fetch()) {
+            if (bot == otherBot) continue;
+
+            Player player = otherBot.getBukkitEntity();
+
+            if (!bot.getName().equals(otherBot.getName())) {
+                if (loc.getWorld() != player.getWorld()) continue;
+
+                if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
+                    result = player;
+                }
             }
         }
 

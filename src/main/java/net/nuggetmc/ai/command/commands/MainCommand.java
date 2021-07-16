@@ -1,6 +1,9 @@
 package net.nuggetmc.ai.command.commands;
 
-import com.jonahseguin.drink.annotation.*;
+import com.jonahseguin.drink.annotation.Command;
+import com.jonahseguin.drink.annotation.OptArg;
+import com.jonahseguin.drink.annotation.Sender;
+import com.jonahseguin.drink.annotation.Text;
 import com.jonahseguin.drink.utils.ChatUtils;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.BotManager;
@@ -16,14 +19,12 @@ import java.util.Locale;
 
 public class MainCommand extends CommandInstance {
 
-    private PlayerAI plugin;
-    private BotManager manager;
+    private final BotManager manager;
 
     public MainCommand(CommandHandler commandHandler) {
         super(commandHandler);
 
-        this.plugin = PlayerAI.getInstance();
-        this.manager = plugin.getManager();
+        this.manager = PlayerAI.getInstance().getManager();
     }
 
     @Command(
@@ -31,7 +32,7 @@ public class MainCommand extends CommandInstance {
     )
     public void root(@Sender Player sender) {
         sender.sendMessage(ChatUtils.LINE);
-        sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.VERSION + ChatColor.GRAY + "]");
+        sender.sendMessage(ChatColor.GOLD + "PlayerAI" + ChatColor.GRAY + " [" + ChatColor.RED + "v" + PlayerAI.getVersion() + ChatColor.GRAY + "]");
         commandHandler.getHelp(getClass()).forEach(sender::sendMessage);
         sender.sendMessage(ChatUtils.LINE);
     }

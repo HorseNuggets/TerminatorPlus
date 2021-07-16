@@ -4,9 +4,9 @@ import com.jonahseguin.drink.Drink;
 import com.jonahseguin.drink.annotation.Command;
 import com.jonahseguin.drink.command.DrinkCommandService;
 import com.jonahseguin.drink.utils.ChatUtils;
-import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.command.commands.MainCommand;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -20,7 +20,7 @@ public class CommandHandler {
     private final DrinkCommandService drink;
     private final Map<Class<? extends CommandInstance>, List<String>> help;
 
-    public CommandHandler(PlayerAI plugin) {
+    public CommandHandler(JavaPlugin plugin) {
         drink = (DrinkCommandService) Drink.get(plugin);
         drink.register(new MainCommand(this), "playerai.manage", "bot", "playerai", "pai", "ai", "npc");
         drink.registerCommands();

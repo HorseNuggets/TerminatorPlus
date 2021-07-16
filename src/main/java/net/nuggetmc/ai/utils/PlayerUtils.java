@@ -11,7 +11,7 @@ public class PlayerUtils {
     }
 
     public static boolean isVulnerableGameMode(GameMode mode) {
-        return mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE;
+        return mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE || mode == null;
     }
 
     public static void setAllTargetable(boolean b) {

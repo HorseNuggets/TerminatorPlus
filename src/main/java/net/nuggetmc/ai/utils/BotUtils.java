@@ -1,13 +1,24 @@
 package net.nuggetmc.ai.utils;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class BotUtils {
+
+    public static final Set<Material> NO_FALL = new HashSet<>(Arrays.asList(
+        Material.WATER,
+        Material.LAVA,
+        Material.TWISTING_VINES,
+        Material.VINE
+    ));
 
     public static UUID randomSteveUUID() {
         UUID uuid = UUID.randomUUID();

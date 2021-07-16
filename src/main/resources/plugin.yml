@@ -1,6 +1,6 @@
 name: PlayerAI
 main: net.nuggetmc.ai.PlayerAI
-version: 1.0
+version: 3.0-BETA
 api-version: 1.16
 author: HorseNuggets
 

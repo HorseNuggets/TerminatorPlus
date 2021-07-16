@@ -23,12 +23,14 @@ import java.util.Set;
 public class BotManager implements Listener {
 
     private final Agent agent;
+    private final Set<Bot> bots;
     private final NumberFormat numberFormat;
 
-    private final Set<Bot> bots = new HashSet<>();
+    private boolean removeOnDeath = true;
 
     public BotManager() {
         this.agent = new LegacyAgent(this);
+        this.bots = new HashSet<>();
         this.numberFormat = NumberFormat.getInstance(Locale.US);
     }
 
@@ -67,7 +69,7 @@ public class BotManager implements Listener {
         String[] skin = MojangAPI.getSkin(skinName);
 
         for (int i = 0; i < n; i++) {
-            Bot bot = Bot.createBot(loc, name, skin);
+            Bot bot = Bot.createBot(loc, name, skin, removeOnDeath);
             if (i > 0) bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
         }
 
@@ -81,8 +83,8 @@ public class BotManager implements Listener {
     }
 
     public void reset() {
-        bots.forEach(Bot::remove);
-        bots.clear();
+        bots.forEach(Bot::removeVisually);
+        bots.clear(); // Not always necessary, but a good security measure
     }
 
     @EventHandler

@@ -6,7 +6,6 @@ import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.utils.BotUtils;
 import net.nuggetmc.ai.utils.MathUtils;
-import net.nuggetmc.ai.utils.MojangAPI;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -18,35 +17,44 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
+import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
 
 public class Bot extends EntityPlayer {
 
     public Vector velocity;
+    private Vector oldVelocity;
+
+    private boolean removeOnDeath;
 
     private byte aliveTicks;
-    private byte kbTicks;
-    private byte jumpTicks;
+    private byte fireTicks;
     private byte groundTicks;
+    private byte jumpTicks;
+    private byte kbTicks;
+    private byte noFallTicks;
 
     private final Vector offset;
 
-    public Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
+    private Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
 
         this.velocity = new Vector(0, 0, 0);
+        this.oldVelocity = velocity.clone();
+        this.noFallTicks = 60;
+        this.fireTicks = 0;
         this.offset = MathUtils.circleOffset(3);
 
         datawatcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
     }
 
-    public static Bot createBot(Location loc, String name, String[] skin) {
+    public static Bot createBot(Location loc, String name, String[] skin, boolean removeOnDeath) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
 
@@ -60,6 +68,7 @@ public class Bot extends EntityPlayer {
         bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND), bot);
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
+        bot.removeOnDeath = removeOnDeath;
         nmsWorld.addEntity(bot);
 
         bot.renderAll();
@@ -69,19 +78,12 @@ public class Bot extends EntityPlayer {
         return bot;
     }
 
-    public Vector prevVel = new Vector(0, 0, 0);
-    public int velCount;
-
-    public static Bot createBot(Location loc, String name, String skinName) {
-        return createBot(loc, name, MojangAPI.getSkin(skinName));
-    }
-
     private void renderAll() {
         Packet<?>[] packets = getRenderPackets();
         Bukkit.getOnlinePlayers().forEach(p -> render(((CraftPlayer) p).getHandle().playerConnection, packets, false));
     }
 
-    public void render(PlayerConnection connection, Packet<?>[] packets, boolean login) {
+    private void render(PlayerConnection connection, Packet<?>[] packets, boolean login) {
         connection.sendPacket(packets[0]);
         connection.sendPacket(packets[1]);
         connection.sendPacket(packets[2]);
@@ -133,15 +135,23 @@ public class Bot extends EntityPlayer {
         return aliveTicks % i == 0;
     }
 
+    private void sendPacket(Packet<?> packet) {
+        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+    }
+
     @Override
     public void tick() {
         super.tick();
 
+        if (!isAlive()) return;
+
         aliveTicks++;
 
+        if (fireTicks > 0) --fireTicks;
         if (noDamageTicks > 0) --noDamageTicks;
-        if (kbTicks > 0) --kbTicks;
         if (jumpTicks > 0) --jumpTicks;
+        if (kbTicks > 0) --kbTicks;
+        if (noFallTicks > 0) --noFallTicks;
 
         if (checkGround()) {
             if (groundTicks < 5) groundTicks++;
@@ -149,15 +159,12 @@ public class Bot extends EntityPlayer {
             groundTicks = 0;
         }
 
-        Player player = getBukkitEntity();
-        if (player.isDead()) return;
-
         updateLocation();
 
-        double health = player.getHealth();
-        double maxHealth = player.getHealthScale();
-        double regenAmount = 0.05;
-        double amount;
+        float health = getHealth();
+        float maxHealth = getMaxHealth();
+        float regenAmount = 0.05f;
+        float amount;
 
         if (health < maxHealth - regenAmount) {
             amount = health + regenAmount;
@@ -165,13 +172,61 @@ public class Bot extends EntityPlayer {
             amount = maxHealth;
         }
 
-        player.setHealth(amount);
+        setHealth(amount);
+
+        fireDamageCheck();
+
+        if (!isAlive()) return;
+
+        fallDamageCheck();
+
+        oldVelocity = velocity.clone();
+    }
+
+    private void fireDamageCheck() {
+        Material type = getLocation().getBlock().getType();
+
+        boolean lava = type == org.bukkit.Material.LAVA;
+
+        if (lava || type == org.bukkit.Material.FIRE || type == Material.SOUL_FIRE) {
+            ignite();
+        }
+
+        if (noDamageTicks == 0) {
+            if (lava) {
+                damageEntity(DamageSource.LAVA, 4);
+                noDamageTicks = 12;
+            } else if (fireTicks > 1) {
+                damageEntity(DamageSource.FIRE, 1);
+                noDamageTicks = 20;
+            }
+        }
+
+        if (fireTicks == 1) {
+            setOnFirePackets(false);
+        }
+    }
+
+    public void ignite() {
+        if (fireTicks <= 1) setOnFirePackets(true);
+        fireTicks = 100;
+    }
+
+    public void setOnFirePackets(boolean onFire) {
+        datawatcher.set(new DataWatcherObject<>(0, DataWatcherRegistry.a), onFire ? (byte) 1 : (byte) 0);
+        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, false));
+    }
+
+    private void fallDamageCheck() {
+        if (groundTicks == 0 || noFallTicks != 0) return;
+        double y = oldVelocity.getY();
+        if (y >= -0.8 || BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) return;
+
+        damageEntity(DamageSource.FALL, (float) Math.pow(3.6, -y));
     }
 
     private void updateLocation() {
         double y;
-
-        // Check to reset y velocity if staying in the same position
 
         if (isInWater()) {
             y = Math.min(velocity.getY() + 0.1, 0.1);
@@ -222,10 +277,13 @@ public class Bot extends EntityPlayer {
         jump(new Vector(0, 0.5, 0));
     }
 
-    public void attack(org.bukkit.entity.Entity entity) {
+    public void attack(org.bukkit.entity.Entity entity) { // TODO botfight fix
         faceLocation(entity.getLocation());
         punch();
-        attack(((CraftEntity) entity).getHandle());
+
+        if (entity instanceof Damageable) {
+            ((Damageable) entity).damage(2, getBukkitEntity());
+        }
     }
 
     public void punch() {
@@ -285,13 +343,42 @@ public class Bot extends EntityPlayer {
         getBukkitEntity().remove();
     }
 
-    public void remove() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-            connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
-        }
+    public void removeVisually() {
+        this.removeTab();
+        this.setDead();
+    }
 
-        getBukkitEntity().remove();
+    private void removeTab() {
+        sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
+    }
+
+    private void setDead() {
+        this.dead = true;
+        this.defaultContainer.b(this);
+        if (this.activeContainer != null) {
+            this.activeContainer.b(this);
+        }
+    }
+
+    private void dieCheck() {
+        if (removeOnDeath) {
+            PlayerAI plugin = PlayerAI.getInstance();
+            plugin.getManager().remove(this);
+            this.removeTab();
+            Bukkit.getScheduler().runTaskLater(plugin, this::setDead, 30);
+        }
+    }
+
+    @Override
+    public void die() {
+        super.die();
+        this.dieCheck();
+    }
+
+    @Override
+    public void die(DamageSource damageSource) {
+        super.die(damageSource);
+        this.dieCheck();
     }
 
     @Override
@@ -380,15 +467,10 @@ public class Bot extends EntityPlayer {
             yaw = vals[0];
             pitch = vals[1];
 
-            PacketPlayOutEntityHeadRotation packet = new PacketPlayOutEntityHeadRotation(getBukkitEntity().getHandle(), (byte) (yaw * 256 / 360f));
-            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+            sendPacket(new PacketPlayOutEntityHeadRotation(getBukkitEntity().getHandle(), (byte) (yaw * 256 / 360f)));
         }
 
         setYawPitch(yaw, pitch);
-
-        // this causes a lot of lag lol
-        //PacketPlayOutEntity.PacketPlayOutEntityLook packet = new PacketPlayOutEntity.PacketPlayOutEntityLook(getId(), (byte) (yaw * 256 / 360f), (byte) (pitch * 256 / 360f), isOnGround());
-        //Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
     }
 
     public void attemptBlockPlace(Location loc, Material type) {
@@ -407,14 +489,11 @@ public class Bot extends EntityPlayer {
     public void setItem(org.bukkit.inventory.ItemStack item) {
         if (item == null) item = new org.bukkit.inventory.ItemStack(Material.AIR);
 
-        CraftPlayer player = getBukkitEntity();
-        player.getInventory().setItemInMainHand(item);
+        getBukkitEntity().getInventory().setItemInMainHand(item);
 
-        List<Pair<EnumItemSlot, ItemStack>> equipment = new ArrayList<>();
-        equipment.add(new Pair<>(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(item)));
-
-        PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment(player.getEntityId(), equipment);
-        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+        sendPacket(new PacketPlayOutEntityEquipment(getId(), new ArrayList<>(Collections.singletonList(
+            new Pair<>(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(item))
+        ))));
     }
 
     public void swim() {
@@ -437,8 +516,7 @@ public class Bot extends EntityPlayer {
 
     private void registerPose(EntityPose pose) {
         datawatcher.set(DataWatcherRegistry.s.a(6), pose);
-        PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(getId(), datawatcher, false);
-        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, false));
     }
 
     @Override
