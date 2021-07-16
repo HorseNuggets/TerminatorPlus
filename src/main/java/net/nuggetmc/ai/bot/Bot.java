@@ -120,7 +120,7 @@ public class Bot extends EntityPlayer {
         this.velocity = vector;
     }
 
-    public void addVelocity(Vector vector) {
+    public void addVelocity(Vector vector) { // This can cause lag?
         try {
             velocity.checkFinite();
         } catch (IllegalArgumentException e) {
@@ -277,12 +277,12 @@ public class Bot extends EntityPlayer {
         jump(new Vector(0, 0.5, 0));
     }
 
-    public void attack(org.bukkit.entity.Entity entity) { // TODO botfight fix
+    public void attack(org.bukkit.entity.Entity entity) {
         faceLocation(entity.getLocation());
         punch();
 
         if (entity instanceof Damageable) {
-            ((Damageable) entity).damage(2, getBukkitEntity());
+            ((Damageable) entity).damage(2, getBukkitEntity()); // fist damage is 0.25
         }
     }
 

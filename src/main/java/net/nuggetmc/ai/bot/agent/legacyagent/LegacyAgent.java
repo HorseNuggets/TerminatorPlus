@@ -462,7 +462,7 @@ public class LegacyAgent extends Agent {
                             vector.multiply(0.1);
                             vector.setY(0.5);
 
-                            npc.addVelocity(vector);
+                            npc.setVelocity(npc.getVelocity().add(vector));
                             return true;
                         }
                     }
@@ -485,7 +485,7 @@ public class LegacyAgent extends Agent {
                     vector.multiply(0.1);
                     vector.setY(0);
 
-                    npc.addVelocity(vector);
+                    npc.setVelocity(npc.getVelocity().add(vector));
                 }
 
                 return true;
