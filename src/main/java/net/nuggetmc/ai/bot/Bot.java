@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import net.nuggetmc.ai.utils.BotUtils;
 import net.nuggetmc.ai.utils.MathUtils;
 import org.bukkit.Material;
@@ -120,15 +121,13 @@ public class Bot extends EntityPlayer {
         this.velocity = vector;
     }
 
-    public void addVelocity(Vector vector) { // This can cause lag?
-        try {
-            velocity.checkFinite();
-        } catch (IllegalArgumentException e) {
+    public void addVelocity(Vector vector) { // This can cause lag? (maybe i fixed it with the new static method)
+        if (MathUtils.isNotFinite(vector)) {
             velocity = vector;
             return;
         }
 
-        this.velocity.add(vector);
+        velocity.add(vector);
     }
 
     public boolean tickDelay(int i) {
@@ -175,16 +174,23 @@ public class Bot extends EntityPlayer {
         setHealth(amount);
 
         fireDamageCheck();
-
-        if (!isAlive()) return;
-
         fallDamageCheck();
 
         oldVelocity = velocity.clone();
     }
 
     private void fireDamageCheck() {
+        if (!isAlive()) {
+            return; // maybe also have packet reset thing
+        }
+
         Material type = getLocation().getBlock().getType();
+
+        if (type == Material.WATER) {
+            setOnFirePackets(false); // maybe also play extinguish noise?
+            fireTicks = 0;
+            return;
+        }
 
         boolean lava = type == org.bukkit.Material.LAVA;
 
@@ -217,16 +223,30 @@ public class Bot extends EntityPlayer {
         sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, false));
     }
 
-    private void fallDamageCheck() {
-        if (groundTicks == 0 || noFallTicks != 0) return;
-        double y = oldVelocity.getY();
-        if (y >= -0.8 || BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) return;
+    public boolean isOnFire() {
+        return fireTicks != 0;
+    }
 
-        damageEntity(DamageSource.FALL, (float) Math.pow(3.6, -y));
+    private void fallDamageCheck() { // TODO create a better bot event system in the future, also have bot.getAgent()
+        if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) {
+            BotFallDamageEvent event = new BotFallDamageEvent(this);
+
+            PlayerAI.getInstance().getManager().getAgent().onFallDamage(event);
+
+            if (!event.isCancelled()) {
+                damageEntity(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
+            }
+        }
+    }
+
+    public boolean isFalling() {
+        return velocity.getY() < -0.8;
     }
 
     private void updateLocation() {
         double y;
+
+        MathUtils.clean(velocity); // TODO lag????
 
         if (isInWater()) {
             y = Math.min(velocity.getY() + 0.1, 0.1);
@@ -241,9 +261,8 @@ public class Bot extends EntityPlayer {
                 y = 0;
             } else {
                 y = velocity.getY();
+                velocity.setY(Math.max(y - 0.1, -3.5));
             }
-
-            velocity.setY(Math.max(velocity.getY() - 0.1, -3.5));
         }
 
         this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), y, velocity.getZ()));
@@ -473,7 +492,13 @@ public class Bot extends EntityPlayer {
         setYawPitch(yaw, pitch);
     }
 
-    public void attemptBlockPlace(Location loc, Material type) {
+    public void attemptBlockPlace(Location loc, Material type, boolean down) {
+        if (down) {
+            look(BlockFace.DOWN);
+        } else {
+            faceLocation(loc);
+        }
+
         setItem(new org.bukkit.inventory.ItemStack(Material.COBBLESTONE));
         punch();
 

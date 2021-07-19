@@ -1,15 +1,15 @@
 package net.nuggetmc.ai.utils;
 
-import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.PlayerAI;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.Agent;
+import net.nuggetmc.ai.bot.agent.legacyagent.EnumTargetGoal;
+import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -52,7 +52,9 @@ public class Debugger {
             String name = cmd.substring(0, pts[0]);
             String content = cmd.substring(pts[0] + 1, pts[1]);
 
-            Statement statement = new Statement(this, name, content.isEmpty() ? null : new Object[]{content});
+            Object[] args = content.isEmpty() ? null : buildObjects(content);
+
+            Statement statement = new Statement(this, name, args);
             print("Running the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\"...");
             statement.execute();
         }
@@ -70,55 +72,65 @@ public class Debugger {
             String[] values = content.split(",");
 
             for (String str : values) {
-                list.add(str.startsWith(" ") ? str.substring(1) : str);
+                String value = str.startsWith(" ") ? str.substring(1) : str;
+                Object obj = value;
+
+                try {
+                    obj = Double.parseDouble(value);
+                } catch (NumberFormatException ignored) { }
+
+                try {
+                    obj = Integer.parseInt(value);
+                } catch (NumberFormatException ignored) { }
+
+                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                    obj = Boolean.parseBoolean(value);
+                }
+
+                list.add(obj);
             }
         }
 
         return list.toArray();
     }
 
-    public void fire(String content) {
-        Object[] obj = buildObjects(content);
+    /*
+     * DEBUGGER METHODS
+     */
 
-        if (obj.length != 1) {
-            print("Invalid arguments!");
+    public void tp() {
+        Bot bot = MathUtils.getRandomSetElement(PlayerAI.getInstance().getManager().fetch());
+
+        if (bot == null) {
+            print("Failed to locate a bot.");
             return;
         }
 
-        boolean b = Boolean.parseBoolean((String) obj[0]);
+        print("Located bot", ChatColor.GREEN + bot.getName() + ChatColor.RESET + ".");
 
-        PlayerAI.getInstance().getManager().fetch().forEach(bot -> bot.setOnFirePackets(b));
+        if (sender instanceof Player) {
+            print("Teleporting...");
+            ((Player) sender).teleport(bot.getLocation());
+        }
     }
 
-    public void sendPackets(String content) {
-        Object[] obj = buildObjects(content);
-
-        if (obj.length != 1) {
-            print("Invalid arguments!");
+    public void setTarget(int n) {
+        Agent agent = PlayerAI.getInstance().getManager().getAgent();
+        if (!(agent instanceof LegacyAgent)) {
+            print("This method currently only supports " + ChatColor.AQUA + "LegacyAgent" + ChatColor.RESET + ".");
             return;
         }
 
-        byte b;
+        LegacyAgent legacyAgent = (LegacyAgent) agent;
+        EnumTargetGoal goal = EnumTargetGoal.of(n);
 
-        try {
-            b = Byte.parseByte((String) obj[0]);
-        } catch (NumberFormatException e) {
-            print("Invalid arguments!");
-            return;
-        }
+        legacyAgent.setTargetType(goal);
 
-        PlayerAI.getInstance().getManager().fetch().forEach(bot -> {
-            /*DataWatcher datawatcher = bot.getDataWatcher();
-            datawatcher.set(DataWatcherRegistry.s.a(6), EntityPose.DYING);
-            PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(bot.getId(), datawatcher, false);
-            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(metadata));
+        print("The goal has been set to " + ChatColor.BLUE + goal.name() + ChatColor.RESET + ".");
+    }
 
-            PacketPlayOutEntityStatus packet = new PacketPlayOutEntityStatus(bot, b);
-            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));*/
-            bot.setHealth(0);
-        });
-
-        Debugger.log("PACKETS_SENT");
+    public void fire(boolean b) {
+        PlayerAI.getInstance().getManager().fetch().forEach(bot -> bot.setOnFirePackets(b));
     }
 
     public void trackYVel() {
@@ -129,28 +141,6 @@ public class Debugger {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(PlayerAI.getInstance(), () -> {
             print(player.getVelocity().getY());
         }, 0, 1);
-    }
-
-    public void t() {
-        Bukkit.dispatchCommand(sender, "bot debug t(" + !PlayerUtils.getAllTargetable() + ")");
-    }
-
-    public void t(String content) {
-        Object[] obj = buildObjects(content);
-
-        if (obj.length != 1) {
-            print("Invalid arguments!");
-            return;
-        }
-
-        PlayerUtils.setAllTargetable(Boolean.parseBoolean((String) obj[0]));
-        String var = "PlayerUtils.allTargetable";
-
-        if (PlayerUtils.getAllTargetable()) {
-            print(var + " is now " + ChatColor.GREEN + "TRUE" + ChatColor.RESET + ".");
-        } else {
-            print(var + " is now " + ChatColor.RED + "FALSE" + ChatColor.RESET + ".");
-        }
     }
 
     public void hideNametags() { // this works for some reason
@@ -211,15 +201,6 @@ public class Debugger {
         for (Bot bot : PlayerAI.getInstance().getManager().fetch()) {
             bot.faceLocation(player.getEyeLocation());
         }
-    }
-
-    public void printObj(String content) {
-        if (content.isEmpty()) {
-            print("null");
-            return;
-        }
-
-        Arrays.stream(buildObjects(content)).forEach(this::print);
     }
 
     public void toggleAgent() {

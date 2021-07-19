@@ -36,6 +36,7 @@ public class LegacyUtils {
         try {
             World nmsWorld = ((CraftWorld) block.getWorld()).getHandle();
             net.minecraft.server.v1_16_R3.Block nmsBlock = nmsWorld.getType(new BlockPosition(block.getX(), block.getY(), block.getZ())).getBlock();
+
             SoundEffectType soundEffectType = nmsBlock.getStepSound(nmsBlock.getBlockData());
 
             Field breakSound = SoundEffectType.class.getDeclaredField("stepSound");

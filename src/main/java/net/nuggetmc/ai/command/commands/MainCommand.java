@@ -6,25 +6,38 @@ import com.jonahseguin.drink.annotation.Sender;
 import com.jonahseguin.drink.annotation.Text;
 import com.jonahseguin.drink.utils.ChatUtils;
 import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.command.CommandHandler;
 import net.nuggetmc.ai.command.CommandInstance;
 import net.nuggetmc.ai.utils.Debugger;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 
 public class MainCommand extends CommandInstance {
 
+    private final PlayerAI plugin;
     private final BotManager manager;
+    private final BukkitScheduler scheduler;
+    private final DecimalFormat formatter;
 
     public MainCommand(CommandHandler commandHandler) {
         super(commandHandler);
 
-        this.manager = PlayerAI.getInstance().getManager();
+        this.plugin = PlayerAI.getInstance();
+        this.manager = plugin.getManager();
+        this.scheduler = Bukkit.getScheduler();
+        this.formatter = new DecimalFormat("0.##");
     }
 
     @Command(
@@ -66,10 +79,57 @@ public class MainCommand extends CommandInstance {
 
     @Command(
         name = "info",
-        desc = "Information about loaded bots."
+        desc = "Information about loaded bots.",
+        usage = "[name]"
     )
-    public void info(@Sender Player sender) {
-        sender.sendMessage(ChatColor.YELLOW + "Bot GUI coming soon!");
+    public void info(@Sender CommandSender sender, @OptArg String name) {
+        if (name == null) {
+            sender.sendMessage(ChatColor.YELLOW + "Bot GUI coming soon!");
+            return;
+        }
+
+        sender.sendMessage("Processing request...");
+
+        scheduler.runTaskAsynchronously(plugin, () -> {
+            try {
+                Bot bot = manager.getFirst(name);
+
+                if (bot == null) {
+                    sender.sendMessage("Could not find bot " + ChatColor.GREEN + name + ChatColor.RESET + "!");
+                    return;
+                }
+
+                /*
+                 * health
+                 * inventory
+                 * current target
+                 * current kills
+                 * skin
+                 * neural network values
+                 */
+
+                sender.sendMessage(ChatUtils.LINE);
+                String botName = bot.getName();
+                sender.sendMessage(ChatColor.GREEN + botName);
+                //String created = ChatColor.YELLOW + "";
+                //sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Created: " + created);
+                String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "World: " + world);
+                Location loc = bot.getLocation();
+                String strLoc = ChatColor.YELLOW + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Position: " + strLoc);
+                Vector vel = bot.getVelocity();
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + vel);
+                String strVel = ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + strVel);
+
+                sender.sendMessage(ChatUtils.LINE);
+            }
+
+            catch (Exception e) {
+                sender.sendMessage(ChatColor.RED + "An exception has occured. Please try again.");
+            }
+        });
     }
 
     @Command(
@@ -79,7 +139,6 @@ public class MainCommand extends CommandInstance {
     public void reset(@Sender CommandSender sender) {
         sender.sendMessage("Removing every bot...");
 
-        BotManager manager = PlayerAI.getInstance().getManager();
         int size = manager.fetch().size();
         manager.reset();
 

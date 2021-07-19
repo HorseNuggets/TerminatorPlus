@@ -26,7 +26,7 @@ public class BotManager implements Listener {
     private final Set<Bot> bots;
     private final NumberFormat numberFormat;
 
-    private boolean removeOnDeath = true;
+    public boolean removeOnDeath = true;
 
     public BotManager() {
         this.agent = new LegacyAgent(this);
@@ -40,6 +40,16 @@ public class BotManager implements Listener {
 
     public void add(Bot bot) {
         bots.add(bot);
+    }
+
+    public Bot getFirst(String name) {
+        for (Bot bot : bots) {
+            if (name.equals(bot.getName())) {
+                return bot;
+            }
+        }
+
+        return null;
     }
 
     public Agent getAgent() {
@@ -68,9 +78,9 @@ public class BotManager implements Listener {
 
         String[] skin = MojangAPI.getSkin(skinName);
 
-        for (int i = 0; i < n; i++) {
-            Bot bot = Bot.createBot(loc, name, skin, removeOnDeath);
-            if (i > 0) bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
+        for (int i = 1; i <= n; i++) {
+            Bot bot = Bot.createBot(loc, name.replace("%", String.valueOf(i)), skin, removeOnDeath);
+            if (i > 1) bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
         }
 
         world.spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
@@ -85,11 +95,12 @@ public class BotManager implements Listener {
     public void reset() {
         bots.forEach(Bot::removeVisually);
         bots.clear(); // Not always necessary, but a good security measure
+        agent.stopAllTasks();
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         PlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().playerConnection;
-        bots.forEach(b -> b.render(connection, true));
+        bots.forEach(bot -> bot.render(connection, true));
     }
 }

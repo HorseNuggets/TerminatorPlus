@@ -3,7 +3,12 @@ package net.nuggetmc.ai.utils;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
+import java.util.Random;
+import java.util.Set;
+
 public class MathUtils {
+
+    public static final Random RANDOM = new Random();
 
     public static float[] fetchYawPitch(Vector dir) {
         double x = dir.getX();
@@ -57,18 +62,17 @@ public class MathUtils {
         return new Vector(x, 0, z);
     }
 
-    public static boolean isFinite(Vector vector) {
-        try {
-            vector.checkFinite();
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
+    public static boolean isNotFinite(Vector vector) {
+        return !NumberConversions.isFinite(vector.getX()) || !NumberConversions.isFinite(vector.getY()) || !NumberConversions.isFinite(vector.getZ());
     }
 
     public static void clean(Vector vector) {
         if (!NumberConversions.isFinite(vector.getX())) vector.setX(0);
         if (!NumberConversions.isFinite(vector.getY())) vector.setY(0);
         if (!NumberConversions.isFinite(vector.getZ())) vector.setZ(0);
+    }
+
+    public static <E> E getRandomSetElement(Set<E> set) {
+        return set.isEmpty() ? null : set.stream().skip(RANDOM.nextInt(set.size())).findFirst().orElse(null);
     }
 }

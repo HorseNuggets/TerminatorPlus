@@ -1,7 +1,9 @@
 package net.nuggetmc.ai.bot.agent;
 
 import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -42,14 +44,21 @@ public abstract class Agent {
             taskID = scheduler.scheduleSyncRepeatingTask(plugin, this::tick, 0, 1);
         } else {
             scheduler.cancelTask(taskID);
-            taskList.forEach(t -> {
-                if (!t.isCancelled()) {
-                    t.cancel();
-                }
-            });
-            taskList.clear();
+            stopAllTasks();
         }
     }
 
+    public void stopAllTasks() {
+        taskList.forEach(t -> {
+            if (!t.isCancelled()) {
+                t.cancel();
+            }
+        });
+        taskList.clear();
+    }
+
     protected abstract void tick();
+
+    public void onFallDamage(BotFallDamageEvent event) {
+    }
 }

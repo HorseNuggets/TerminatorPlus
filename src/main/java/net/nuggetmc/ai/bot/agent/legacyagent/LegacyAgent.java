@@ -5,6 +5,7 @@ import net.minecraft.server.v1_16_R3.PacketPlayOutBlockBreakAnimation;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.bot.agent.Agent;
+import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.PlayerUtils;
 import org.bukkit.*;
@@ -12,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Boat;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -27,6 +29,7 @@ public class LegacyAgent extends Agent {
     public LegacyAgent(BotManager manager) {
         super(manager);
 
+        this.goal = EnumTargetGoal.CLOSEST_REAL_VULNERABLE_PLAYER;
         this.blockCheck = new LegacyBlockCheck(this);
     }
 
@@ -101,6 +104,9 @@ public class LegacyAgent extends Agent {
         }
 
         blockCheck.clutch(bot, player);
+
+        fallDamageCheck(bot);
+        miscellaneousChecks(bot, player);
 
         Player playerBot = bot.getBukkitEntity();
         Location target = player.getLocation().add(bot.getOffset());
@@ -179,6 +185,71 @@ public class LegacyAgent extends Agent {
         }
     }
 
+    private void fallDamageCheck(Bot bot) {
+        if (bot.isFalling()) {
+            bot.look(BlockFace.DOWN);
+
+            Material itemType;
+
+            if (bot.getBukkitEntity().getWorld().getName().equals("world_nether")) {
+                itemType = Material.TWISTING_VINES;
+            } else {
+                itemType = Material.WATER_BUCKET;
+            }
+
+            bot.setItem(new ItemStack(itemType));
+        }
+    }
+
+    @Override
+    public void onFallDamage(BotFallDamageEvent event) {
+        Bot bot = event.getBot();
+        World world = bot.getBukkitEntity().getWorld();
+
+        bot.look(BlockFace.DOWN);
+
+        Material itemType;
+        Material placeType;
+        Sound sound;
+
+        if (world.getName().equals("world_nether")) {
+            itemType = Material.TWISTING_VINES;
+            sound = Sound.BLOCK_WEEPING_VINES_PLACE;
+            placeType = itemType;
+        } else {
+            itemType = Material.WATER_BUCKET;
+            sound = Sound.ITEM_BUCKET_EMPTY;
+            placeType = Material.WATER;
+        }
+
+        Location loc = bot.getLocation();
+
+        if (!loc.clone().add(0, -1, 0).getBlock().getType().isSolid()) return;
+
+        event.cancel();
+
+        if (loc.getBlock().getType() != placeType) {
+            bot.punch();
+            loc.getBlock().setType(placeType);
+            world.playSound(loc, sound, 1, 1);
+
+            if (itemType == Material.WATER_BUCKET) {
+                bot.setItem(new ItemStack(Material.BUCKET));
+
+                scheduler.runTaskLater(plugin, () -> {
+                    Block block = loc.getBlock();
+
+                    if (block.getType() == Material.WATER) {
+                        bot.look(BlockFace.DOWN);
+                        bot.setItem(new ItemStack(Material.WATER_BUCKET));
+                        world.playSound(loc, Sound.ITEM_BUCKET_FILL, 1, 1);
+                        block.setType(Material.AIR);
+                    }
+                }, 5);
+            }
+        }
+    }
+
     private void swim(Bot bot, Location loc, Player playerNPC, Player ply, boolean anim) {
         playerNPC.setSneaking(false);
 
@@ -222,18 +293,6 @@ public class LegacyAgent extends Agent {
         }
     }
 
-    /*private void moveSmall(Bot bot, Location loc, Location target) {
-        Vector vel = target.toVector().subtract(loc.toVector()).setY(0).normalize();
-
-        bot.stand(); // eventually create a memory system so packets do not have to be sent every tick
-
-        try {
-            Vector newVel = bot.velocity.clone().add(vel);
-            if (newVel.length() > 1) newVel.normalize();
-            bot.addVelocity(newVel.multiply(0.01));
-        } catch (IllegalArgumentException ignored) { }
-    }*/
-
     private void move(Bot bot, Player player, Location loc, Location target) {
         Vector vel = target.toVector().subtract(loc.toVector()).normalize();
 
@@ -246,7 +305,7 @@ public class LegacyAgent extends Agent {
         try {
             vel.add(bot.velocity);
         } catch (IllegalArgumentException e) {
-            if (!MathUtils.isFinite(vel)) {
+            if (MathUtils.isNotFinite(vel)) {
                 MathUtils.clean(vel);
             }
         }
@@ -264,6 +323,8 @@ public class LegacyAgent extends Agent {
         } else {
             vel.setY(0.4);
         }
+
+        vel.setY(vel.getY() - Math.random() * 0.05);
 
         bot.jump(vel);
     }
@@ -354,7 +415,7 @@ public class LegacyAgent extends Agent {
     }
 
     private static boolean checkSideBreak(Material type) {
-        return !LegacyMats.BREAK.contains(type) && !LegacyMats.LEAVES.contains(type);
+        return !LegacyMats.BREAK.contains(type);// && !LegacyMats.LEAVES.contains(type);
     }
 
     private boolean checkUp(Bot npc, Player player, Player playerNPC, Location loc, boolean c) {
@@ -412,13 +473,13 @@ public class LegacyAgent extends Agent {
                 npc.look(BlockFace.DOWN);
 
                 // maybe put this in lower if statement onGround()
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                scheduler.runTaskLater(plugin, () -> {
                     npc.sneak();
                     npc.setItem(new ItemStack(Material.COBBLESTONE));
                     npc.punch();
                     npc.look(BlockFace.DOWN);
 
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    scheduler.runTaskLater(plugin, () -> {
                         npc.look(BlockFace.DOWN);
                     }, 1);
 
@@ -435,7 +496,7 @@ public class LegacyAgent extends Agent {
                     if (player.getLocation().distance(playerNPC.getLocation()) < 16) {
                         if (noJump.contains(playerNPC)) {
 
-                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                            scheduler.runTaskLater(plugin, () -> {
                                 npc.setVelocity(new Vector(0, 0.5, 0));
                             }, 1);
 
@@ -462,7 +523,7 @@ public class LegacyAgent extends Agent {
                             vector.multiply(0.1);
                             vector.setY(0.5);
 
-                            npc.setVelocity(npc.getVelocity().add(vector));
+                            npc.addVelocity(vector);
                             return true;
                         }
                     }
@@ -485,7 +546,7 @@ public class LegacyAgent extends Agent {
                     vector.multiply(0.1);
                     vector.setY(0);
 
-                    npc.setVelocity(npc.getVelocity().add(vector));
+                    npc.addVelocity(vector);
                 }
 
                 return true;
@@ -555,7 +616,7 @@ public class LegacyAgent extends Agent {
             if (!fallDamageCooldown.contains(npc)) {
                 fallDamageCooldown.add(npc);
 
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                scheduler.runTaskLater(plugin, () -> {
                     fallDamageCooldown.remove(npc);
                 }, 10);
             }
@@ -599,7 +660,7 @@ public class LegacyAgent extends Agent {
         if (level == LegacyLevel.EAST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D || level == LegacyLevel.WEST_D) {
             bot.pitch = 69;
 
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            scheduler.runTaskLater(plugin, () -> {
                 btCheck.put(player, true);
             }, 5);
         } else if (level == LegacyLevel.AT_D || level == LegacyLevel.AT) {
@@ -722,7 +783,7 @@ public class LegacyAgent extends Agent {
                         if (level == LegacyLevel.ABOVE) {
                             noJump.add(player);
 
-                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                            scheduler.runTaskLater(plugin, () -> {
                                 noJump.remove(player);
                             }, 15);
                         }
@@ -751,6 +812,173 @@ public class LegacyAgent extends Agent {
             mining.put(task, (byte) 0);
             crackList.put(block, (short) random.nextInt(2000));
             task.runTaskTimer(plugin, 0, 2);
+        }
+    }
+
+    private void placeWaterDown(Bot bot, World world, Location loc) {
+        if (loc.getBlock().getType() == Material.WATER) return;
+
+        bot.look(BlockFace.DOWN);
+        bot.punch();
+        loc.getBlock().setType(Material.WATER);
+        world.playSound(loc, Sound.ITEM_BUCKET_EMPTY, 1, 1);
+        bot.setItem(new org.bukkit.inventory.ItemStack(Material.BUCKET));
+
+        scheduler.runTaskLater(plugin, () -> {
+            Block block = loc.getBlock();
+
+            if (block.getType() == Material.WATER) {
+                bot.look(BlockFace.DOWN);
+                bot.setItem(new ItemStack(Material.WATER_BUCKET));
+                world.playSound(loc, Sound.ITEM_BUCKET_FILL, 1, 1);
+                block.setType(Material.AIR);
+            }
+        }, 5);
+    }
+
+    private void miscellaneousChecks(Bot bot, Player target) {
+        Player playerBot = bot.getBukkitEntity();
+        World world = playerBot.getWorld();
+        String worldName = world.getName();
+        Location loc = bot.getLocation();
+
+        if (bot.isOnFire()) {
+            if (!worldName.equals("world_nether")) {
+                placeWaterDown(bot, world, loc);
+            }
+        }
+
+        Material atType = loc.getBlock().getType();
+
+        if (atType == Material.FIRE || atType == Material.SOUL_FIRE) {
+            if (!worldName.equals("world_nether")) {
+                placeWaterDown(bot, world, loc);
+                world.playSound(loc, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
+            } else {
+                bot.look(BlockFace.DOWN);
+                bot.punch();
+                world.playSound(loc, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
+                loc.getBlock().setType(Material.AIR);
+            }
+        }
+
+        if (atType == Material.LAVA) {
+            if (worldName.equals("world_nether")) {
+                bot.attemptBlockPlace(loc, Material.COBBLESTONE, false);
+            } else {
+                placeWaterDown(bot, world, loc);
+            }
+        }
+
+        Location head = loc.clone().add(0, 1, 0);
+        Material headType = head.getBlock().getType();
+
+        if (headType == Material.LAVA) {
+            if (worldName.equals("world_nether")) {
+                bot.attemptBlockPlace(head, Material.COBBLESTONE, false);
+            } else {
+                placeWaterDown(bot, world, head);
+            }
+        }
+
+        if (headType == Material.FIRE || headType == Material.SOUL_FIRE) {
+            if (worldName.equals("world_nether")) {
+                bot.look(BlockFace.DOWN);
+                bot.punch();
+                world.playSound(head, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
+                head.getBlock().setType(Material.AIR);
+            } else {
+                placeWaterDown(bot, world, head);
+            }
+        }
+
+        Location under = loc.clone().add(0, -1, 0);
+        Material underType = under.getBlock().getType();
+
+        if (underType == Material.FIRE || underType == Material.SOUL_FIRE) {
+            Block place = under.getBlock();
+            bot.look(BlockFace.DOWN);
+            bot.punch();
+            world.playSound(under, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
+            place.setType(Material.AIR);
+        }
+
+        Location under2 = loc.clone().add(0, -2, 0);
+        Material under2Type = under2.getBlock().getType();
+
+        if (under2Type == Material.MAGMA_BLOCK) {
+            if (LegacyMats.SPAWN.contains(under2Type)) {
+                bot.attemptBlockPlace(under2, Material.COBBLESTONE, true);
+            }
+        }
+
+        if (playerBot.getLocation().getBlockY() <= target.getLocation().getBlockY() + 1) {
+            if (!miningAnim.containsKey(playerBot)) {
+                Vector vel = playerBot.getVelocity();
+                double y = vel.getY();
+
+                if (y >= -0.6) {
+                    if (loc.clone().add(0, -0.6, 0).getBlock().getType() == Material.WATER
+                            && !LegacyMats.NO_CRACK.contains(under2Type)
+                            && playerBot.getEyeLocation().getBlock().getType().isAir()) {
+
+                        Block place = loc.clone().add(0, -1, 0).getBlock();
+                        if (LegacyMats.WATER.contains(place.getType())) {
+                            Location mlgLoc = place.getLocation();
+
+                            bot.attemptBlockPlace(place.getLocation(), Material.COBBLESTONE, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        underType = loc.clone().add(0, -0.6, 0).getBlock().getType();
+
+        if (underType == Material.LAVA) {
+            if (!boatCooldown.contains(bot)) {
+                boatCooldown.add(bot);
+
+                Location place = loc.clone().add(0, -0.1, 0);
+
+                bot.setItem(new ItemStack(Material.OAK_BOAT));
+                bot.look(BlockFace.DOWN);
+                bot.punch();
+
+                Boat boat = (Boat) world.spawnEntity(place, EntityType.BOAT);
+
+                scheduler.runTaskLater(plugin, () -> {
+                    if (!boat.isDead()) {
+                        boats.remove(boat);
+                        boat.remove();
+                    }
+                }, 20);
+
+                scheduler.runTaskLater(plugin, () -> {
+                    bot.look(BlockFace.DOWN);
+                }, 1);
+
+                boats.add(boat);
+
+                Location targetLoc = target.getLocation();
+
+                bot.stand();
+                Vector vector = targetLoc.toVector().subtract(bot.getLocation().toVector()).normalize();
+                vector.multiply(0.8);
+
+                Vector move = bot.getVelocity().add(vector);
+                if (move.length() > 1) move = move.normalize();
+                move.multiply(0.75);
+                move.setY(0.42);
+                bot.setVelocity(move);
+
+                scheduler.runTaskLater(plugin, () -> {
+                    boatCooldown.remove(bot);
+                    if (bot.isAlive()) {
+                        bot.faceLocation(target.getLocation());
+                    }
+                }, 5);
+            }
         }
     }
 
@@ -797,20 +1025,55 @@ public class LegacyAgent extends Agent {
     }
 
     private void attack(Bot bot, Player player, Location loc) {
-        if (!PlayerUtils.isVulnerableGameMode(player.getGameMode()) || player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
+        if (PlayerUtils.isInvincible(player.getGameMode()) || player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
 
         bot.attack(player);
     }
 
+    private EnumTargetGoal goal;
+
+    public void setTargetType(EnumTargetGoal goal) {
+        this.goal = goal;
+    }
+
     private Player nearestPlayer(Bot bot, Location loc) {
-        return nearestBot(bot, loc);
+        switch (goal) {
+            case CLOSEST_REAL_VULNERABLE_PLAYER:
+                return nearestRealVulnerablePlayer(loc);
+
+            case CLOSEST_REAL_PLAYER:
+                return nearestRealPlayer(loc);
+
+            case CLOSEST_BOT_DIFFER:
+                return nearestBotDiffer(bot, loc);
+
+            case CLOSEST_BOT:
+                return nearestBot(bot, loc);
+
+            default:
+                return null;
+        }
     }
 
     private Player nearestRealPlayer(Location loc) {
         Player result = null;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!PlayerUtils.isTargetable(player.getGameMode()) || loc.getWorld() != player.getWorld()) continue;
+            if (loc.getWorld() != player.getWorld()) continue;
+
+            if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
+                result = player;
+            }
+        }
+
+        return result;
+    }
+
+    private Player nearestRealVulnerablePlayer(Location loc) {
+        Player result = null;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (PlayerUtils.isInvincible(player.getGameMode()) || loc.getWorld() != player.getWorld()) continue;
 
             if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                 result = player;
@@ -821,6 +1084,24 @@ public class LegacyAgent extends Agent {
     }
 
     private Player nearestBot(Bot bot, Location loc) {
+        Player result = null;
+
+        for (Bot otherBot : manager.fetch()) {
+            if (bot == otherBot) continue;
+
+            Player player = otherBot.getBukkitEntity();
+
+            if (loc.getWorld() != player.getWorld()) continue;
+
+            if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
+                result = player;
+            }
+        }
+
+        return result;
+    }
+
+    private Player nearestBotDiffer(Bot bot, Location loc) {
         Player result = null;
 
         for (Bot otherBot : manager.fetch()) {

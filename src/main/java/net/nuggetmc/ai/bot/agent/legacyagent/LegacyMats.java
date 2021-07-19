@@ -24,15 +24,19 @@ public class LegacyMats {
         Material.TALL_SEAGRASS,
         Material.KELP,
         Material.KELP_PLANT,
+        Material.SUNFLOWER,
         Material.AIR,
-        Material.VOID_AIR
+        Material.VOID_AIR,
+        Material.FIRE,
+        Material.SOUL_FIRE
     ));
 
     public static final Set<Material> NO_CRACK = new HashSet<>(Arrays.asList(
         Material.WATER,
         Material.FIRE,
         Material.LAVA,
-        Material.CAVE_AIR
+        Material.CAVE_AIR,
+        Material.SOUL_FIRE
     ));
 
     public static final Set<Material> SHOVEL = new HashSet<>(Arrays.asList(
@@ -78,7 +82,10 @@ public class LegacyMats {
         Material.SEAGRASS,
         Material.TALL_SEAGRASS,
         Material.KELP,
-        Material.KELP_PLANT
+        Material.KELP_PLANT,
+        Material.SUNFLOWER,
+        Material.FIRE,
+        Material.SOUL_FIRE
     ));
 
     public static final Set<Material> WATER = new HashSet<>(Arrays.asList(
@@ -103,7 +110,10 @@ public class LegacyMats {
         Material.SEAGRASS,
         Material.TALL_SEAGRASS,
         Material.KELP,
-        Material.KELP_PLANT
+        Material.KELP_PLANT,
+        Material.SUNFLOWER,
+        Material.FIRE,
+        Material.SOUL_FIRE
     ));
 
     public static final Set<Material> FALL = new HashSet<>(Arrays.asList(
@@ -121,6 +131,7 @@ public class LegacyMats {
         Material.TALL_SEAGRASS,
         Material.KELP,
         Material.KELP_PLANT,
+        Material.SUNFLOWER,
         Material.WATER
     ));
 

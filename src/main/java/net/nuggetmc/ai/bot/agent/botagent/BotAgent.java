@@ -85,7 +85,7 @@ public class BotAgent extends Agent {
     }
 
     private void attack(Bot bot, Player player, Location loc) {
-        if (!PlayerUtils.isVulnerableGameMode(player.getGameMode()) || player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
+        if (PlayerUtils.isInvincible(player.getGameMode()) || player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
 
         bot.attack(player);
     }
@@ -102,7 +102,7 @@ public class BotAgent extends Agent {
         try {
             vel.add(bot.velocity);
         } catch (IllegalArgumentException e) {
-            if (!MathUtils.isFinite(vel)) {
+            if (MathUtils.isNotFinite(vel)) {
                 MathUtils.clean(vel);
             }
         }
@@ -124,7 +124,7 @@ public class BotAgent extends Agent {
         Player result = null;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!PlayerUtils.isTargetable(player.getGameMode()) || loc.getWorld() != player.getWorld()) continue;
+            if (PlayerUtils.isInvincible(player.getGameMode()) || loc.getWorld() != player.getWorld()) continue;
 
             if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                 result = player;
