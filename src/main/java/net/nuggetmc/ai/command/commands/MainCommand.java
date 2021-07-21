@@ -14,7 +14,7 @@ import net.nuggetmc.ai.command.CommandHandler;
 import net.nuggetmc.ai.command.CommandInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 
 public class MainCommand extends CommandInstance {
 
@@ -33,7 +33,11 @@ public class MainCommand extends CommandInstance {
     @Command(
         desc = "The TerminatorPlus main command."
     )
-    public void root(@Sender Player sender) {
+    public void root(@Sender CommandSender sender) {
+        if (rootInfo == null) {
+            rootInfoSetup();
+        }
+
         sender.spigot().sendMessage(rootInfo);
     }
 

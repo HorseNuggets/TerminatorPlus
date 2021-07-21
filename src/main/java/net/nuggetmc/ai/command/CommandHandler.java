@@ -4,11 +4,12 @@ import com.jonahseguin.drink.Drink;
 import com.jonahseguin.drink.annotation.Command;
 import com.jonahseguin.drink.command.DrinkCommandService;
 import com.jonahseguin.drink.utils.ChatUtils;
+import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.command.commands.AICommand;
 import net.nuggetmc.ai.command.commands.BotCommand;
 import net.nuggetmc.ai.command.commands.MainCommand;
 import org.bukkit.ChatColor;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.command.CommandSender;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,12 +22,15 @@ import java.util.stream.Collectors;
 
 public class CommandHandler {
 
+    private final TerminatorPlus plugin;
+
     private static final String MANAGE_PERMISSION = "terminatorplus.manage";
 
     private final DrinkCommandService drink;
     private final Map<Class<? extends CommandInstance>, List<String>> help;
 
-    public CommandHandler(JavaPlugin plugin) {
+    public CommandHandler(TerminatorPlus plugin) {
+        this.plugin = plugin;
         this.drink = (DrinkCommandService) Drink.get(plugin);
         this.help = new HashMap<>();
         this.registerCommands();
@@ -34,32 +38,35 @@ public class CommandHandler {
     }
 
     private void registerCommands() {
-        registerCommand(new MainCommand(this, drink), "terminatorplus", "terminator");
+        registerCommand(new MainCommand(this, drink), "terminatorplus");
         registerCommand(new BotCommand(this), "bot", "npc");
         registerCommand(new AICommand(this), "ai");
     }
 
     private void registerCommand(@Nonnull CommandInstance handler, @Nonnull String name, @Nullable String... aliases) {
+        handler.setName(name);
         drink.register(handler, MANAGE_PERMISSION, name, aliases);
         setHelp(handler.getClass());
+    }
+
+    public void sendRootInfo(CommandInstance commandInstance, CommandSender sender) {
+        sender.sendMessage(ChatUtils.LINE);
+        sender.sendMessage(ChatColor.GOLD + plugin.getName() + ChatUtils.BULLET_FORMATTED + ChatColor.GRAY
+                + "[" + ChatColor.YELLOW + "/" + commandInstance.getName() + ChatColor.GRAY + "]");
+        help.get(commandInstance.getClass()).forEach(sender::sendMessage);
+        sender.sendMessage(ChatUtils.LINE);
     }
 
     private void setHelp(Class<? extends CommandInstance> cls) {
         help.put(cls, getUsage(cls));
     }
 
-    public List<String> getHelp(Class<? extends CommandInstance> cls) {
-        return help.get(cls);
-    }
-
     private List<String> getUsage(Class<? extends CommandInstance> cls) {
         String rootName = getRootName(cls);
 
-        return getSubCommands(cls).stream().map(c -> {
-            Command command = c.getAnnotation(Command.class);
-            return ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "/" + rootName + " " + command.name() + ChatUtils.BULLET_FORMATTED
-                    + ChatColor.RESET + command.desc();
-        }).sorted().collect(Collectors.toList());
+        return getSubCommands(cls).stream().map(c -> c.getAnnotation(Command.class)).filter(Command::visible).map(c ->
+                ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "/" + rootName + " " + c.name() + ChatUtils.BULLET_FORMATTED
+                + ChatColor.RESET + c.desc()).sorted().collect(Collectors.toList());
     }
 
     private String getRootName(Class<? extends CommandInstance> cls) {

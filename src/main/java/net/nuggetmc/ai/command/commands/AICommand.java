@@ -3,11 +3,11 @@ package net.nuggetmc.ai.command.commands;
 import com.jonahseguin.drink.annotation.Command;
 import com.jonahseguin.drink.annotation.OptArg;
 import com.jonahseguin.drink.annotation.Sender;
-import com.jonahseguin.drink.utils.ChatUtils;
 import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.command.CommandHandler;
 import net.nuggetmc.ai.command.CommandInstance;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class AICommand extends CommandInstance {
@@ -23,10 +23,8 @@ public class AICommand extends CommandInstance {
     @Command(
         desc = "The root command for bot AI training."
     )
-    public void root(@Sender Player sender) {
-        sender.sendMessage(ChatUtils.LINE);
-        commandHandler.getHelp(getClass()).forEach(sender::sendMessage);
-        sender.sendMessage(ChatUtils.LINE);
+    public void root(@Sender CommandSender sender) {
+        commandHandler.sendRootInfo(this, sender);
     }
 
     @Command(

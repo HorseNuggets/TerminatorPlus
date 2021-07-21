@@ -11,6 +11,7 @@ import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.command.CommandHandler;
 import net.nuggetmc.ai.command.CommandInstance;
 import net.nuggetmc.ai.utils.Debugger;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -21,6 +22,8 @@ import org.bukkit.util.Vector;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class BotCommand extends CommandInstance {
@@ -42,10 +45,8 @@ public class BotCommand extends CommandInstance {
     @Command(
         desc = "The root command for bot management."
     )
-    public void root(@Sender Player sender) {
-        sender.sendMessage(ChatUtils.LINE);
-        commandHandler.getHelp(getClass()).forEach(sender::sendMessage);
-        sender.sendMessage(ChatUtils.LINE);
+    public void root(@Sender CommandSender sender) {
+        commandHandler.sendRootInfo(this, sender);
     }
 
     @Command(
@@ -64,15 +65,6 @@ public class BotCommand extends CommandInstance {
     )
     public void multi(@Sender Player sender, int n, String name, @OptArg String skin) {
         manager.createBots(sender, name, skin, n);
-    }
-
-    @Command(
-        name = "debug",
-        desc = "Debug plugin code.",
-        usage = "<expression>"
-    )
-    public void debug(@Sender CommandSender sender, @Text String cmd) {
-        new Debugger(sender).execute(cmd);
     }
 
     @Command(
@@ -141,5 +133,41 @@ public class BotCommand extends CommandInstance {
 
         String formatted = NumberFormat.getNumberInstance(Locale.US).format(size);
         sender.sendMessage("Removed " + ChatColor.RED + formatted + ChatColor.RESET + " entit" + (size == 1 ? "y" : "ies") + ".");
+    }
+
+    @Command(
+        name = "options",
+        desc = "Make changes to the global configuration file and bot-specific settings.",
+        aliases = "settings",
+        autofill = "optionsAutofill"
+    )
+    public void options(@Sender CommandSender sender) {
+        sender.sendMessage(ChatColor.YELLOW + "This feature is coming soon!");
+    }
+
+    public List<String> optionsAutofill(CommandSender sender, String[] args) {
+        List<String> output = new ArrayList<>();
+
+        if (args.length == 2) {
+            output.add("setgoal");
+            output.add("setitem");
+            output.add("tpall");
+            output.add("tprandom");
+            output.add("hidenametags");
+            output.add("sitall");
+            output.add("lookall");
+        }
+
+        return output;
+    }
+
+    @Command(
+        name = "debug",
+        desc = "Debug plugin code.",
+        usage = "<expression>",
+        visible = false
+    )
+    public void debug(@Sender CommandSender sender, @Text String cmd) {
+        new Debugger(sender).execute(cmd);
     }
 }
