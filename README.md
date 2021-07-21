@@ -1,10 +1,10 @@
-# PlayerAI [v3.0]
+# TerminatorPlus [v3.0-BETA]
 
-welcome, young one. yes, this is what will become the official release of the long awaited HorseNuggets 1,000 terminator manhunt plugin.
+ah welcome. yes, this is what will become the official release of the long awaited HorseNuggets 1,000 terminator manhunt plugin.
 
 ## Some basic stuff
 
-This plugin requires [Spigot 1.16.5](https://www.spigotmc.org/wiki/buildtools/#1-16-5). NMS 1.17 kind of screwed up a lot of the EntityPlayer variable names so I don't really wanna have to deal with that yet.
+This plugin requires [Spigot 1.16.5](https://www.spigotmc.org/wiki/buildtools/#1-16-5). NMS 1.17 kind of screwed up a lot of the EntityPlayer variable names (obfuscation yay!!!) so I don't really wanna have to deal with that yet.
 
 ## Things that are left to do
 

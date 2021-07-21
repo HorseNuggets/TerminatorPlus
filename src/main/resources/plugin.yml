@@ -1,15 +1,15 @@
-name: PlayerAI
-main: net.nuggetmc.ai.PlayerAI
+name: TerminatorPlus
+main: net.nuggetmc.ai.TerminatorPlus
 version: 3.0-BETA
 api-version: 1.16
 author: HorseNuggets
 
 permissions:
-  playerai.*:
-    description: PlayerAI parent permission.
+  terminatorplus.*:
+    description: TerminatorPlus parent permission.
     default: op
     children:
-      playerai.manage: true
-  playerai.manage:
-    description: Allows for PlayerAI bot management.
+      terminatorplus.manage: true
+  terminatorplus.manage:
+    description: Allows for TerminatorPlus bot management.
     default: op

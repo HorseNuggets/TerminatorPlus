@@ -1,7 +1,6 @@
 package net.nuggetmc.ai.bot.agent;
 
-import net.nuggetmc.ai.PlayerAI;
-import net.nuggetmc.ai.bot.Bot;
+import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import org.bukkit.Bukkit;
@@ -14,7 +13,7 @@ import java.util.Set;
 
 public abstract class Agent {
 
-    protected final PlayerAI plugin;
+    protected final TerminatorPlus plugin;
     protected final BotManager manager;
     protected final BukkitScheduler scheduler;
     protected final Set<BukkitRunnable> taskList;
@@ -24,7 +23,7 @@ public abstract class Agent {
     protected int taskID;
 
     public Agent(BotManager manager) {
-        this.plugin = PlayerAI.getInstance();
+        this.plugin = TerminatorPlus.getInstance();
         this.manager = manager;
         this.scheduler = Bukkit.getScheduler();
         this.taskList = new HashSet<>();

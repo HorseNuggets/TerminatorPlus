@@ -1,19 +1,17 @@
 package net.nuggetmc.ai.utils;
 
-import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.bot.agent.legacyagent.EnumTargetGoal;
 import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.ServerOperator;
+import org.bukkit.util.Vector;
 
 import java.beans.Statement;
 import java.util.ArrayList;
@@ -98,8 +96,77 @@ public class Debugger {
      * DEBUGGER METHODS
      */
 
+    public void confuse(int n) {
+        if (!(sender instanceof Player)) return;
+
+        Player player = (Player) sender;
+        Location loc = player.getLocation();
+
+        double f = n < 100 ? .004 * n : .4;
+
+        for (int i = 0; i < n; i++) {
+            Player target = Bukkit.getOnlinePlayers().stream().skip((int) (Bukkit.getOnlinePlayers().size() * Math.random())).findFirst().orElse(null);
+            String name = target == null ? "Steve" : target.getName();
+            Bot bot = Bot.createBot(loc, name);
+            bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
+            bot.faceLocation(bot.getLocation().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
+        }
+
+        player.getWorld().spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+    }
+
+    public void dreamsmp() {
+        if (!(sender instanceof Player)) return;
+
+        Player player = (Player) sender;
+        Location loc = player.getLocation();
+
+        String[] players = new String[] {
+            "Dream", "GeorgeNotFound", "Callahan", "Sapnap", "awesamdude", "Ponk", "BadBoyHalo", "TommyInnit", "Tubbo_", "ItsFundy", "Punz",
+            "Purpled", "WilburSoot", "Jschlatt", "Skeppy", "The_Eret", "JackManifoldTV", "Nihachu", "Quackity", "KarlJacobs", "HBomb94",
+            "Technoblade", "Antfrost", "Ph1LzA", "ConnorEatsPants", "CaptainPuffy", "Vikkstar123", "LazarCodeLazar", "Ranboo", "FoolishG",
+            "hannahxxrose", "Slimecicle", "Michaelmcchill"
+        };
+
+        double f = .004 * players.length;
+
+        for (String name : players) {
+            Bot bot = Bot.createBot(loc, name);
+            bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
+            bot.faceLocation(bot.getLocation().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
+        }
+
+        player.getWorld().spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+    }
+
+    public void item() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.item = true);
+    }
+
+    public void j(boolean b) {
+        TerminatorPlus.getInstance().getManager().joinMessages = b;
+    }
+
+    public void epic(int n) {
+        if (!(sender instanceof Player)) return;
+
+        Player player = (Player) sender;
+        Location loc = player.getLocation();
+
+        double f = n < 100 ? .004 * n : .4;
+
+        for (int i = 0; i < n; i++) {
+            String name = PlayerUtils.randomName();
+            Bot bot = Bot.createBot(loc, name);
+            bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
+            bot.faceLocation(bot.getLocation().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
+        }
+
+        player.getWorld().spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+    }
+
     public void tp() {
-        Bot bot = MathUtils.getRandomSetElement(PlayerAI.getInstance().getManager().fetch());
+        Bot bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch());
 
         if (bot == null) {
             print("Failed to locate a bot.");
@@ -115,7 +182,7 @@ public class Debugger {
     }
 
     public void setTarget(int n) {
-        Agent agent = PlayerAI.getInstance().getManager().getAgent();
+        Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
         if (!(agent instanceof LegacyAgent)) {
             print("This method currently only supports " + ChatColor.AQUA + "LegacyAgent" + ChatColor.RESET + ".");
             return;
@@ -130,7 +197,7 @@ public class Debugger {
     }
 
     public void fire(boolean b) {
-        PlayerAI.getInstance().getManager().fetch().forEach(bot -> bot.setOnFirePackets(b));
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setOnFirePackets(b));
     }
 
     public void trackYVel() {
@@ -138,13 +205,13 @@ public class Debugger {
 
         Player player = (Player) sender;
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(PlayerAI.getInstance(), () -> {
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(TerminatorPlus.getInstance(), () -> {
             print(player.getVelocity().getY());
         }, 0, 1);
     }
 
     public void hideNametags() { // this works for some reason
-        Set<Bot> bots = PlayerAI.getInstance().getManager().fetch();
+        Set<Bot> bots = TerminatorPlus.getInstance().getManager().fetch();
 
         for (Bot bot : bots) {
             Location loc = bot.getLocation();
@@ -167,7 +234,7 @@ public class Debugger {
     }
 
     public void sit() {
-        Set<Bot> bots = PlayerAI.getInstance().getManager().fetch();
+        Set<Bot> bots = TerminatorPlus.getInstance().getManager().fetch();
 
         for (Bot bot : bots) {
             Location loc = bot.getLocation();
@@ -198,13 +265,13 @@ public class Debugger {
 
         Player player = (Player) sender;
 
-        for (Bot bot : PlayerAI.getInstance().getManager().fetch()) {
+        for (Bot bot : TerminatorPlus.getInstance().getManager().fetch()) {
             bot.faceLocation(player.getEyeLocation());
         }
     }
 
     public void toggleAgent() {
-        Agent agent = PlayerAI.getInstance().getManager().getAgent();
+        Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
 
         boolean b = agent.isEnabled();
         agent.setEnabled(!b);

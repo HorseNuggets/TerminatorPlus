@@ -4,10 +4,7 @@ import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.ai.utils.MojangAPI;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,6 +23,7 @@ public class BotManager implements Listener {
     private final Set<Bot> bots;
     private final NumberFormat numberFormat;
 
+    public boolean joinMessages = false;
     public boolean removeOnDeath = true;
 
     public BotManager() {
@@ -39,6 +37,10 @@ public class BotManager implements Listener {
     }
 
     public void add(Bot bot) {
+        if (joinMessages) {
+            Bukkit.broadcastMessage(ChatColor.YELLOW + bot.getName() + " joined the game");
+        }
+
         bots.add(bot);
     }
 
@@ -63,9 +65,6 @@ public class BotManager implements Listener {
 
         World world = sender.getWorld();
         Location loc = sender.getLocation();
-
-        if (name.length() > 16) name = name.substring(0, 16);
-        if (skinName != null && skinName.length() > 16) skinName = skinName.substring(0, 16);
 
         sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + numberFormat.format(n) + ChatColor.RESET + " new bots")
                 + " with name " + ChatColor.GREEN + name

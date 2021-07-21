@@ -7,14 +7,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
 
-public class PlayerAI extends JavaPlugin {
+public class TerminatorPlus extends JavaPlugin {
 
-    private static PlayerAI instance;
+    private static TerminatorPlus instance;
     private static String version;
 
     private BotManager manager;
 
-    public static PlayerAI getInstance() {
+    public static TerminatorPlus getInstance() {
         return instance;
     }
 
@@ -29,7 +29,7 @@ public class PlayerAI extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        version = this.getDescription().getVersion();
+        version = getDescription().getVersion();
 
         // Create Instances
         this.manager = new BotManager();

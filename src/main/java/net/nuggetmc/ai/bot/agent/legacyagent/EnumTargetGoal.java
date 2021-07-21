@@ -1,10 +1,10 @@
 package net.nuggetmc.ai.bot.agent.legacyagent;
 
 public enum EnumTargetGoal {
-    CLOSEST_REAL_VULNERABLE_PLAYER,
-    CLOSEST_REAL_PLAYER,
-    CLOSEST_BOT_DIFFER,
-    CLOSEST_BOT,
+    NEAREST_REAL_VULNERABLE_PLAYER,
+    NEAREST_REAL_PLAYER,
+    NEAREST_BOT_DIFFER,
+    NEAREST_BOT,
     NONE;
 
     public static EnumTargetGoal of(int n) {
@@ -13,16 +13,16 @@ public enum EnumTargetGoal {
                 return NONE;
 
             case 1:
-                return CLOSEST_REAL_VULNERABLE_PLAYER;
+                return NEAREST_REAL_VULNERABLE_PLAYER;
 
             case 2:
-                return CLOSEST_REAL_PLAYER;
+                return NEAREST_REAL_PLAYER;
 
             case 3:
-                return CLOSEST_BOT_DIFFER;
+                return NEAREST_BOT_DIFFER;
 
             case 4:
-                return CLOSEST_BOT;
+                return NEAREST_BOT;
         }
     }
 }

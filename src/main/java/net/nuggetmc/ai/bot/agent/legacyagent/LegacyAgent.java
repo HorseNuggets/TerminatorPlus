@@ -26,10 +26,12 @@ public class LegacyAgent extends Agent {
 
     private final LegacyBlockCheck blockCheck;
 
+    private boolean useAIManipulators;
+
     public LegacyAgent(BotManager manager) {
         super(manager);
 
-        this.goal = EnumTargetGoal.CLOSEST_REAL_VULNERABLE_PLAYER;
+        this.goal = EnumTargetGoal.NEAREST_REAL_VULNERABLE_PLAYER;
         this.blockCheck = new LegacyBlockCheck(this);
     }
 
@@ -1038,16 +1040,16 @@ public class LegacyAgent extends Agent {
 
     private Player nearestPlayer(Bot bot, Location loc) {
         switch (goal) {
-            case CLOSEST_REAL_VULNERABLE_PLAYER:
+            case NEAREST_REAL_VULNERABLE_PLAYER:
                 return nearestRealVulnerablePlayer(loc);
 
-            case CLOSEST_REAL_PLAYER:
+            case NEAREST_REAL_PLAYER:
                 return nearestRealPlayer(loc);
 
-            case CLOSEST_BOT_DIFFER:
+            case NEAREST_BOT_DIFFER:
                 return nearestBotDiffer(bot, loc);
 
-            case CLOSEST_BOT:
+            case NEAREST_BOT:
                 return nearestBot(bot, loc);
 
             default:

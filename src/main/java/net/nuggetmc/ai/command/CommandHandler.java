@@ -4,10 +4,14 @@ import com.jonahseguin.drink.Drink;
 import com.jonahseguin.drink.annotation.Command;
 import com.jonahseguin.drink.command.DrinkCommandService;
 import com.jonahseguin.drink.utils.ChatUtils;
+import net.nuggetmc.ai.command.commands.AICommand;
+import net.nuggetmc.ai.command.commands.BotCommand;
 import net.nuggetmc.ai.command.commands.MainCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,21 +21,31 @@ import java.util.stream.Collectors;
 
 public class CommandHandler {
 
+    private static final String MANAGE_PERMISSION = "terminatorplus.manage";
+
     private final DrinkCommandService drink;
     private final Map<Class<? extends CommandInstance>, List<String>> help;
 
     public CommandHandler(JavaPlugin plugin) {
-        drink = (DrinkCommandService) Drink.get(plugin);
-        drink.register(new MainCommand(this), "playerai.manage", "bot", "playerai", "pai", "ai", "npc");
-        drink.registerCommands();
-
-        help = new HashMap<>();
-        setHelps(MainCommand.class);
+        this.drink = (DrinkCommandService) Drink.get(plugin);
+        this.help = new HashMap<>();
+        this.registerCommands();
+        this.drink.registerCommands();
     }
 
-    @SafeVarargs
-    private final void setHelps(Class<? extends CommandInstance>... cls) {
-        Arrays.stream(cls).forEach(c -> help.put(c, getUsage(c)));
+    private void registerCommands() {
+        registerCommand(new MainCommand(this, drink), "terminatorplus", "terminator");
+        registerCommand(new BotCommand(this), "bot", "npc");
+        registerCommand(new AICommand(this), "ai");
+    }
+
+    private void registerCommand(@Nonnull CommandInstance handler, @Nonnull String name, @Nullable String... aliases) {
+        drink.register(handler, MANAGE_PERMISSION, name, aliases);
+        setHelp(handler.getClass());
+    }
+
+    private void setHelp(Class<? extends CommandInstance> cls) {
+        help.put(cls, getUsage(cls));
     }
 
     public List<String> getHelp(Class<? extends CommandInstance> cls) {

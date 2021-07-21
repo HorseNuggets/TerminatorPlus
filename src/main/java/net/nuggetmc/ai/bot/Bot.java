@@ -2,11 +2,14 @@ package net.nuggetmc.ai.bot;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.server.v1_16_R3.Chunk;
 import net.minecraft.server.v1_16_R3.*;
-import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import net.nuggetmc.ai.utils.BotUtils;
 import net.nuggetmc.ai.utils.MathUtils;
+import net.nuggetmc.ai.utils.MojangAPI;
+import net.nuggetmc.ai.utils.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -28,6 +31,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class Bot extends EntityPlayer {
+
+    public boolean item; // eventually make this not garbage lol
 
     public Vector velocity;
     private Vector oldVelocity;
@@ -55,13 +60,17 @@ public class Bot extends EntityPlayer {
         datawatcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
     }
 
+    public static Bot createBot(Location loc, String name) {
+        return createBot(loc, name, MojangAPI.getSkin(name), true);
+    }
+
     public static Bot createBot(Location loc, String name, String[] skin, boolean removeOnDeath) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
 
         UUID uuid = BotUtils.randomSteveUUID();
 
-        CustomGameProfile profile = new CustomGameProfile(uuid, name, skin);
+        CustomGameProfile profile = new CustomGameProfile(uuid, StringUtils.trim16(name), skin);
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
@@ -74,7 +83,7 @@ public class Bot extends EntityPlayer {
 
         bot.renderAll();
 
-        PlayerAI.getInstance().getManager().add(bot);
+        TerminatorPlus.getInstance().getManager().add(bot);
 
         return bot;
     }
@@ -90,7 +99,7 @@ public class Bot extends EntityPlayer {
         connection.sendPacket(packets[2]);
 
         if (login) {
-            Bukkit.getScheduler().runTaskLater(PlayerAI.getInstance(), () -> connection.sendPacket(packets[3]), 10);
+            Bukkit.getScheduler().runTaskLater(TerminatorPlus.getInstance(), () -> connection.sendPacket(packets[3]), 10);
         } else {
             connection.sendPacket(packets[3]);
         }
@@ -140,6 +149,8 @@ public class Bot extends EntityPlayer {
 
     @Override
     public void tick() {
+        loadChunks();
+
         super.tick();
 
         if (!isAlive()) return;
@@ -162,7 +173,7 @@ public class Bot extends EntityPlayer {
 
         float health = getHealth();
         float maxHealth = getMaxHealth();
-        float regenAmount = 0.05f;
+        float regenAmount = 0.025f;
         float amount;
 
         if (health < maxHealth - regenAmount) {
@@ -177,6 +188,20 @@ public class Bot extends EntityPlayer {
         fallDamageCheck();
 
         oldVelocity = velocity.clone();
+    }
+
+    private void loadChunks() {
+        net.minecraft.server.v1_16_R3.World world = getWorld();
+
+        for (int i = chunkX - 1; i <= chunkX + 1; i++) {
+            for (int j = chunkZ - 1; j <= chunkZ + 1; j++) {
+                Chunk chunk = world.getChunkAt(i, j);
+
+                if (!chunk.loaded) {
+                    chunk.setLoaded(true);
+                }
+            }
+        }
     }
 
     private void fireDamageCheck() {
@@ -231,7 +256,7 @@ public class Bot extends EntityPlayer {
         if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) {
             BotFallDamageEvent event = new BotFallDamageEvent(this);
 
-            PlayerAI.getInstance().getManager().getAgent().onFallDamage(event);
+            TerminatorPlus.getInstance().getManager().getAgent().onFallDamage(event);
 
             if (!event.isCancelled()) {
                 damageEntity(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
@@ -301,7 +326,7 @@ public class Bot extends EntityPlayer {
         punch();
 
         if (entity instanceof Damageable) {
-            ((Damageable) entity).damage(2, getBukkitEntity()); // fist damage is 0.25
+            ((Damageable) entity).damage(item ? 6 : 0.25, getBukkitEntity()); // fist damage is 0.25
         }
     }
 
@@ -381,7 +406,7 @@ public class Bot extends EntityPlayer {
 
     private void dieCheck() {
         if (removeOnDeath) {
-            PlayerAI plugin = PlayerAI.getInstance();
+            TerminatorPlus plugin = TerminatorPlus.getInstance();
             plugin.getManager().remove(this);
             this.removeTab();
             Bukkit.getScheduler().runTaskLater(plugin, this::setDead, 30);
@@ -512,7 +537,7 @@ public class Bot extends EntityPlayer {
     }
 
     public void setItem(org.bukkit.inventory.ItemStack item) {
-        if (item == null) item = new org.bukkit.inventory.ItemStack(Material.AIR);
+        if (item == null) item = new org.bukkit.inventory.ItemStack(this.item ? Material.IRON_SWORD : Material.AIR);
 
         getBukkitEntity().getInventory().setItemInMainHand(item);
 

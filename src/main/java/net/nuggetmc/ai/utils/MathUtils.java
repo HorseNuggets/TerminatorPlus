@@ -75,4 +75,8 @@ public class MathUtils {
     public static <E> E getRandomSetElement(Set<E> set) {
         return set.isEmpty() ? null : set.stream().skip(RANDOM.nextInt(set.size())).findFirst().orElse(null);
     }
+
+    public static double square(double n) {
+        return n * n;
+    }
 }

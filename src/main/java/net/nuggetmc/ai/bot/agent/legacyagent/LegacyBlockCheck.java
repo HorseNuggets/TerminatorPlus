@@ -1,6 +1,6 @@
 package net.nuggetmc.ai.bot.agent.legacyagent;
 
-import net.nuggetmc.ai.PlayerAI;
+import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.Bot;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -14,11 +14,11 @@ import java.util.Set;
 
 public class LegacyBlockCheck {
 
-    private final PlayerAI plugin;
+    private final TerminatorPlus plugin;
     private final LegacyAgent agent;
 
     public LegacyBlockCheck(LegacyAgent agent) {
-        this.plugin = PlayerAI.getInstance();
+        this.plugin = TerminatorPlus.getInstance();
         this.agent = agent;
     }
 
