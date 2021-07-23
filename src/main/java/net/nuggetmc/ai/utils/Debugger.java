@@ -96,6 +96,21 @@ public class Debugger {
      * DEBUGGER METHODS
      */
 
+    public void offsets(boolean b) {
+        Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
+        if (!(agent instanceof LegacyAgent)) {
+            print("This method currently only supports " + ChatColor.AQUA + "LegacyAgent" + ChatColor.RESET + ".");
+            return;
+        }
+
+        LegacyAgent legacyAgent = (LegacyAgent) agent;
+        legacyAgent.offsets = b;
+
+        print("Bot target offsets are now "
+                + (legacyAgent.offsets ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")
+                + ChatColor.RESET + ".");
+    }
+
     public void confuse(int n) {
         if (!(sender instanceof Player)) return;
 

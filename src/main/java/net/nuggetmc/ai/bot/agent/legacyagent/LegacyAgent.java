@@ -5,6 +5,9 @@ import net.minecraft.server.v1_16_R3.PacketPlayOutBlockBreakAnimation;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.bot.agent.Agent;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.BotData;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.BotNode;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.PlayerUtils;
@@ -19,14 +22,17 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 // Yes, this code is very unoptimized, I know.
 public class LegacyAgent extends Agent {
 
     private final LegacyBlockCheck blockCheck;
 
-    private boolean useAIManipulators;
+    public boolean offsets = true;
 
     public LegacyAgent(BotManager manager) {
         super(manager);
@@ -55,13 +61,7 @@ public class LegacyAgent extends Agent {
 
     @Override
     protected void tick() {
-        try {
-            manager.fetch().forEach(this::tickBot);
-        } catch (ConcurrentModificationException e) {
-            // Yes this is a really bad way to deal with this issue, but in the future I will have a thing
-            // where when bots die they will be added to a cleanup cache that will be ticked after this (which will be refactored
-            // to the BotManager) and will be removed separately from the set.
-        }
+        manager.fetch().forEach(this::tickBot);
     }
 
     private void center(Bot bot) {
@@ -69,24 +69,24 @@ public class LegacyAgent extends Agent {
             return;
         }
 
-        final Player playerBot = bot.getBukkitEntity();
+        final Player botPlayer = bot.getBukkitEntity();
 
         Location prev = null;
-        if (btList.containsKey(playerBot)) {
-            prev = btList.get(playerBot);
+        if (btList.containsKey(botPlayer)) {
+            prev = btList.get(botPlayer);
         }
 
-        Location loc = playerBot.getLocation();
+        Location loc = botPlayer.getLocation();
 
         if (prev != null) {
             if (loc.getBlockX() == prev.getBlockX() && loc.getBlockZ() == prev.getBlockZ()) {
-                btCheck.put(playerBot, true);
+                btCheck.put(botPlayer, true);
             } else {
-                btCheck.put(playerBot, false);
+                btCheck.put(botPlayer, false);
             }
         }
 
-        btList.put(playerBot, loc);
+        btList.put(botPlayer, loc);
     }
 
     private void tickBot(Bot bot) {
@@ -110,15 +110,34 @@ public class LegacyAgent extends Agent {
         fallDamageCheck(bot);
         miscellaneousChecks(bot, player);
 
-        Player playerBot = bot.getBukkitEntity();
-        Location target = player.getLocation().add(bot.getOffset());
+        Player botPlayer = bot.getBukkitEntity();
 
-        if (bot.tickDelay(3) && !miningAnim.containsKey(playerBot)) {
-            Location a = playerBot.getEyeLocation();
+        Location target = offsets ? player.getLocation().add(bot.getOffset()) : player.getLocation();
+
+        NeuralNetwork network;
+        boolean ai = bot.hasNeuralNetwork();
+
+        if (ai) {
+            BotData data = BotData.generate(bot, player);
+
+            network = bot.getNeuralNetwork();
+            network.feed(data);
+        } else {
+            network = null;
+        }
+
+        if (bot.tickDelay(3) && !miningAnim.containsKey(botPlayer)) {
+            Location a = botPlayer.getEyeLocation();
             Location b = player.getEyeLocation();
             Location c1 = player.getLocation();
 
-            if (!LegacyUtils.checkIfBlocksOnVector(a, b) || !LegacyUtils.checkIfBlocksOnVector(a, c1)) {
+            if (ai) { // force unable to block if they are more than 6/7 blocks away
+                if (network.check(BotNode.BLOCK) && loc.distance(player.getLocation()) < 6) {
+                    bot.block();
+                }
+            }
+
+            if (LegacyUtils.checkFreeSpace(a, b) || LegacyUtils.checkFreeSpace(a, c1)) {
                 attack(bot, player, loc);
             }
         }
@@ -126,17 +145,17 @@ public class LegacyAgent extends Agent {
         boolean waterGround = (LegacyMats.WATER.contains(loc.clone().add(0, -0.1, 0).getBlock().getType())
                 && !LegacyMats.AIR.contains(loc.clone().add(0, -0.6, 0).getBlock().getType()));
 
-        boolean c = false, lc = false;
+        boolean withinTargetXZ = false, sameXZ = false;
 
-        if (btCheck.containsKey(playerBot)) lc = btCheck.get(playerBot);
+        if (btCheck.containsKey(botPlayer)) sameXZ = btCheck.get(botPlayer);
 
-        if (waterGround || bot.isOnGround() || onBoat(playerBot)) {
-            byte j = 1;
+        if (waterGround || bot.isOnGround() || onBoat(botPlayer)) {
+            byte sideResult = 1;
 
-            if (towerList.containsKey(playerBot)) {
+            if (towerList.containsKey(botPlayer)) {
                 if (loc.getBlockY() > player.getLocation().getBlockY()) {
-                    towerList.remove(playerBot);
-                    resetHand(bot, player, playerBot);
+                    towerList.remove(botPlayer);
+                    resetHand(bot, player, botPlayer);
                 }
             }
 
@@ -144,47 +163,100 @@ public class LegacyAgent extends Agent {
 
             if (Math.abs(loc.getBlockX() - target.getBlockX()) <= 3 &&
                     Math.abs(loc.getBlockZ() - target.getBlockZ()) <= 3) {
-                c = true;
+                withinTargetXZ = true;
             }
 
-            boolean bc = c || lc;
+            boolean bothXZ = withinTargetXZ || sameXZ;
 
-            // make this not destroy in scenarios where the bot can move out of the place
-            if (checkAt(bot, block, playerBot)) {
-                return;
+            if (checkAt(bot, block, botPlayer)) return;
+
+            if (checkFence(bot, loc.getBlock(), botPlayer)) return;
+
+            if (checkDown(bot, botPlayer, player.getLocation(), bothXZ)) return;
+
+            if ((withinTargetXZ || sameXZ) && checkUp(bot, player, botPlayer, target, withinTargetXZ)) return;
+
+            if (bothXZ) sideResult = checkSide(bot, player, botPlayer);
+
+            switch (sideResult) {
+                case 1:
+                    resetHand(bot, player, botPlayer);
+                    if (!noJump.contains(botPlayer) && !waterGround) move(bot, player, loc, target, ai);
+                    return;
+
+                case 2:
+                    if (!waterGround) move(bot, player, loc, target, ai);
             }
-
-            else if (checkFence(bot, loc.getBlock(), playerBot)) {
-                return;
-            }
-
-            else if (checkDown(bot, playerBot, player.getLocation(), bc)) {
-                return;
-            }
-
-            else if ((c || lc) && checkUp(bot, player, playerBot, target, c)) {
-                return;
-            }
-
-            else {
-                if (bc) j = checkSide(bot, player, playerBot);
-
-                switch (j) {
-                    case 1:
-                        resetHand(bot, player, playerBot);
-                        if (!noJump.contains(playerBot)) {
-                            if (!waterGround) move(bot, player, loc, target);
-                        }
-                        return;
-
-                    case 2:
-                        if (!waterGround) move(bot, player, loc, target);
-                        return;
-                }
-            }
-        } else if (LegacyMats.WATER.contains(loc.getBlock().getType())) {
-            swim(bot, target, playerBot, player, LegacyMats.WATER.contains(loc.clone().add(0, -1, 0).getBlock().getType()));
         }
+
+        else if (LegacyMats.WATER.contains(loc.getBlock().getType())) {
+            swim(bot, target, botPlayer, player, LegacyMats.WATER.contains(loc.clone().add(0, -1, 0).getBlock().getType()));
+        }
+    }
+
+    private void move(Bot bot, Player player, Location loc, Location target, boolean ai) {
+        Vector position = loc.toVector();
+        Vector vel = target.toVector().subtract(position).normalize();
+
+        if (bot.tickDelay(5)) bot.faceLocation(player.getLocation());
+        if (!bot.isOnGround()) return; // calling this a second time later on
+
+        bot.stand(); // eventually create a memory system so packets do not have to be sent every tick
+        bot.setItem(null); // method to check item in main hand, bot.getItemInHand()
+
+        try {
+            vel.add(bot.getVelocity());
+        } catch (IllegalArgumentException e) {
+            if (MathUtils.isNotFinite(vel)) {
+                MathUtils.clean(vel);
+            }
+        }
+
+        if (vel.length() > 1) vel.normalize();
+
+        double distance = loc.distance(target);
+
+        if (distance <= 5) {
+            vel.multiply(0.3);
+        } else {
+            vel.multiply(0.4);
+        }
+
+        if (slow.contains(bot)) {
+            vel.setY(0).multiply(0.5);
+        } else {
+            vel.setY(0.4);
+        }
+
+        vel.setY(vel.getY() - Math.random() * 0.05);
+
+        if (ai) {
+            NeuralNetwork network = bot.getNeuralNetwork();
+
+            boolean left = network.check(BotNode.LEFT);
+            boolean right = network.check(BotNode.RIGHT);
+
+            if (left != right && distance <= 6) {
+                if (left) {
+                    vel.rotateAroundY(Math.PI / 3);
+                }
+
+                if (right) {
+                    vel.rotateAroundY(-Math.PI / 3);
+                }
+
+                if (network.check(BotNode.JUMP)) {
+                    bot.jump(vel);
+                } else {
+                    bot.walk(vel.clone().setY(0));
+                    scheduler.runTaskLater(plugin, () -> bot.jump(vel), 10);
+                }
+
+                return;
+            }
+        }
+
+        bot.jump(vel);
     }
 
     private void fallDamageCheck(Bot bot) {
@@ -295,57 +367,21 @@ public class LegacyAgent extends Agent {
         }
     }
 
-    private void move(Bot bot, Player player, Location loc, Location target) {
-        Vector vel = target.toVector().subtract(loc.toVector()).normalize();
-
-        if (bot.tickDelay(5)) bot.faceLocation(player.getLocation());
-        if (!bot.isOnGround()) return; // calling this a second time later on
-
-        bot.stand(); // eventually create a memory system so packets do not have to be sent every tick
-        bot.setItem(null); // method to check item in main hand, bot.getItemInHand()
-
-        try {
-            vel.add(bot.velocity);
-        } catch (IllegalArgumentException e) {
-            if (MathUtils.isNotFinite(vel)) {
-                MathUtils.clean(vel);
-            }
-        }
-
-        if (vel.length() > 1) vel.normalize();
-
-        if (loc.distance(target) <= 5) {
-            vel.multiply(0.3);
-        } else {
-            vel.multiply(0.4);
-        }
-
-        if (slow.contains(bot)) {
-            vel.setY(0).multiply(0.5);
-        } else {
-            vel.setY(0.4);
-        }
-
-        vel.setY(vel.getY() - Math.random() * 0.05);
-
-        bot.jump(vel);
-    }
-
     private byte checkSide(Bot npc, Player player, Player playerNPC) {  // make it so they don't jump when checking side
         Location a = playerNPC.getEyeLocation();
         Location b = player.getLocation().add(0, 1, 0);
 
-        if (npc.getLocation().distance(player.getLocation()) < 2.9 && !LegacyUtils.checkIfBlocksOnVector(a, b)) {
+        if (npc.getLocation().distance(player.getLocation()) < 2.9 && LegacyUtils.checkFreeSpace(a, b)) {
             resetHand(npc, player, playerNPC);
             return 1;
         }
 
-        LegacyLevel h = checkNearby(player, npc);
+        LegacyLevel level = checkNearby(player, npc);
 
-        if (h == null) {
+        if (level == null) {
             resetHand(npc, player, playerNPC);
             return 1;
-        } else if (h.isSide()) {
+        } else if (level.isSide()) {
             return 0;
         } else {
             return 2;
@@ -560,7 +596,7 @@ public class LegacyAgent extends Agent {
 
     private boolean checkDown(Bot npc, Player player, Location loc, boolean c) { // possibly a looser check for c
 
-        if (!LegacyUtils.checkIfBlocksOnVector(npc.getLocation(), loc) || !LegacyUtils.checkIfBlocksOnVector(player.getEyeLocation(), loc)) return false;
+        if (LegacyUtils.checkFreeSpace(npc.getLocation(), loc) || LegacyUtils.checkFreeSpace(player.getEyeLocation(), loc)) return false;
 
         if (c && npc.getLocation().getBlockY() > loc.getBlockY() + 1) {
             Block block = npc.getLocation().add(0, -1, 0).getBlock();
@@ -839,8 +875,8 @@ public class LegacyAgent extends Agent {
     }
 
     private void miscellaneousChecks(Bot bot, Player target) {
-        Player playerBot = bot.getBukkitEntity();
-        World world = playerBot.getWorld();
+        Player botPlayer = bot.getBukkitEntity();
+        World world = botPlayer.getWorld();
         String worldName = world.getName();
         Location loc = bot.getLocation();
 
@@ -914,15 +950,15 @@ public class LegacyAgent extends Agent {
             }
         }
 
-        if (playerBot.getLocation().getBlockY() <= target.getLocation().getBlockY() + 1) {
-            if (!miningAnim.containsKey(playerBot)) {
-                Vector vel = playerBot.getVelocity();
+        if (botPlayer.getLocation().getBlockY() <= target.getLocation().getBlockY() + 1) {
+            if (!miningAnim.containsKey(botPlayer)) {
+                Vector vel = botPlayer.getVelocity();
                 double y = vel.getY();
 
                 if (y >= -0.6) {
                     if (loc.clone().add(0, -0.6, 0).getBlock().getType() == Material.WATER
                             && !LegacyMats.NO_CRACK.contains(under2Type)
-                            && playerBot.getEyeLocation().getBlock().getType().isAir()) {
+                            && botPlayer.getEyeLocation().getBlock().getType().isAir()) {
 
                         Block place = loc.clone().add(0, -1, 0).getBlock();
                         if (LegacyMats.WATER.contains(place.getType())) {

@@ -1,47 +1,60 @@
 package net.nuggetmc.ai.bot.agent.legacyagent.ai;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 public class NodeConnections {
 
-    private final double connectionX; // horizontal distance
-    private final double connectionY; // vertical distance
-    private final double connectionB; // enemy blocking
-    private final double connectionH; // health
+    /*
+     * more node ideas
+     * how much the bot is to the left or right of target (not horizontal distance)
+     * bot velocity?
+     * if the player is temporarily invincible (has damage ticks > 0)
+     */
+
+    private final Map<BotDataType, Double> connections;
+
+    private boolean active;
+
+    private double value;
 
     public NodeConnections() {
-        this.connectionX = generate();
-        this.connectionY = generate();
-        this.connectionB = generate();
-        this.connectionH = generate();
+        this.connections = new HashMap<>();
+
+        Arrays.stream(BotDataType.values()).forEach(type -> connections.put(type, generateValue()));
     }
 
-    public NodeConnections(double y, double b, double t, double h) {
-        this.connectionX = t;
-        this.connectionY = y;
-        this.connectionB = b;
-        this.connectionH = h;
-    }
-
-    private double generate() {
+    private double generateValue() {
         return Math.random() * 20 - 10;
     }
 
-    public double getX() {
-        return connectionX;
+    public boolean check() {
+        return active;
     }
 
-    public double getY() {
-        return connectionY;
+    public double value() {
+        return value;
     }
 
-    public double getB() {
-        return connectionB;
+    public double getValue(BotDataType dataType) {
+        return connections.get(dataType);
     }
 
-    public double getH() {
-        return connectionH;
+    /*
+     * maybe a sinusoidal activation function?
+     * maybe generate a random activation function?
+     * definitely something less.. broad
+     */
+    public void test(BotData data) {
+        this.activationFunction(data);
+        this.active = this.value >= 0.5;
     }
 
-    public boolean test(double y, double b, double t, double h) {
-        return Math.tanh(y * connectionX + b * connectionY + t * connectionB + h * connectionH) >= 0.5;
+    /*
+     * try sin, sin x^2, cos, cos x^2
+     */
+    private void activationFunction(BotData data) {
+        this.value = Math.tanh(data.getValues().entrySet().stream().mapToDouble(entry -> connections.get(entry.getKey()) * entry.getValue()).sum());
     }
 }

@@ -5,11 +5,12 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.v1_16_R3.Chunk;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.TerminatorPlus;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import net.nuggetmc.ai.utils.BotUtils;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.MojangAPI;
-import net.nuggetmc.ai.utils.StringUtils;
+import net.nuggetmc.ai.utils.StringUtilities;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -32,12 +33,27 @@ import java.util.UUID;
 
 public class Bot extends EntityPlayer {
 
-    public boolean item; // eventually make this not garbage lol
+    private NeuralNetwork network;
 
-    public Vector velocity;
+    public NeuralNetwork getNeuralNetwork() {
+        return network;
+    }
+
+    public void setNeuralNetwork(NeuralNetwork network) {
+        this.network = network;
+    }
+
+    public boolean hasNeuralNetwork() {
+        return network != null;
+    }
+
+    public boolean item; // eventually make this not garbage lol
+    public boolean shield;
+
+    private Vector velocity;
     private Vector oldVelocity;
 
-    private boolean removeOnDeath;
+    private final boolean removeOnDeath;
 
     private byte aliveTicks;
     private byte fireTicks;
@@ -55,22 +71,23 @@ public class Bot extends EntityPlayer {
         this.oldVelocity = velocity.clone();
         this.noFallTicks = 60;
         this.fireTicks = 0;
+        this.removeOnDeath = true;
         this.offset = MathUtils.circleOffset(3);
 
         datawatcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
     }
 
     public static Bot createBot(Location loc, String name) {
-        return createBot(loc, name, MojangAPI.getSkin(name), true);
+        return createBot(loc, name, MojangAPI.getSkin(name));
     }
 
-    public static Bot createBot(Location loc, String name, String[] skin, boolean removeOnDeath) {
+    public static Bot createBot(Location loc, String name, String[] skin) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
         WorldServer nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
 
         UUID uuid = BotUtils.randomSteveUUID();
 
-        CustomGameProfile profile = new CustomGameProfile(uuid, StringUtils.trim16(name), skin);
+        CustomGameProfile profile = new CustomGameProfile(uuid, StringUtilities.trim16(name), skin);
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
@@ -78,7 +95,6 @@ public class Bot extends EntityPlayer {
         bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND), bot);
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
-        bot.removeOnDeath = removeOnDeath;
         nmsWorld.addEntity(bot);
 
         bot.renderAll();
@@ -268,6 +284,10 @@ public class Bot extends EntityPlayer {
         return velocity.getY() < -0.8;
     }
 
+    public void block() {
+        // block for 10 ticks, cooldown for 10 extra ticks (20 total)
+    }
+
     private void updateLocation() {
         double y;
 
@@ -319,6 +339,15 @@ public class Bot extends EntityPlayer {
 
     public void jump() {
         jump(new Vector(0, 0.5, 0));
+    }
+
+    public void walk(Vector vel) {
+        double max = 0.4;
+
+        Vector sum = velocity.clone().add(vel);
+        if (sum.length() > max) sum.normalize().multiply(max);
+
+        velocity = sum;
     }
 
     public void attack(org.bukkit.entity.Entity entity) {
@@ -407,9 +436,11 @@ public class Bot extends EntityPlayer {
     private void dieCheck() {
         if (removeOnDeath) {
             TerminatorPlus plugin = TerminatorPlus.getInstance();
-            plugin.getManager().remove(this);
-            this.removeTab();
+
+            Bukkit.getScheduler().runTask(plugin, () -> plugin.getManager().remove(this));
             Bukkit.getScheduler().runTaskLater(plugin, this::setDead, 30);
+
+            this.removeTab();
         }
     }
 
@@ -477,12 +508,9 @@ public class Bot extends EntityPlayer {
     }
 
     private void kb(Location loc1, Location loc2) {
-        double kbUp = 0.3;
-
         Vector vel = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(0.3);
 
         if (isOnGround()) vel.multiply(0.8).setY(0.4);
-        else if (vel.getY() > kbUp) vel.setY(kbUp);
 
         velocity = vel;
         kbTicks = 10;

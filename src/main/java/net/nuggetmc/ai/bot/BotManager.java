@@ -3,6 +3,8 @@ package net.nuggetmc.ai.bot;
 import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.NetworkType;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.ai.utils.MojangAPI;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -59,6 +61,10 @@ public class BotManager implements Listener {
     }
 
     public void createBots(Player sender, String name, String skinName, int n) {
+        createBots(sender, name, skinName, n, null);
+    }
+
+    public void createBots(Player sender, String name, String skinName, int n, NetworkType type) {
         long timestamp = System.currentTimeMillis();
 
         if (n < 1) n = 1;
@@ -78,8 +84,15 @@ public class BotManager implements Listener {
         String[] skin = MojangAPI.getSkin(skinName);
 
         for (int i = 1; i <= n; i++) {
-            Bot bot = Bot.createBot(loc, name.replace("%", String.valueOf(i)), skin, removeOnDeath);
-            if (i > 1) bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
+            Bot bot = Bot.createBot(loc, name.replace("%", String.valueOf(i)), skin);
+
+            if (i > 1) {
+                bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
+            }
+
+            if (type == NetworkType.RANDOM) {
+                bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
+            }
         }
 
         world.spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);

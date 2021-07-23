@@ -3,12 +3,15 @@ package net.nuggetmc.ai.utils;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
+import java.text.DecimalFormat;
 import java.util.Random;
 import java.util.Set;
 
 public class MathUtils {
 
     public static final Random RANDOM = new Random();
+    public static final DecimalFormat FORMATTER_1 = new DecimalFormat("0.#");
+    public static final DecimalFormat FORMATTER_2 = new DecimalFormat("0.##");
 
     public static float[] fetchYawPitch(Vector dir) {
         double x = dir.getX();
@@ -78,5 +81,13 @@ public class MathUtils {
 
     public static double square(double n) {
         return n * n;
+    }
+
+    public static String round1Dec(double n) {
+        return FORMATTER_1.format(n);
+    }
+
+    public static String round2Dec(double n) {
+        return FORMATTER_2.format(n);
     }
 }

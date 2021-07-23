@@ -100,7 +100,7 @@ public class BotAgent extends Agent {
         bot.setItem(null); // method to check item in main hand, bot.getItemInHand()
 
         try {
-            vel.add(bot.velocity);
+            vel.add(bot.getVelocity());
         } catch (IllegalArgumentException e) {
             if (MathUtils.isNotFinite(vel)) {
                 MathUtils.clean(vel);

@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 
 public class LegacyUtils {
 
-    public static boolean checkIfBlocksOnVector(Location a, Location b) {
+    public static boolean checkFreeSpace(Location a, Location b) {
         Vector v = b.toVector().subtract(a.toVector());
 
         int n = 32;
@@ -20,16 +20,18 @@ public class LegacyUtils {
         double j = Math.floor(v.length() * n);
         v.multiply(m / v.length());
 
-        for (int i = 0; i <= j; i++) {
+        org.bukkit.World world = a.getWorld();
+        if (world == null) return false;
 
-            Block block = a.getWorld().getBlockAt((a.toVector().add(v.clone().multiply(i))).toLocation(a.getWorld()));
+        for (int i = 0; i <= j; i++) {
+            Block block = world.getBlockAt((a.toVector().add(v.clone().multiply(i))).toLocation(world));
 
             if (!LegacyMats.AIR.contains(block.getType())) {
-                return true;
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     public static Sound breakBlockSound(Block block) {

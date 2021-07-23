@@ -48,16 +48,11 @@ public abstract class Agent {
     }
 
     public void stopAllTasks() {
-        taskList.forEach(t -> {
-            if (!t.isCancelled()) {
-                t.cancel();
-            }
-        });
+        taskList.stream().filter(t -> !t.isCancelled()).forEach(BukkitRunnable::cancel);
         taskList.clear();
     }
 
     protected abstract void tick();
 
-    public void onFallDamage(BotFallDamageEvent event) {
-    }
+    public void onFallDamage(BotFallDamageEvent event) { }
 }
