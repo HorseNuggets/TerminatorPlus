@@ -2,6 +2,7 @@ package net.nuggetmc.ai.bot.agent;
 
 import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.BotManager;
+import net.nuggetmc.ai.bot.event.BotDamageByPlayerEvent;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -55,4 +56,6 @@ public abstract class Agent {
     protected abstract void tick();
 
     public void onFallDamage(BotFallDamageEvent event) { }
+
+    public void onPlayerDamage(BotDamageByPlayerEvent event) { }
 }

@@ -6,7 +6,7 @@ public class BotFallDamageEvent {
 
     private final Bot bot;
 
-    private boolean isCancelled;
+    private boolean cancelled;
 
     public BotFallDamageEvent(Bot bot) {
         this.bot = bot;
@@ -16,11 +16,11 @@ public class BotFallDamageEvent {
         return bot;
     }
 
-    public void cancel() {
-        isCancelled = true;
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
     }
 
     public boolean isCancelled() {
-        return isCancelled;
+        return cancelled;
     }
 }

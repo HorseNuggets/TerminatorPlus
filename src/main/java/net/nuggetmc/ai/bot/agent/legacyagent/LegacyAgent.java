@@ -8,6 +8,7 @@ import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.BotData;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.BotNode;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
+import net.nuggetmc.ai.bot.event.BotDamageByPlayerEvent;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.PlayerUtils;
@@ -133,7 +134,7 @@ public class LegacyAgent extends Agent {
 
             if (ai) { // force unable to block if they are more than 6/7 blocks away
                 if (network.check(BotNode.BLOCK) && loc.distance(player.getLocation()) < 6) {
-                    bot.block();
+                    bot.block(10, 10);
                 }
             }
 
@@ -236,13 +237,17 @@ public class LegacyAgent extends Agent {
             boolean left = network.check(BotNode.LEFT);
             boolean right = network.check(BotNode.RIGHT);
 
+            if (bot.isBlocking()) {
+                vel.multiply(0.6);
+            }
+
             if (left != right && distance <= 6) {
                 if (left) {
-                    vel.rotateAroundY(Math.PI / 3);
+                    vel.rotateAroundY(Math.PI / 4);
                 }
 
                 if (right) {
-                    vel.rotateAroundY(-Math.PI / 3);
+                    vel.rotateAroundY(-Math.PI / 4);
                 }
 
                 if (network.check(BotNode.JUMP)) {
@@ -276,6 +281,20 @@ public class LegacyAgent extends Agent {
     }
 
     @Override
+    public void onPlayerDamage(BotDamageByPlayerEvent event) {
+        Bot bot = event.getBot();
+        Location loc = bot.getLocation();
+        Player player = event.getPlayer();
+
+        double dot = loc.toVector().subtract(player.getLocation().toVector()).normalize().dot(loc.getDirection());
+
+        if (bot.isBlocking() && dot >= -0.1) {
+            player.getWorld().playSound(bot.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1, 1);
+            event.setCancelled(true);
+        }
+    }
+
+    @Override
     public void onFallDamage(BotFallDamageEvent event) {
         Bot bot = event.getBot();
         World world = bot.getBukkitEntity().getWorld();
@@ -300,7 +319,7 @@ public class LegacyAgent extends Agent {
 
         if (!loc.clone().add(0, -1, 0).getBlock().getType().isSolid()) return;
 
-        event.cancel();
+        event.setCancelled(true);
 
         if (loc.getBlock().getType() != placeType) {
             bot.punch();

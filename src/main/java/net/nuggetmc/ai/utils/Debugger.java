@@ -14,10 +14,7 @@ import org.bukkit.permissions.ServerOperator;
 import org.bukkit.util.Vector;
 
 import java.beans.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Debugger {
 
@@ -96,6 +93,10 @@ public class Debugger {
      * DEBUGGER METHODS
      */
 
+    public void block() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.block(10, 10));
+    }
+
     public void offsets(boolean b) {
         Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
         if (!(agent instanceof LegacyAgent)) {
@@ -131,27 +132,62 @@ public class Debugger {
     }
 
     public void dreamsmp() {
-        if (!(sender instanceof Player)) return;
-
-        Player player = (Player) sender;
-        Location loc = player.getLocation();
-
-        String[] players = new String[] {
+        spawnBots(Arrays.asList(
             "Dream", "GeorgeNotFound", "Callahan", "Sapnap", "awesamdude", "Ponk", "BadBoyHalo", "TommyInnit", "Tubbo_", "ItsFundy", "Punz",
             "Purpled", "WilburSoot", "Jschlatt", "Skeppy", "The_Eret", "JackManifoldTV", "Nihachu", "Quackity", "KarlJacobs", "HBomb94",
             "Technoblade", "Antfrost", "Ph1LzA", "ConnorEatsPants", "CaptainPuffy", "Vikkstar123", "LazarCodeLazar", "Ranboo", "FoolishG",
             "hannahxxrose", "Slimecicle", "Michaelmcchill"
-        };
+        ));
+    }
 
-        double f = .004 * players.length;
+    private void spawnBots(List<String> players) {
+        if (!(sender instanceof Player)) return;
 
-        for (String name : players) {
-            Bot bot = Bot.createBot(loc, name);
-            bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
-            bot.faceLocation(bot.getLocation().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
-        }
+        print("Processing request asynchronously...");
 
-        player.getWorld().spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+        Bukkit.getScheduler().runTaskAsynchronously(TerminatorPlus.getInstance(), () -> {
+            try {
+                print("Fetching skin data from the Mojang API for:");
+
+                Player player = (Player) sender;
+                Location loc = player.getLocation();
+
+                Collections.shuffle(players);
+
+                Map<String, String[]> skinCache = new HashMap<>();
+
+                int size = players.size();
+                int i = 1;
+
+                for (String name : players) {
+                    print(name, ChatColor.GRAY + "(" + ChatColor.GREEN + i + ChatColor.GRAY + "/" + size + ")");
+                    String[] skin = MojangAPI.getSkin(name);
+                    skinCache.put(name, skin);
+
+                    i++;
+                }
+
+                print("Creating bots...");
+
+                double f = .004 * players.size();
+
+                Bukkit.getScheduler().runTask(TerminatorPlus.getInstance(), () -> {
+                    skinCache.forEach((name, skin) -> {
+                        Bot bot = Bot.createBot(loc, name, skin);
+                        bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
+                        bot.faceLocation(bot.getLocation().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
+                    });
+
+                    player.getWorld().spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+
+                    print("Done.");
+                });
+            }
+
+            catch (Exception e) {
+                print(e);
+            }
+        });
     }
 
     public void item() {
@@ -165,19 +201,17 @@ public class Debugger {
     public void epic(int n) {
         if (!(sender instanceof Player)) return;
 
-        Player player = (Player) sender;
-        Location loc = player.getLocation();
+        print("Fetching names asynchronously...");
 
-        double f = n < 100 ? .004 * n : .4;
+        List<String> players = new ArrayList<>();
 
         for (int i = 0; i < n; i++) {
             String name = PlayerUtils.randomName();
-            Bot bot = Bot.createBot(loc, name);
-            bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
-            bot.faceLocation(bot.getLocation().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
+            players.add(name);
+            print(name);
         }
 
-        player.getWorld().spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+        spawnBots(players);
     }
 
     public void tp() {

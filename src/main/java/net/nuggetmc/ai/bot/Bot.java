@@ -6,11 +6,9 @@ import net.minecraft.server.v1_16_R3.Chunk;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
+import net.nuggetmc.ai.bot.event.BotDamageByPlayerEvent;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
-import net.nuggetmc.ai.utils.BotUtils;
-import net.nuggetmc.ai.utils.MathUtils;
-import net.nuggetmc.ai.utils.MojangAPI;
-import net.nuggetmc.ai.utils.StringUtilities;
+import net.nuggetmc.ai.utils.*;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.World;
@@ -19,11 +17,11 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -32,6 +30,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class Bot extends EntityPlayer {
+
+    private final TerminatorPlus plugin;
+    private final BukkitScheduler scheduler;
 
     private NeuralNetwork network;
 
@@ -48,7 +49,10 @@ public class Bot extends EntityPlayer {
     }
 
     public boolean item; // eventually make this not garbage lol
-    public boolean shield;
+
+    private boolean shield;
+    private boolean blocking;
+    private boolean blockUse;
 
     private Vector velocity;
     private Vector oldVelocity;
@@ -59,7 +63,6 @@ public class Bot extends EntityPlayer {
     private byte fireTicks;
     private byte groundTicks;
     private byte jumpTicks;
-    private byte kbTicks;
     private byte noFallTicks;
 
     private final Vector offset;
@@ -67,6 +70,8 @@ public class Bot extends EntityPlayer {
     private Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
 
+        this.plugin = TerminatorPlus.getInstance();
+        this.scheduler = Bukkit.getScheduler();
         this.velocity = new Vector(0, 0, 0);
         this.oldVelocity = velocity.clone();
         this.noFallTicks = 60;
@@ -115,7 +120,7 @@ public class Bot extends EntityPlayer {
         connection.sendPacket(packets[2]);
 
         if (login) {
-            Bukkit.getScheduler().runTaskLater(TerminatorPlus.getInstance(), () -> connection.sendPacket(packets[3]), 10);
+            scheduler.runTaskLater(plugin, () -> connection.sendPacket(packets[3]), 10);
         } else {
             connection.sendPacket(packets[3]);
         }
@@ -176,7 +181,6 @@ public class Bot extends EntityPlayer {
         if (fireTicks > 0) --fireTicks;
         if (noDamageTicks > 0) --noDamageTicks;
         if (jumpTicks > 0) --jumpTicks;
-        if (kbTicks > 0) --kbTicks;
         if (noFallTicks > 0) --noFallTicks;
 
         if (checkGround()) {
@@ -272,7 +276,7 @@ public class Bot extends EntityPlayer {
         if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) {
             BotFallDamageEvent event = new BotFallDamageEvent(this);
 
-            TerminatorPlus.getInstance().getManager().getAgent().onFallDamage(event);
+            plugin.getManager().getAgent().onFallDamage(event);
 
             if (!event.isCancelled()) {
                 damageEntity(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
@@ -284,8 +288,34 @@ public class Bot extends EntityPlayer {
         return velocity.getY() < -0.8;
     }
 
-    public void block() {
-        // block for 10 ticks, cooldown for 10 extra ticks (20 total)
+    public void block(int blockLength, int cooldown) {
+        if (!shield || blockUse) return;
+        startBlocking();
+        scheduler.runTaskLater(plugin, () -> stopBlocking(cooldown), blockLength);
+    }
+
+    private void startBlocking() {
+        this.blocking = true;
+        this.blockUse = true;
+        c(EnumHand.OFF_HAND);
+        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, true));
+    }
+
+    private void stopBlocking(int cooldown) {
+        this.blocking = false;
+        clearActiveItem();
+        scheduler.runTaskLater(plugin, () -> this.blockUse = false, cooldown);
+        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, true));
+    }
+
+    public boolean isBlocking() {
+        return blocking;
+    }
+
+    public void setShield(boolean enabled) {
+        this.shield = enabled;
+
+        setItemOffhand(new org.bukkit.inventory.ItemStack(enabled ? Material.SHIELD : Material.AIR));
     }
 
     private void updateLocation() {
@@ -355,7 +385,7 @@ public class Bot extends EntityPlayer {
         punch();
 
         if (entity instanceof Damageable) {
-            ((Damageable) entity).damage(item ? 6 : 0.25, getBukkitEntity()); // fist damage is 0.25
+            ((Damageable) entity).damage(item ? 2.5 : 0.25, getBukkitEntity()); // fist damage is 0.25
         }
     }
 
@@ -435,10 +465,8 @@ public class Bot extends EntityPlayer {
 
     private void dieCheck() {
         if (removeOnDeath) {
-            TerminatorPlus plugin = TerminatorPlus.getInstance();
-
-            Bukkit.getScheduler().runTask(plugin, () -> plugin.getManager().remove(this));
-            Bukkit.getScheduler().runTaskLater(plugin, this::setDead, 30);
+            scheduler.runTask(plugin, () -> plugin.getManager().remove(this));
+            scheduler.runTaskLater(plugin, this::setDead, 30);
 
             this.removeTab();
         }
@@ -491,17 +519,33 @@ public class Bot extends EntityPlayer {
 
     @Override
     public boolean damageEntity(DamageSource damagesource, float f) {
-        boolean damaged = super.damageEntity(damagesource, f);
-
         net.minecraft.server.v1_16_R3.Entity attacker = damagesource.getEntity();
 
-        if (damaged && kbTicks == 0 && attacker != null) {
-            Player player = getBukkitEntity();
-            CraftEntity entity = attacker.getBukkitEntity();
-            Location loc1 = player.getLocation();
-            Location loc2 = entity.getLocation();
+        float damage;
 
-            kb(loc1, loc2);
+        if (attacker instanceof EntityPlayer) {
+
+            BotDamageByPlayerEvent event = new BotDamageByPlayerEvent(this, ((EntityPlayer) attacker).getBukkitEntity(), f);
+
+            plugin.getManager().getAgent().onPlayerDamage(event);
+
+            if (event.isCancelled()) {
+                return false;
+            }
+
+            damage = event.getDamage();
+        } else {
+            damage = f;
+        }
+
+        boolean damaged = super.damageEntity(damagesource, damage);
+
+        if (!damaged && blocking) {
+            getBukkitEntity().getWorld().playSound(getLocation(), Sound.ITEM_SHIELD_BLOCK, 1, 1);
+        }
+
+        if (damaged && attacker != null) {
+            kb(getLocation(), attacker.getBukkitEntity().getLocation());
         }
 
         return damaged;
@@ -513,7 +557,6 @@ public class Bot extends EntityPlayer {
         if (isOnGround()) vel.multiply(0.8).setY(0.4);
 
         velocity = vel;
-        kbTicks = 10;
     }
 
     public Location getLocation() {
@@ -565,12 +608,24 @@ public class Bot extends EntityPlayer {
     }
 
     public void setItem(org.bukkit.inventory.ItemStack item) {
-        if (item == null) item = new org.bukkit.inventory.ItemStack(this.item ? Material.IRON_SWORD : Material.AIR);
+        setItem(item, EnumItemSlot.MAINHAND);
+    }
 
-        getBukkitEntity().getInventory().setItemInMainHand(item);
+    public void setItemOffhand(org.bukkit.inventory.ItemStack item) {
+        setItem(item, EnumItemSlot.OFFHAND);
+    }
+
+    public void setItem(org.bukkit.inventory.ItemStack item, EnumItemSlot slot) {
+        if (item == null) item = new org.bukkit.inventory.ItemStack(this.item ? Material.WOODEN_SHOVEL : Material.AIR);
+
+        if (slot == EnumItemSlot.MAINHAND) {
+            getBukkitEntity().getInventory().setItemInMainHand(item);
+        } else if (slot == EnumItemSlot.OFFHAND) {
+            getBukkitEntity().getInventory().setItemInOffHand(item);
+        }
 
         sendPacket(new PacketPlayOutEntityEquipment(getId(), new ArrayList<>(Collections.singletonList(
-            new Pair<>(EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(item))
+            new Pair<>(slot, CraftItemStack.asNMSCopy(item))
         ))));
     }
 

@@ -11,6 +11,7 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.util.Vector;
 
@@ -92,6 +93,8 @@ public class BotManager implements Listener {
 
             if (type == NetworkType.RANDOM) {
                 bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
+                bot.setShield(true);
+                bot.item = true;
             }
         }
 
@@ -114,5 +117,14 @@ public class BotManager implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         PlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().playerConnection;
         bots.forEach(bot -> bot.render(connection, true));
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        if (!(event.getDamager() instanceof Player)) return;
+
+        Player player = (Player) event.getEntity();
+        Player damager = (Player) event.getDamager();
     }
 }

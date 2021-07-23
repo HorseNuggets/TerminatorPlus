@@ -11,6 +11,8 @@ public class NeuralNetwork {
 
     // thinking about making an enum called BotNode, and have a map here, .check(Node.L) or fetch
     // also randomize activation point between 0 and 0.5
+    // randomize the blocking length and cooldown
+    // also the XZ offset randomizers!! (or maybe just turn them off entirely, that works too)
 
     private final Map<BotNode, NodeConnections> nodes;
 

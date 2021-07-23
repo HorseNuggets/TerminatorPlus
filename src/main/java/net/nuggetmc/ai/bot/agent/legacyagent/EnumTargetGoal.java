@@ -1,6 +1,6 @@
 package net.nuggetmc.ai.bot.agent.legacyagent;
 
-public enum EnumTargetGoal {
+public enum EnumTargetGoal { // TODO USE ORDINAL!!!!!
     NEAREST_REAL_VULNERABLE_PLAYER,
     NEAREST_REAL_PLAYER,
     NEAREST_BOT_DIFFER,
