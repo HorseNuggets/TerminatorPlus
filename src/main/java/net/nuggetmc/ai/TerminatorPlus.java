@@ -13,6 +13,7 @@ public class TerminatorPlus extends JavaPlugin {
     private static String version;
 
     private BotManager manager;
+    private CommandHandler handler;
 
     public static TerminatorPlus getInstance() {
         return instance;
@@ -26,6 +27,10 @@ public class TerminatorPlus extends JavaPlugin {
         return manager;
     }
 
+    public CommandHandler getHandler() {
+        return handler;
+    }
+
     @Override
     public void onEnable() {
         instance = this;
@@ -33,7 +38,7 @@ public class TerminatorPlus extends JavaPlugin {
 
         // Create Instances
         this.manager = new BotManager();
-        new CommandHandler(this);
+        this.handler = new CommandHandler(this);
 
         // Register event listeners
         this.registerEvents(manager);

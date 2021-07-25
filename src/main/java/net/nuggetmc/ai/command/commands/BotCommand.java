@@ -32,6 +32,8 @@ public class BotCommand extends CommandInstance {
     private final BukkitScheduler scheduler;
     private final DecimalFormat formatter;
 
+    private AICommand aiManager;
+
     public BotCommand(CommandHandler commandHandler) {
         super(commandHandler);
 
@@ -39,6 +41,8 @@ public class BotCommand extends CommandInstance {
         this.manager = plugin.getManager();
         this.scheduler = Bukkit.getScheduler();
         this.formatter = new DecimalFormat("0.##");
+
+        scheduler.runTask(plugin, () -> aiManager = (AICommand) plugin.getHandler().getComand("ai"));
     }
 
     @Command(
@@ -69,7 +73,8 @@ public class BotCommand extends CommandInstance {
     @Command(
         name = "info",
         desc = "Information about loaded bots.",
-        usage = "[name]"
+        usage = "[name]",
+        autofill = "infoAutofill"
     )
     public void info(@Sender CommandSender sender, @OptArg String name) {
         if (name == null) {
@@ -115,9 +120,17 @@ public class BotCommand extends CommandInstance {
             }
 
             catch (Exception e) {
-                sender.sendMessage(ChatColor.RED + "An exception has occured. Please try again.");
+                sender.sendMessage(ChatUtils.EXCEPTION_MESSAGE);
             }
         });
+    }
+
+    public List<String> infoAutofill(CommandSender sender, String[] args) {
+        if (args.length == 2) {
+            return manager.fetchNames();
+        } else {
+            return null;
+        }
     }
 
     @Command(
@@ -132,6 +145,10 @@ public class BotCommand extends CommandInstance {
 
         String formatted = NumberFormat.getNumberInstance(Locale.US).format(size);
         sender.sendMessage("Removed " + ChatColor.RED + formatted + ChatColor.RESET + " entit" + (size == 1 ? "y" : "ies") + ".");
+
+        if (aiManager.hasActiveSession()) {
+            Bukkit.dispatchCommand(sender, "ai stop");
+        }
     }
 
     @Command(

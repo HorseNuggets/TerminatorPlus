@@ -5,9 +5,11 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.server.v1_16_R3.Chunk;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.TerminatorPlus;
+import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.ai.bot.event.BotDamageByPlayerEvent;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
+import net.nuggetmc.ai.bot.event.BotKilledByPlayerEvent;
 import net.nuggetmc.ai.utils.*;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
@@ -21,6 +23,7 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
@@ -33,6 +36,7 @@ public class Bot extends EntityPlayer {
 
     private final TerminatorPlus plugin;
     private final BukkitScheduler scheduler;
+    private final Agent agent;
 
     private NeuralNetwork network;
 
@@ -48,7 +52,7 @@ public class Bot extends EntityPlayer {
         return network != null;
     }
 
-    public boolean item; // eventually make this not garbage lol
+    public ItemStack defaultItem;
 
     private boolean shield;
     private boolean blocking;
@@ -57,9 +61,11 @@ public class Bot extends EntityPlayer {
     private Vector velocity;
     private Vector oldVelocity;
 
-    private final boolean removeOnDeath;
+    private boolean removeOnDeath;
 
-    private byte aliveTicks;
+    private int aliveTicks;
+    private int kills;
+
     private byte fireTicks;
     private byte groundTicks;
     private byte jumpTicks;
@@ -72,6 +78,8 @@ public class Bot extends EntityPlayer {
 
         this.plugin = TerminatorPlus.getInstance();
         this.scheduler = Bukkit.getScheduler();
+        this.agent = plugin.getManager().getAgent();
+        this.defaultItem = new ItemStack(Material.AIR);
         this.velocity = new Vector(0, 0, 0);
         this.oldVelocity = velocity.clone();
         this.noFallTicks = 60;
@@ -139,6 +147,10 @@ public class Bot extends EntityPlayer {
         };
     }
 
+    public void setDefaultItem(ItemStack item) {
+        this.defaultItem = item;
+    }
+
     public Vector getOffset() {
         return offset;
     }
@@ -158,6 +170,10 @@ public class Bot extends EntityPlayer {
         }
 
         velocity.add(vector);
+    }
+
+    public int getAliveTicks() {
+        return aliveTicks;
     }
 
     public boolean tickDelay(int i) {
@@ -385,7 +401,7 @@ public class Bot extends EntityPlayer {
         punch();
 
         if (entity instanceof Damageable) {
-            ((Damageable) entity).damage(item ? 2.5 : 0.25, getBukkitEntity()); // fist damage is 0.25
+            ((Damageable) entity).damage(ItemUtils.getLegacyAttackDamage(defaultItem), getBukkitEntity());
         }
     }
 
@@ -442,10 +458,6 @@ public class Bot extends EntityPlayer {
         velocity.setZ(Math.abs(z) < frictionMin ? 0 : z * factor);
     }
 
-    public void despawn() {
-        getBukkitEntity().remove();
-    }
-
     public void removeVisually() {
         this.removeTab();
         this.setDead();
@@ -453,6 +465,10 @@ public class Bot extends EntityPlayer {
 
     private void removeTab() {
         sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
+    }
+
+    public void setRemoveOnDeath(boolean enabled) {
+        this.removeOnDeath = enabled;
     }
 
     private void setDead() {
@@ -523,11 +539,16 @@ public class Bot extends EntityPlayer {
 
         float damage;
 
-        if (attacker instanceof EntityPlayer) {
+        boolean playerInstance = attacker instanceof EntityPlayer;
 
-            BotDamageByPlayerEvent event = new BotDamageByPlayerEvent(this, ((EntityPlayer) attacker).getBukkitEntity(), f);
+        Player killer;
 
-            plugin.getManager().getAgent().onPlayerDamage(event);
+        if (playerInstance) {
+            killer = ((EntityPlayer) attacker).getBukkitEntity();
+
+            BotDamageByPlayerEvent event = new BotDamageByPlayerEvent(this, killer, f);
+
+            agent.onPlayerDamage(event);
 
             if (event.isCancelled()) {
                 return false;
@@ -535,6 +556,7 @@ public class Bot extends EntityPlayer {
 
             damage = event.getDamage();
         } else {
+            killer = null;
             damage = f;
         }
 
@@ -545,6 +567,10 @@ public class Bot extends EntityPlayer {
         }
 
         if (damaged && attacker != null) {
+            if (playerInstance && !isAlive()) {
+                agent.onBotKilledByPlayer(new BotKilledByPlayerEvent(this, killer));
+            }
+
             kb(getLocation(), attacker.getBukkitEntity().getLocation());
         }
 
@@ -557,6 +583,14 @@ public class Bot extends EntityPlayer {
         if (isOnGround()) vel.multiply(0.8).setY(0.4);
 
         velocity = vel;
+    }
+
+    public int getKills() {
+        return kills;
+    }
+
+    public void incrementKills() {
+        kills++;
     }
 
     public Location getLocation() {
@@ -615,8 +649,8 @@ public class Bot extends EntityPlayer {
         setItem(item, EnumItemSlot.OFFHAND);
     }
 
-    public void setItem(org.bukkit.inventory.ItemStack item, EnumItemSlot slot) {
-        if (item == null) item = new org.bukkit.inventory.ItemStack(this.item ? Material.WOODEN_SHOVEL : Material.AIR);
+    private void setItem(org.bukkit.inventory.ItemStack item, EnumItemSlot slot) {
+        if (item == null) item = defaultItem;
 
         if (slot == EnumItemSlot.MAINHAND) {
             getBukkitEntity().getInventory().setItemInMainHand(item);

@@ -2,6 +2,7 @@ package net.nuggetmc.ai.bot.agent.legacyagent;
 
 import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.Bot;
+import net.nuggetmc.ai.utils.Debugger;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -27,6 +28,11 @@ public class LegacyBlockCheck {
             for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
             bot.setItem(new ItemStack(Material.COBBLESTONE));
             loc.getBlock().setType(Material.COBBLESTONE);
+
+            Block under = loc.clone().add(0, -1, 0).getBlock();
+            if (under.getType() == Material.LAVA) {
+                under.setType(Material.COBBLESTONE);
+            }
         }
     }
 
@@ -41,10 +47,7 @@ public class LegacyBlockCheck {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 placeFinal(bot, player, block.getLocation());
             }, 2);
-        }/* else {
-			placeFinal(player, block.getLocation());
-			return;
-		}*/
+        }
 
         Set<Block> face = new HashSet<>(Arrays.asList(loc.clone().add(1, 0, 0).getBlock(),
                 loc.clone().add(-1, 0, 0).getBlock(),

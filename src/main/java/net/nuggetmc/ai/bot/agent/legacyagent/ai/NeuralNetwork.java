@@ -14,16 +14,31 @@ public class NeuralNetwork {
     // randomize the blocking length and cooldown
     // also the XZ offset randomizers!! (or maybe just turn them off entirely, that works too)
 
+    // b, j, l, r, ox, oz, av, bl, bc, dlr
+
     private final Map<BotNode, NodeConnections> nodes;
 
-    private NeuralNetwork(BotNode... nodes) {
-        this.nodes = new HashMap<>();
+    private final boolean dynamicLR;
 
-        Arrays.stream(nodes).forEach(n -> this.nodes.put(n, new NodeConnections()));
+    public static final NeuralNetwork RANDOM = new NeuralNetwork(new HashMap<>());
+
+    private NeuralNetwork(Map<BotNode, Map<BotDataType, Double>> profile) {
+        this.nodes = new HashMap<>();
+        this.dynamicLR = true;
+
+        if (profile == null) {
+            Arrays.stream(BotNode.values()).forEach(n -> this.nodes.put(n, new NodeConnections()));
+        } else {
+            profile.forEach((nodeType, map) -> nodes.put(nodeType, new NodeConnections(map)));
+        }
+    }
+
+    public static NeuralNetwork createNetworkFromProfile(Map<BotNode, Map<BotDataType, Double>> profile) {
+        return new NeuralNetwork(profile);
     }
 
     public static NeuralNetwork generateRandomNetwork() {
-        return new NeuralNetwork(BotNode.values());
+        return new NeuralNetwork(null);
     }
 
     public NodeConnections fetch(BotNode node) {
@@ -34,33 +49,46 @@ public class NeuralNetwork {
         return nodes.get(node).check();
     }
 
+    public double value(BotNode node) {
+        return nodes.get(node).value();
+    }
+
     public void feed(BotData data) {
         nodes.values().forEach(n -> n.test(data));
     }
 
+    public Map<BotNode, NodeConnections> nodes() {
+        return nodes;
+    }
+
+    public boolean dynamicLR() {
+        return dynamicLR;
+    }
+
+    public Map<BotNode, Map<BotDataType, Double>> values() {
+        Map<BotNode, Map<BotDataType, Double>> output = new HashMap<>();
+        nodes.forEach((nodeType, node) -> output.put(nodeType, node.getValues()));
+        return output;
+    }
+
     public String output() {
-        return generateString(false);
+        List<String> strings = new ArrayList<>();
+        nodes.forEach((type, node) -> strings.add(type.name().toLowerCase() + "=" + (node.check() ? StringUtilities.ON + "1" : StringUtilities.OFF + "0") + ChatColor.RESET));
+        Collections.sort(strings);
+        return "[" + StringUtils.join(strings, ", ") + "]";
     }
 
     @Override
     public String toString() {
-        return generateString(true);
-    }
-
-    private String generateString(boolean values) {
         List<String> strings = new ArrayList<>();
 
-        if (values) {
-            nodes.forEach((type, node) -> {
-                double value = node.value();
-                strings.add(type.name().toLowerCase() + "=" + (value >= 0.5 ? StringUtilities.ON : StringUtilities.OFF) + MathUtils.round2Dec(value) + ChatColor.RESET);
-            });
-        } else {
-            nodes.forEach((type, node) -> strings.add(type.name().toLowerCase() + "=" + (node.check() ? StringUtilities.ON + "1" : StringUtilities.OFF + "0") + ChatColor.RESET));
-        }
+        nodes.forEach((nodeType, node) -> {
+            List<String> values = new ArrayList<>();
+            values.add("name=\"" + nodeType.name().toLowerCase() + "\"");
+            node.getValues().forEach((dataType, value) -> values.add(dataType.getShorthand() + "=" + MathUtils.round2Dec(value)));
+            strings.add("{" + StringUtils.join(values, ",") + "}");
+        });
 
-        Collections.sort(strings);
-
-        return "[" + StringUtils.join(strings, ", ") + "]";
+        return "NeuralNetwork{nodes:[" + StringUtils.join(strings, ",") + "]}";
     }
 }

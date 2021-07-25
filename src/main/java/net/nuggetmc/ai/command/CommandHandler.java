@@ -28,11 +28,13 @@ public class CommandHandler {
 
     private final DrinkCommandService drink;
     private final Map<Class<? extends CommandInstance>, List<String>> help;
+    private final Map<String, CommandInstance> commandMap;
 
     public CommandHandler(TerminatorPlus plugin) {
         this.plugin = plugin;
         this.drink = (DrinkCommandService) Drink.get(plugin);
         this.help = new HashMap<>();
+        this.commandMap = new HashMap<>();
         this.registerCommands();
         this.drink.registerCommands();
     }
@@ -45,8 +47,13 @@ public class CommandHandler {
 
     private void registerCommand(@Nonnull CommandInstance handler, @Nonnull String name, @Nullable String... aliases) {
         handler.setName(name);
+        commandMap.put(name, handler);
         drink.register(handler, MANAGE_PERMISSION, name, aliases);
         setHelp(handler.getClass());
+    }
+
+    public CommandInstance getComand(String name) {
+        return commandMap.get(name);
     }
 
     public void sendRootInfo(CommandInstance commandInstance, CommandSender sender) {

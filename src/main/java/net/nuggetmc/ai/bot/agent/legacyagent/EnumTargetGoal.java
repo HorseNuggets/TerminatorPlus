@@ -5,6 +5,7 @@ public enum EnumTargetGoal { // TODO USE ORDINAL!!!!!
     NEAREST_REAL_PLAYER,
     NEAREST_BOT_DIFFER,
     NEAREST_BOT,
+    NEAREST_BOT_DIFFER_ALPHA,
     NONE;
 
     public static EnumTargetGoal of(int n) {
@@ -23,6 +24,9 @@ public enum EnumTargetGoal { // TODO USE ORDINAL!!!!!
 
             case 4:
                 return NEAREST_BOT;
+
+            case 5:
+                return NEAREST_BOT_DIFFER_ALPHA;
         }
     }
 }

@@ -2,6 +2,7 @@ package net.nuggetmc.ai.utils;
 
 import net.nuggetmc.ai.TerminatorPlus;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -47,6 +48,23 @@ public class PlayerUtils {
 
         catch (IOException | ParseException e) {
             Debugger.log("Failed to fetch from the usercache.");
+        }
+    }
+
+    public static Location findAbove(Location loc, int amount) {
+        boolean check = false;
+
+        for (int i = 0; i <= amount; i++) {
+            if (loc.clone().add(0, i, 0).getBlock().getType().isSolid()) {
+                check = true;
+                break;
+            }
+        }
+
+        if (check) {
+            return loc;
+        } else {
+            return loc.clone().add(0, amount, 0);
         }
     }
 }

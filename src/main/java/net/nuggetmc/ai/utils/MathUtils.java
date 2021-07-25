@@ -1,11 +1,12 @@
 package net.nuggetmc.ai.utils;
 
+import net.nuggetmc.ai.bot.Bot;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import java.text.DecimalFormat;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MathUtils {
 
@@ -89,5 +90,94 @@ public class MathUtils {
 
     public static String round2Dec(double n) {
         return FORMATTER_2.format(n);
+    }
+
+    public static List<Map.Entry<Bot, Integer>> sortByValue(HashMap<Bot, Integer> hm) {
+        List<Map.Entry<Bot, Integer>> list = new LinkedList<>(hm.entrySet());
+        list.sort(Map.Entry.comparingByValue());
+        Collections.reverse(list);
+        return list;
+    }
+
+    public static double generateConnectionValue(List<Double> list, double mutationSize) {
+        double[] bounds = getBounds(list, mutationSize);
+        return random(bounds[0], bounds[1]);
+    }
+
+    public static double generateConnectionValue(List<Double> list) {
+        return generateConnectionValue(list, 0);
+    }
+
+    public static double random(double low, double high) {
+        return Math.random() * (high - low) + low;
+    }
+
+    public static double sum(List<Double> list) {
+        return list.stream().mapToDouble(n -> n).sum();
+    }
+
+    public static double min(List<Double> list) {
+        if (list.isEmpty()) {
+            return 0;
+        }
+
+        double min = Double.MAX_VALUE;
+
+        for (double n : list) {
+            if (n < min) {
+                min = n;
+            }
+        }
+
+        return min;
+    }
+
+    public static double max(List<Double> list) {
+        if (list.isEmpty()) {
+            return 0;
+        }
+
+        double max = 0;
+
+        for (double n : list) {
+            if (n > max) {
+                max = n;
+            }
+        }
+
+        return max;
+    }
+
+    public static double getMidValue(List<Double> list) {
+        return (min(list) + max(list)) / 2D;
+    }
+
+    public static double distribution(List<Double> list, double mid) {
+        return Math.sqrt(sum(list.stream().map(n -> Math.pow(n - mid, 2)).collect(Collectors.toList())) / list.size());
+    }
+
+    public static double[] getBounds(List<Double> list, double mutationSize) {
+        double mid = getMidValue(list);
+        double dist = distribution(list, mid);
+        double p = mutationSize * dist / Math.sqrt(list.size());
+
+        return new double[] {
+            mid - p,
+            mid + p
+        };
+    }
+
+    public static double getMutationSize(int generation) {
+        int shift = 4;
+
+        if (generation <= shift + 1) {
+            return 7.38905609893;
+        }
+
+        double a = 0.8;
+        double b = -8.5 - shift;
+        double c = 2;
+
+        return Math.pow(a, generation + b) + c;
     }
 }

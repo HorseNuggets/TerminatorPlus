@@ -3,22 +3,22 @@ package net.nuggetmc.ai.bot;
 import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
-import net.nuggetmc.ai.bot.agent.legacyagent.ai.NetworkType;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
+import net.nuggetmc.ai.bot.event.BotDeathEvent;
 import net.nuggetmc.ai.utils.MojangAPI;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.text.NumberFormat;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class BotManager implements Listener {
 
@@ -27,7 +27,6 @@ public class BotManager implements Listener {
     private final NumberFormat numberFormat;
 
     public boolean joinMessages = false;
-    public boolean removeOnDeath = true;
 
     public BotManager() {
         this.agent = new LegacyAgent(this);
@@ -57,6 +56,10 @@ public class BotManager implements Listener {
         return null;
     }
 
+    public List<String> fetchNames() {
+        return bots.stream().map(Bot::getName).collect(Collectors.toList());
+    }
+
     public Agent getAgent() {
         return agent;
     }
@@ -65,42 +68,71 @@ public class BotManager implements Listener {
         createBots(sender, name, skinName, n, null);
     }
 
-    public void createBots(Player sender, String name, String skinName, int n, NetworkType type) {
+    public void createBots(Player sender, String name, String skinName, int n, NeuralNetwork network) {
         long timestamp = System.currentTimeMillis();
 
         if (n < 1) n = 1;
 
-        World world = sender.getWorld();
-        Location loc = sender.getLocation();
-
         sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + numberFormat.format(n) + ChatColor.RESET + " new bots")
-                + " with name " + ChatColor.GREEN + name
+                + " with name " + ChatColor.GREEN + name.replace("%", ChatColor.LIGHT_PURPLE + "%" + ChatColor.RESET)
                 + (skinName == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skinName)
                 + ChatColor.RESET + "...");
 
         skinName = skinName == null ? name : skinName;
 
-        double f = n < 100 ? .004 * n : .4;
-
-        String[] skin = MojangAPI.getSkin(skinName);
-
-        for (int i = 1; i <= n; i++) {
-            Bot bot = Bot.createBot(loc, name.replace("%", String.valueOf(i)), skin);
-
-            if (i > 1) {
-                bot.setVelocity(new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(f));
-            }
-
-            if (type == NetworkType.RANDOM) {
-                bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
-                bot.setShield(true);
-                bot.item = true;
-            }
-        }
-
-        world.spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+        createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
 
         sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
+    }
+
+    public Set<Bot> createBots(Location loc, String name, String[] skin, int n, NeuralNetwork network) {
+        List<NeuralNetwork> networks = new ArrayList<>();
+
+        for (int i = 0; i < n; i++) {
+            networks.add(network);
+        }
+
+        return createBots(loc, name, skin, networks);
+    }
+
+    public Set<Bot> createBots(Location loc, String name, String[] skin, List<NeuralNetwork> networks) {
+        Set<Bot> bots = new HashSet<>();
+        World world = loc.getWorld();
+
+        int n = networks.size();
+        int i = 1;
+
+        double f = n < 100 ? .004 * n : .4;
+
+        for (NeuralNetwork network : networks) {
+            Bot bot = Bot.createBot(loc, name.replace("%", String.valueOf(i)), skin);
+
+            if (network != null) {
+                bot.setNeuralNetwork(network == NeuralNetwork.RANDOM ? NeuralNetwork.generateRandomNetwork() : network);
+                bot.setShield(true);
+                bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
+                bot.setRemoveOnDeath(false);
+            }
+
+            if (network != null) {
+                bot.setVelocity(randomVelocity());
+            } else if (i > 1) {
+                bot.setVelocity(randomVelocity().multiply(f));
+            }
+
+            bots.add(bot);
+            i++;
+        }
+
+        if (world != null) {
+            world.spawnParticle(Particle.CLOUD, loc, 100, 1, 1, 1, 0.5);
+        }
+
+        return bots;
+    }
+
+    private Vector randomVelocity() {
+        return new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize();
     }
 
     public void remove(Bot bot) {
@@ -111,6 +143,23 @@ public class BotManager implements Listener {
         bots.forEach(Bot::removeVisually);
         bots.clear(); // Not always necessary, but a good security measure
         agent.stopAllTasks();
+
+        System.gc();
+    }
+
+    public Bot getBot(Player player) { // potentially memory intensive
+        Bot bot = null;
+
+        int id = player.getEntityId();
+
+        for (Bot b : bots) {
+            if (id == b.getId()) {
+                bot = b;
+                break;
+            }
+        }
+
+        return bot;
     }
 
     @EventHandler
@@ -120,11 +169,12 @@ public class BotManager implements Listener {
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof Player)) return;
-        if (!(event.getDamager() instanceof Player)) return;
+    public void onDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        Bot bot = getBot(player);
 
-        Player player = (Player) event.getEntity();
-        Player damager = (Player) event.getDamager();
+        if (bot != null) {
+            agent.onBotDeath(new BotDeathEvent(event, bot));
+        }
     }
 }

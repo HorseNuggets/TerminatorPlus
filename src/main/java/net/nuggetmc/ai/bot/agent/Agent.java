@@ -1,10 +1,14 @@
 package net.nuggetmc.ai.bot.agent;
 
 import net.nuggetmc.ai.TerminatorPlus;
+import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.BotManager;
 import net.nuggetmc.ai.bot.event.BotDamageByPlayerEvent;
+import net.nuggetmc.ai.bot.event.BotDeathEvent;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
+import net.nuggetmc.ai.bot.event.BotKilledByPlayerEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -22,6 +26,8 @@ public abstract class Agent {
 
     protected boolean enabled;
     protected int taskID;
+
+    protected boolean drops;
 
     public Agent(BotManager manager) {
         this.plugin = TerminatorPlus.getInstance();
@@ -53,9 +59,27 @@ public abstract class Agent {
         taskList.clear();
     }
 
+    public void setDrops(boolean enabled) {
+        this.drops = enabled;
+    }
+
     protected abstract void tick();
 
     public void onFallDamage(BotFallDamageEvent event) { }
 
     public void onPlayerDamage(BotDamageByPlayerEvent event) { }
+
+    public void onBotDeath(BotDeathEvent event) { }
+
+    public void onBotKilledByPlayer(BotKilledByPlayerEvent event) {
+        Player player = event.getPlayer();
+
+        scheduler.runTaskAsynchronously(plugin, () -> {
+            Bot bot = manager.getBot(player);
+
+            if (bot != null) {
+                bot.incrementKills();
+            }
+        });
+    }
 }

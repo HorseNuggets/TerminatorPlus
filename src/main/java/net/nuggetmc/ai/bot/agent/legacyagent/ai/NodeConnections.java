@@ -25,6 +25,10 @@ public class NodeConnections {
         Arrays.stream(BotDataType.values()).forEach(type -> connections.put(type, generateValue()));
     }
 
+    public NodeConnections(Map<BotDataType, Double> values) {
+        this.connections = values;
+    }
+
     private double generateValue() {
         return Math.random() * 20 - 10;
     }
@@ -35,6 +39,10 @@ public class NodeConnections {
 
     public double value() {
         return value;
+    }
+
+    public Map<BotDataType, Double> getValues() {
+        return connections;
     }
 
     public double getValue(BotDataType dataType) {

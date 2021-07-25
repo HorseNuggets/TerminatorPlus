@@ -9,7 +9,9 @@ import net.nuggetmc.ai.bot.agent.legacyagent.ai.BotData;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.BotNode;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.ai.bot.event.BotDamageByPlayerEvent;
+import net.nuggetmc.ai.bot.event.BotDeathEvent;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
+import net.nuggetmc.ai.bot.event.BotKilledByPlayerEvent;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.PlayerUtils;
 import org.bukkit.*;
@@ -234,30 +236,58 @@ public class LegacyAgent extends Agent {
         if (ai) {
             NeuralNetwork network = bot.getNeuralNetwork();
 
-            boolean left = network.check(BotNode.LEFT);
-            boolean right = network.check(BotNode.RIGHT);
+            if (network.dynamicLR()) {
+                if (bot.isBlocking()) {
+                    vel.multiply(0.6);
+                }
 
-            if (bot.isBlocking()) {
-                vel.multiply(0.6);
+                if (distance <= 6) {
+
+                    // positive y rotation means left, negative means right
+                    // if left > right, value will be positive
+
+                    double value = network.value(BotNode.LEFT) - network.value(BotNode.RIGHT);
+
+                    vel.rotateAroundY(value * Math.PI / 8);
+
+                    if (network.check(BotNode.JUMP)) {
+                        bot.jump(vel);
+                    } else {
+                        bot.walk(vel.clone().setY(0));
+                        scheduler.runTaskLater(plugin, () -> bot.jump(vel), 10);
+                    }
+
+                    return;
+                }
             }
 
-            if (left != right && distance <= 6) {
-                if (left) {
-                    vel.rotateAroundY(Math.PI / 4);
+            else {
+                boolean left = network.check(BotNode.LEFT);
+                boolean right = network.check(BotNode.RIGHT);
+
+                if (bot.isBlocking()) {
+                    vel.multiply(0.6);
                 }
 
-                if (right) {
-                    vel.rotateAroundY(-Math.PI / 4);
-                }
+                if (left != right && distance <= 6) {
 
-                if (network.check(BotNode.JUMP)) {
-                    bot.jump(vel);
-                } else {
-                    bot.walk(vel.clone().setY(0));
-                    scheduler.runTaskLater(plugin, () -> bot.jump(vel), 10);
-                }
+                    if (left) {
+                        vel.rotateAroundY(Math.PI / 4);
+                    }
 
-                return;
+                    if (right) {
+                        vel.rotateAroundY(-Math.PI / 4);
+                    }
+
+                    if (network.check(BotNode.JUMP)) {
+                        bot.jump(vel);
+                    } else {
+                        bot.walk(vel.clone().setY(0));
+                        scheduler.runTaskLater(plugin, () -> bot.jump(vel), 10);
+                    }
+
+                    return;
+                }
             }
         }
 
@@ -277,6 +307,13 @@ public class LegacyAgent extends Agent {
             }
 
             bot.setItem(new ItemStack(itemType));
+        }
+    }
+
+    @Override
+    public void onBotDeath(BotDeathEvent event) {
+        if (!drops) {
+            event.getDrops().clear();
         }
     }
 
@@ -1023,9 +1060,9 @@ public class LegacyAgent extends Agent {
                 Vector vector = targetLoc.toVector().subtract(bot.getLocation().toVector()).normalize();
                 vector.multiply(0.8);
 
-                Vector move = bot.getVelocity().add(vector);
+                Vector move = bot.getVelocity().add(vector).setY(0);
                 if (move.length() > 1) move = move.normalize();
-                move.multiply(0.75);
+                move.multiply(0.5);
                 move.setY(0.42);
                 bot.setVelocity(move);
 
@@ -1104,6 +1141,9 @@ public class LegacyAgent extends Agent {
             case NEAREST_BOT_DIFFER:
                 return nearestBotDiffer(bot, loc);
 
+            case NEAREST_BOT_DIFFER_ALPHA:
+                return nearestBotDifferAlpha(bot, loc);
+
             case NEAREST_BOT:
                 return nearestBot(bot, loc);
 
@@ -1116,7 +1156,7 @@ public class LegacyAgent extends Agent {
         Player result = null;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (loc.getWorld() != player.getWorld()) continue;
+            if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
 
             if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                 result = player;
@@ -1130,7 +1170,7 @@ public class LegacyAgent extends Agent {
         Player result = null;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (PlayerUtils.isInvincible(player.getGameMode()) || loc.getWorld() != player.getWorld()) continue;
+            if (PlayerUtils.isInvincible(player.getGameMode()) || loc.getWorld() != player.getWorld() || player.isDead()) continue;
 
             if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                 result = player;
@@ -1148,7 +1188,7 @@ public class LegacyAgent extends Agent {
 
             Player player = otherBot.getBukkitEntity();
 
-            if (loc.getWorld() != player.getWorld()) continue;
+            if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
 
             if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                 result = player;
@@ -1167,7 +1207,27 @@ public class LegacyAgent extends Agent {
             Player player = otherBot.getBukkitEntity();
 
             if (!bot.getName().equals(otherBot.getName())) {
-                if (loc.getWorld() != player.getWorld()) continue;
+                if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
+
+                if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
+                    result = player;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private Player nearestBotDifferAlpha(Bot bot, Location loc) {
+        Player result = null;
+
+        for (Bot otherBot : manager.fetch()) {
+            if (bot == otherBot) continue;
+
+            Player player = otherBot.getBukkitEntity();
+
+            if (!bot.getName().replaceAll("[^A-Za-z]+", "").equals(otherBot.getName().replaceAll("[^A-Za-z]+", ""))) {
+                if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
 
                 if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
                     result = player;

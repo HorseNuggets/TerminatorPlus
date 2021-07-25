@@ -1,5 +1,6 @@
 package net.nuggetmc.ai.utils;
 
+import net.minecraft.server.v1_16_R3.EntityLiving;
 import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.Agent;
@@ -10,11 +11,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.ServerOperator;
 import org.bukkit.util.Vector;
 
 import java.beans.Statement;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Debugger {
 
@@ -191,7 +194,7 @@ public class Debugger {
     }
 
     public void item() {
-        TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.item = true);
+        TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.setDefaultItem(new ItemStack(Material.IRON_SWORD)));
     }
 
     public void j(boolean b) {
@@ -215,7 +218,7 @@ public class Debugger {
     }
 
     public void tp() {
-        Bot bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch());
+        Bot bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch().stream().filter(EntityLiving::isAlive).collect(Collectors.toSet()));
 
         if (bot == null) {
             print("Failed to locate a bot.");
