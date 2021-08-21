@@ -16,4 +16,4 @@ Some of the main things we are working on includes, but are not limited to:
 
 ## License
 
-This project is licensed under [MIT](https://github.com/batchprogrammer314/player-ai/blob/master/LICENSE).
+This project is licensed under [Eclipse Public License](https://github.com/batchprogrammer314/player-ai/blob/master/LICENSE).
