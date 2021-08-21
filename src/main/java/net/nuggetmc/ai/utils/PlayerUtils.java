@@ -67,4 +67,22 @@ public class PlayerUtils {
             return loc.clone().add(0, amount, 0);
         }
     }
+
+    public static Location findBottom(Location loc) {
+        loc.setY(loc.getBlockY());
+
+        for (int i = 0; i < 255; i++) {
+            Location check = loc.clone().add(0, -i, 0);
+
+            if (check.getY() <= 0) {
+                break;
+            }
+
+            if (check.getBlock().getType().isSolid()) {
+                return check.add(0, 1, 0);
+            }
+        }
+
+        return loc;
+    }
 }

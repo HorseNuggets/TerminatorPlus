@@ -11,7 +11,6 @@ import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.ai.bot.event.BotDamageByPlayerEvent;
 import net.nuggetmc.ai.bot.event.BotDeathEvent;
 import net.nuggetmc.ai.bot.event.BotFallDamageEvent;
-import net.nuggetmc.ai.bot.event.BotKilledByPlayerEvent;
 import net.nuggetmc.ai.utils.MathUtils;
 import net.nuggetmc.ai.utils.PlayerUtils;
 import org.bukkit.*;
@@ -35,12 +34,14 @@ public class LegacyAgent extends Agent {
 
     private final LegacyBlockCheck blockCheck;
 
+    private EnumTargetGoal goal;
+
     public boolean offsets = true;
 
     public LegacyAgent(BotManager manager) {
         super(manager);
 
-        this.goal = EnumTargetGoal.NEAREST_REAL_VULNERABLE_PLAYER;
+        this.goal = EnumTargetGoal.NEAREST_VULNERABLE_PLAYER;
         this.blockCheck = new LegacyBlockCheck(this);
     }
 
@@ -93,17 +94,18 @@ public class LegacyAgent extends Agent {
     }
 
     private void tickBot(Bot bot) {
-        if (!bot.isAlive()) return;
+        if (!bot.isAlive()) {
+            return;
+        }
 
         if (bot.tickDelay(20)) {
             center(bot);
         }
 
         Location loc = bot.getLocation();
+        Player player = locateTarget(bot, loc);
 
-        Player player = nearestPlayer(bot, loc);
         if (player == null) {
-            // LESSLAG if (bot.tickDelay(20))
             stopMining(bot);
             return;
         }
@@ -114,33 +116,28 @@ public class LegacyAgent extends Agent {
         miscellaneousChecks(bot, player);
 
         Player botPlayer = bot.getBukkitEntity();
-
         Location target = offsets ? player.getLocation().add(bot.getOffset()) : player.getLocation();
 
-        NeuralNetwork network;
         boolean ai = bot.hasNeuralNetwork();
 
-        if (ai) {
-            BotData data = BotData.generate(bot, player);
+        NeuralNetwork network = ai ? bot.getNeuralNetwork() : null;
 
-            network = bot.getNeuralNetwork();
-            network.feed(data);
-        } else {
-            network = null;
+        if (ai) {
+            network.feed(BotData.generate(bot, player));
         }
 
         if (bot.tickDelay(3) && !miningAnim.containsKey(botPlayer)) {
-            Location a = botPlayer.getEyeLocation();
-            Location b = player.getEyeLocation();
-            Location c1 = player.getLocation();
+            Location botEyeLoc = botPlayer.getEyeLocation();
+            Location playerEyeLoc = player.getEyeLocation();
+            Location playerLoc = player.getLocation();
 
-            if (ai) { // force unable to block if they are more than 6/7 blocks away
+            if (ai) {
                 if (network.check(BotNode.BLOCK) && loc.distance(player.getLocation()) < 6) {
                     bot.block(10, 10);
                 }
             }
 
-            if (LegacyUtils.checkFreeSpace(a, b) || LegacyUtils.checkFreeSpace(a, c1)) {
+            if (LegacyUtils.checkFreeSpace(botEyeLoc, playerEyeLoc) || LegacyUtils.checkFreeSpace(botEyeLoc, playerLoc)) {
                 attack(bot, player, loc);
             }
         }
@@ -1124,93 +1121,78 @@ public class LegacyAgent extends Agent {
         bot.attack(player);
     }
 
-    private EnumTargetGoal goal;
-
     public void setTargetType(EnumTargetGoal goal) {
         this.goal = goal;
     }
 
-    private Player nearestPlayer(Bot bot, Location loc) {
+    public Player locateTarget(Bot bot, Location loc) {
+        Player result = null;
+
         switch (goal) {
-            case NEAREST_REAL_VULNERABLE_PLAYER:
-                return nearestRealVulnerablePlayer(loc);
-
-            case NEAREST_REAL_PLAYER:
-                return nearestRealPlayer(loc);
-
-            case NEAREST_BOT_DIFFER:
-                return nearestBotDiffer(bot, loc);
-
-            case NEAREST_BOT_DIFFER_ALPHA:
-                return nearestBotDifferAlpha(bot, loc);
-
-            case NEAREST_BOT:
-                return nearestBot(bot, loc);
-
             default:
                 return null;
-        }
-    }
 
-    private Player nearestRealPlayer(Location loc) {
-        Player result = null;
+            case NEAREST_PLAYER: {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (validateCloserPlayer(player, loc, result)) {
+                        result = player;
+                    }
+                }
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
-
-            if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
-                result = player;
+                break;
             }
-        }
 
-        return result;
-    }
+            case NEAREST_VULNERABLE_PLAYER: {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!PlayerUtils.isInvincible(player.getGameMode()) && validateCloserPlayer(player, loc, result)) {
+                        result = player;
+                    }
+                }
 
-    private Player nearestRealVulnerablePlayer(Location loc) {
-        Player result = null;
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (PlayerUtils.isInvincible(player.getGameMode()) || loc.getWorld() != player.getWorld() || player.isDead()) continue;
-
-            if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
-                result = player;
+                break;
             }
-        }
 
-        return result;
-    }
+            case NEAREST_BOT: {
+                for (Bot otherBot : manager.fetch()) {
+                    if (bot != otherBot) {
+                        Player player = otherBot.getBukkitEntity();
 
-    private Player nearestBot(Bot bot, Location loc) {
-        Player result = null;
+                        if (validateCloserPlayer(player, loc, result)) {
+                            result = player;
+                        }
+                    }
+                }
 
-        for (Bot otherBot : manager.fetch()) {
-            if (bot == otherBot) continue;
-
-            Player player = otherBot.getBukkitEntity();
-
-            if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
-
-            if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
-                result = player;
+                break;
             }
-        }
 
-        return result;
-    }
+            case NEAREST_BOT_DIFFER: {
+                String name = bot.getName();
 
-    private Player nearestBotDiffer(Bot bot, Location loc) {
-        Player result = null;
+                for (Bot otherBot : manager.fetch()) {
+                    if (bot != otherBot) {
+                        Player player = otherBot.getBukkitEntity();
 
-        for (Bot otherBot : manager.fetch()) {
-            if (bot == otherBot) continue;
+                        if (!name.equals(otherBot.getName()) && validateCloserPlayer(player, loc, result)) {
+                            result = player;
+                        }
+                    }
+                }
 
-            Player player = otherBot.getBukkitEntity();
+                break;
+            }
 
-            if (!bot.getName().equals(otherBot.getName())) {
-                if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
+            case NEAREST_BOT_DIFFER_ALPHA: {
+                String name = bot.getName().replaceAll("[^A-Za-z]+", "");
 
-                if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
-                    result = player;
+                for (Bot otherBot : manager.fetch()) {
+                    if (bot != otherBot) {
+                        Player player = otherBot.getBukkitEntity();
+
+                        if (!name.equals(otherBot.getName().replaceAll("[^A-Za-z]+", "")) && validateCloserPlayer(player, loc, result)) {
+                            result = player;
+                        }
+                    }
                 }
             }
         }
@@ -1218,23 +1200,7 @@ public class LegacyAgent extends Agent {
         return result;
     }
 
-    private Player nearestBotDifferAlpha(Bot bot, Location loc) {
-        Player result = null;
-
-        for (Bot otherBot : manager.fetch()) {
-            if (bot == otherBot) continue;
-
-            Player player = otherBot.getBukkitEntity();
-
-            if (!bot.getName().replaceAll("[^A-Za-z]+", "").equals(otherBot.getName().replaceAll("[^A-Za-z]+", ""))) {
-                if (loc.getWorld() != player.getWorld() || player.isDead()) continue;
-
-                if (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation())) {
-                    result = player;
-                }
-            }
-        }
-
-        return result;
+    private boolean validateCloserPlayer(Player player, Location loc, Player result) {
+        return loc.getWorld() == player.getWorld() && !player.isDead() && (result == null || loc.distance(player.getLocation()) < loc.distance(result.getLocation()));
     }
 }

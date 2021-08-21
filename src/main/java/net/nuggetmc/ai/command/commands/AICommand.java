@@ -1,5 +1,6 @@
 package net.nuggetmc.ai.command.commands;
 
+import com.jonahseguin.drink.annotation.Autofill;
 import com.jonahseguin.drink.annotation.Command;
 import com.jonahseguin.drink.annotation.OptArg;
 import com.jonahseguin.drink.annotation.Sender;
@@ -82,6 +83,10 @@ public class AICommand extends CommandInstance {
         agent.addUser(sender);
     }
 
+    public IntelligenceAgent getSession() {
+        return agent;
+    }
+
     @Command(
         name = "stop",
         desc = "End a currently running AI training session."
@@ -157,6 +162,7 @@ public class AICommand extends CommandInstance {
         });
     }
 
+    @Autofill
     public List<String> infoAutofill(CommandSender sender, String[] args) {
         if (args.length == 2) {
             return manager.fetchNames();

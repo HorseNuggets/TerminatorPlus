@@ -37,6 +37,7 @@ public class CommandHandler {
         this.commandMap = new HashMap<>();
         this.registerCommands();
         this.drink.registerCommands();
+        this.commandMap.values().forEach(CommandInstance::onLoad);
     }
 
     private void registerCommands() {
@@ -52,7 +53,7 @@ public class CommandHandler {
         setHelp(handler.getClass());
     }
 
-    public CommandInstance getComand(String name) {
+    public CommandInstance getCommand(String name) {
         return commandMap.get(name);
     }
 

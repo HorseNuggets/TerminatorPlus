@@ -3,6 +3,7 @@ package net.nuggetmc.ai.bot.agent.legacyagent.ai;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class NodeConnections {
 
@@ -30,7 +31,7 @@ public class NodeConnections {
     }
 
     private double generateValue() {
-        return Math.random() * 20 - 10;
+        return ThreadLocalRandom.current().nextDouble(-10, 10);
     }
 
     public boolean check() {

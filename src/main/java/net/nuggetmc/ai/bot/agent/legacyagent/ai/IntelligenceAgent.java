@@ -29,6 +29,7 @@ public class IntelligenceAgent {
      * commands /ai stop and /ai pause
      * if a session with name already exists keep adding underscores
      * /ai conclude or /ai finish
+     * default anchor location, /ai relocateanchor
      */
 
     private final TerminatorPlus plugin;
@@ -54,7 +55,6 @@ public class IntelligenceAgent {
     private Player primary;
 
     private final Set<CommandSender> users;
-
     private final Map<Integer, Set<Map<BotNode, Map<BotDataType, Double>>>> genProfiles;
 
     public IntelligenceAgent(AICommand aiManager, int populationSize, String name, String skin) {
@@ -215,7 +215,7 @@ public class IntelligenceAgent {
 
         Set<Map<BotNode, Map<BotDataType, Double>>> profiles = new HashSet<>();
 
-        double mutationSize = MathUtils.getMutationSize(generation);
+        double mutationSize = Math.pow(Math.E, 2); //MathUtils.getMutationSize(generation);
 
         for (int j = 0; j < populationSize; j++) {
             Map<BotNode, Map<BotDataType, Double>> profile = new HashMap<>();
@@ -272,6 +272,8 @@ public class IntelligenceAgent {
     }
 
     public void addUser(CommandSender sender) {
+        if (users.contains(sender)) return;
+
         users.add(sender);
         print(sender.getName() + " has been added to the userlist.");
 
@@ -322,7 +324,14 @@ public class IntelligenceAgent {
     }
 
     private void clearBots() {
-        print("Removing all current bots...");
+        if (!bots.isEmpty()) {
+            print("Removing all cached bots...");
+
+            bots.values().forEach(Bot::removeVisually);
+            bots.clear();
+        }
+
+        /*print("Removing all current bots...");
 
         int size = manager.fetch().size();
         manager.reset();
@@ -330,6 +339,6 @@ public class IntelligenceAgent {
         String formatted = NumberFormat.getNumberInstance(Locale.US).format(size);
         print("Removed " + ChatColor.RED + formatted + ChatColor.RESET + " entit" + (size == 1 ? "y" : "ies") + ".");
 
-        bots.clear();
+        bots.clear();*/
     }
 }

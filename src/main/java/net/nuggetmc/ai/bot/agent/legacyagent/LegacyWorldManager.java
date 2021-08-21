@@ -5,6 +5,10 @@ import org.bukkit.Material;
 
 public class LegacyWorldManager {
 
+    /*
+     * This is where the respawning queue will be managed
+     */
+
     public static boolean aboveGround(Location loc) {
         int y = 1;
 

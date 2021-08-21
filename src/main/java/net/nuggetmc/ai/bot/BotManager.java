@@ -111,7 +111,7 @@ public class BotManager implements Listener {
                 bot.setNeuralNetwork(network == NeuralNetwork.RANDOM ? NeuralNetwork.generateRandomNetwork() : network);
                 bot.setShield(true);
                 bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
-                bot.setRemoveOnDeath(false);
+                //bot.setRemoveOnDeath(false);
             }
 
             if (network != null) {
@@ -140,11 +140,12 @@ public class BotManager implements Listener {
     }
 
     public void reset() {
-        bots.forEach(Bot::removeVisually);
-        bots.clear(); // Not always necessary, but a good security measure
-        agent.stopAllTasks();
+        if (!bots.isEmpty()) {
+            bots.forEach(Bot::removeVisually);
+            bots.clear(); // Not always necessary, but a good security measure
+        }
 
-        System.gc();
+        agent.stopAllTasks();
     }
 
     public Bot getBot(Player player) { // potentially memory intensive

@@ -21,4 +21,6 @@ public abstract class CommandInstance {
     public CommandHandler getCommandHandler() {
         return commandHandler;
     }
+
+    protected void onLoad() { }
 }

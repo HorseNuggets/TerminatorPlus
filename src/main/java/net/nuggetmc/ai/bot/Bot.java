@@ -2,6 +2,8 @@ package net.nuggetmc.ai.bot;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.server.v1_16_R3.Chunk;
 import net.minecraft.server.v1_16_R3.*;
 import net.nuggetmc.ai.TerminatorPlus;
@@ -27,6 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
@@ -105,7 +108,13 @@ public class Bot extends EntityPlayer {
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
 
-        bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND), bot);
+        bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND) {
+
+            @Override
+            public void sendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> genericfuturelistener) { }
+
+        }, bot);
+
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
         nmsWorld.addEntity(bot);
@@ -234,7 +243,7 @@ public class Bot extends EntityPlayer {
                 Chunk chunk = world.getChunkAt(i, j);
 
                 if (!chunk.loaded) {
-                    chunk.setLoaded(true);
+                    chunk.loaded = true;
                 }
             }
         }
@@ -400,8 +409,10 @@ public class Bot extends EntityPlayer {
         faceLocation(entity.getLocation());
         punch();
 
+        double damage = ItemUtils.getLegacyAttackDamage(defaultItem);
+
         if (entity instanceof Damageable) {
-            ((Damageable) entity).damage(ItemUtils.getLegacyAttackDamage(defaultItem), getBukkitEntity());
+            ((Damageable) entity).damage(damage, getBukkitEntity());
         }
     }
 
@@ -472,6 +483,8 @@ public class Bot extends EntityPlayer {
     }
 
     private void setDead() {
+        sendPacket(new PacketPlayOutEntityDestroy(getId()));
+
         this.dead = true;
         this.defaultContainer.b(this);
         if (this.activeContainer != null) {
@@ -481,7 +494,7 @@ public class Bot extends EntityPlayer {
 
     private void dieCheck() {
         if (removeOnDeath) {
-            scheduler.runTask(plugin, () -> plugin.getManager().remove(this));
+            scheduler.runTask(plugin, () -> plugin.getManager().remove(this)); // maybe making this later will fix the concurrentmodificationexception?
             scheduler.runTaskLater(plugin, this::setDead, 30);
 
             this.removeTab();

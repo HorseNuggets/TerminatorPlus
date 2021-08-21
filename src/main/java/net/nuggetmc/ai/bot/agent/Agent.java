@@ -55,8 +55,10 @@ public abstract class Agent {
     }
 
     public void stopAllTasks() {
-        taskList.stream().filter(t -> !t.isCancelled()).forEach(BukkitRunnable::cancel);
-        taskList.clear();
+        if (!taskList.isEmpty()) {
+            taskList.stream().filter(t -> !t.isCancelled()).forEach(BukkitRunnable::cancel);
+            taskList.clear();
+        }
     }
 
     public void setDrops(boolean enabled) {

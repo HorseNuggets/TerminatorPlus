@@ -4,8 +4,9 @@ import net.minecraft.server.v1_16_R3.EntityLiving;
 import net.nuggetmc.ai.TerminatorPlus;
 import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.Agent;
-import net.nuggetmc.ai.bot.agent.legacyagent.EnumTargetGoal;
 import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.IntelligenceAgent;
+import net.nuggetmc.ai.command.commands.AICommand;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
@@ -95,6 +96,41 @@ public class Debugger {
     /*
      * DEBUGGER METHODS
      */
+
+    public void colorTest() {
+        Player player = (Player) sender;
+        Location loc = player.getLocation();
+
+        String[] skin = MojangAPI.getSkin("Kubepig");
+
+        TerminatorPlus plugin = TerminatorPlus.getInstance();
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            for (int n = 1; n <= 40; n++) {
+                int wait = (int) (Math.pow(1.05, 130 - n) + 100);
+
+                try {
+                    Thread.sleep(wait);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                Bukkit.getScheduler().runTask(plugin, () -> Bot.createBot(PlayerUtils.findBottom(loc.clone().add(Math.random() * 20 - 10, 0, Math.random() * 20 - 10)), ChatColor.GREEN + "-$26.95", skin));
+
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
+            }
+        });
+    }
+
+    public void tpall() {
+        Player player = (Player) sender;
+        TerminatorPlus.getInstance().getManager().fetch().stream().filter(EntityLiving::isAlive).forEach(bot -> bot.getBukkitEntity().teleport(player));
+    }
+
+    public void viewsession() {
+        IntelligenceAgent session = ((AICommand) TerminatorPlus.getInstance().getHandler().getCommand("ai")).getSession();
+        Bukkit.getOnlinePlayers().stream().filter(ServerOperator::isOp).forEach(session::addUser);
+    }
 
     public void block() {
         TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.block(10, 10));
@@ -234,18 +270,7 @@ public class Debugger {
     }
 
     public void setTarget(int n) {
-        Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
-        if (!(agent instanceof LegacyAgent)) {
-            print("This method currently only supports " + ChatColor.AQUA + "LegacyAgent" + ChatColor.RESET + ".");
-            return;
-        }
-
-        LegacyAgent legacyAgent = (LegacyAgent) agent;
-        EnumTargetGoal goal = EnumTargetGoal.of(n);
-
-        legacyAgent.setTargetType(goal);
-
-        print("The goal has been set to " + ChatColor.BLUE + goal.name() + ChatColor.RESET + ".");
+        print("This has been established as a feature as \"" + ChatColor.AQUA + "/bot settings setgoal" + ChatColor.RESET + "\"!");
     }
 
     public void fire(boolean b) {
