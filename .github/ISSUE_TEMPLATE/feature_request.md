@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Describe the solution you'd like**
+**Describe the feature you'd like added**
 A clear and concise description of what you want added or changed.
 
 **Describe alternatives you've considered**
