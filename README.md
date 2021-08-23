@@ -30,10 +30,10 @@ This plugin requires [Spigot 1.16.5](https://www.spigotmc.org/wiki/buildtools/#1
 ### Future Updates
 
 This project is in a very early stage, and we have many more ideas to tackle.
-- Individual agents assigned per bot
-- A GUI to view currently loaded bots and cool data with them
-- AI data saved to the plugin data folder, able to be loaded into bots
-- Saving config data in memory
+- [ ] Individual agents assigned per bot
+- [ ] A GUI to view currently loaded bots and cool data with them
+- [ ] AI data saved to the plugin data folder, able to be loaded into bots
+- [ ] Saving config data in memory
 
 ## License
 
