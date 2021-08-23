@@ -12,6 +12,12 @@ import org.bukkit.util.Vector;
 
 import java.util.Set;
 
+/*
+ * New bot agent!!!!!
+ * this will replace legacyagent eventually
+ * - basically this one will actually have A* pathfinding, whereas the legacy one only straightlines
+ */
+
 public class BotAgent extends Agent {
 
     private int count;
