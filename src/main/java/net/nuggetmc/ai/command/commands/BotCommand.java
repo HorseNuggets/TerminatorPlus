@@ -77,6 +77,16 @@ public class BotCommand extends CommandInstance {
     }
 
     @Command(
+        name = "give",
+        desc = "Gives all bots the specified item",
+        usage = "<item>"
+    )
+    public void give(@Sender Player sender, String item) {
+        ItemStack itemToGive = new ItemStack(Material.matchMaterial(item));
+        TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.setDefaultItem(itemToGive));
+    }
+
+    @Command(
         name = "info",
         desc = "Information about loaded bots.",
         usage = "[name]",
