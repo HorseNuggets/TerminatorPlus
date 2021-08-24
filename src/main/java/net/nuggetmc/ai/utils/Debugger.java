@@ -6,6 +6,7 @@ import net.nuggetmc.ai.bot.Bot;
 import net.nuggetmc.ai.bot.agent.Agent;
 import net.nuggetmc.ai.bot.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.ai.bot.agent.legacyagent.ai.IntelligenceAgent;
+import net.nuggetmc.ai.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.ai.command.commands.AICommand;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -96,6 +97,100 @@ public class Debugger {
     /*
      * DEBUGGER METHODS
      */
+
+    public void mobWaves(int n) {
+        World world = Bukkit.getWorld("world");
+
+        if (world == null) {
+            print("world is null");
+            return;
+        }
+
+        Set<Location> locs = new HashSet<>();
+        locs.add(new Location(world, 128, 36, -142));
+        locs.add(new Location(world, 236, 44, -179));
+        locs.add(new Location(world, 310, 36, -126));
+        locs.add(new Location(world, 154, 35, -101));
+        locs.add(new Location(world, 202, 46, -46));
+        locs.add(new Location(world, 274, 52, -44));
+        locs.add(new Location(world, 297, 38, -97));
+        locs.add(new Location(world, 271, 43, -173));
+        locs.add(new Location(world, 216, 50, -187));
+        locs.add(new Location(world, 181, 35, -150));
+
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+
+            Bukkit.dispatchCommand(player, "team join a @a");
+
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "Starting wave " + ChatColor.RED + n + ChatColor.YELLOW + "...");
+
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "Unleashing the Super Zombies...");
+
+            String[] skin = MojangAPI.getSkin("Lozimac");
+
+            String name = "*";
+
+            switch (n) {
+                case 1: {
+                    for (int i = 0; i < 20; i++) {
+                        Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                    }
+                    break;
+                }
+
+                case 2: {
+                    for (int i = 0; i < 30; i++) {
+                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
+                    }
+                    break;
+                }
+
+                case 3: {
+                    for (int i = 0; i < 30; i++) {
+                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
+                        bot.setShield(true);
+                        bot.setDefaultItem(new ItemStack(Material.STONE_AXE));
+                    }
+                    break;
+                }
+
+                case 4: {
+                    for (int i = 0; i < 40; i++) {
+                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
+                        bot.setShield(true);
+                        bot.setDefaultItem(new ItemStack(Material.IRON_AXE));
+                    }
+                    break;
+                }
+
+                case 5: {
+                    for (int i = 0; i < 50; i++) {
+                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
+                        bot.setShield(true);
+                        bot.setDefaultItem(new ItemStack(Material.DIAMOND_AXE));
+                    }
+                    break;
+                }
+            }
+
+            Bukkit.broadcastMessage(ChatColor.YELLOW + "The Super Zombies have been unleashed.");
+
+            hideNametags();
+        }
+    }
+
+    public void lol(String name, String skinName) {
+        String[] skin = MojangAPI.getSkin(skinName);
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Bot.createBot(player.getLocation(), name, skin);
+        }
+    }
 
     public void colorTest() {
         Player player = (Player) sender;
