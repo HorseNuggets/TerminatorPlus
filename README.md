@@ -11,10 +11,6 @@
 
 Releases are currently available on our Discord server, which can be found [here](https://discord.gg/horsenuggets).
 
-### Source Code
-
-The repository for this project can be found here.
-
 ### Machine Learning
 
 TerminatorPlus currently utilizes classic population-based reinforcement learning for bot PVP training. Q-learning is a work in progress, along with variable A* pathfinding.
