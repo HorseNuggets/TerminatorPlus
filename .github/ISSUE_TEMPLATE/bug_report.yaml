@@ -52,7 +52,7 @@ body:
     id: conditions
     attributes:
       label: Checklist
-      description: By submitting this issue, you have checked the following:
+      description: By submitting this issue, you have checked the following
       options:
         - label: My issue does not match any existing issues on this repo
           required: true
