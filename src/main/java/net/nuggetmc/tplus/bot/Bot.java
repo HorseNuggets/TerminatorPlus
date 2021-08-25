@@ -718,21 +718,21 @@ public class Bot extends ServerPlayer {
         sendPacket(new ClientboundSetEntityDataPacket(getId(), getEntityData(), false));
     }
 
-    /*@Override // TODO: Reimplement
-    public void playerTick() {
-        if (this.hurtTicks > 0) {
-            this.hurtTicks -= 1;
+    @Override
+    public void doTick() {
+        if (this.hurtTime > 0) {
+            this.hurtTime -= 1;
         }
 
-        entityBaseTick();
-        tickPotionEffects();
+        baseTick();
+        tickEffects();
 
-        this.aU = (int) this.aT;
-        this.aL = this.aK;
-        this.lastYaw = this.yaw;
-        this.lastPitch = this.pitch;
-    }*/
-    
+        this.lerpSteps = (int) this.zza;
+        this.animStep = this.run;
+        this.yRotO = this.getYRot();
+        this.xRotO = this.getXRot();
+    }
+
     public Player getBukkitPlayer() {
         return getBukkitEntity();
     }
