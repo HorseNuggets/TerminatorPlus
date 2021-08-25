@@ -301,13 +301,10 @@ public class Bot extends ServerPlayer {
                 damageEntity0(DamageSource.LAVA, 4);
                 invulnerableTime = 12;
             } else if (fire) {
-                System.out.println("Damaging because IN_FIRE");
                 damageEntity0(DamageSource.IN_FIRE, 2);
                 invulnerableTime = 12;
             } else if (fireTicks > 1) {
-                System.out.println("Damaging because ON_FIRE");
                 damageEntity0(DamageSource.ON_FIRE, 1);
-                System.out.println(getHealth());
                 invulnerableTime = 20;
             }
         }
