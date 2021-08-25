@@ -349,7 +349,7 @@ public class Bot extends ServerPlayer {
     private void startBlocking() {
         this.blocking = true;
         this.blockUse = true;
-        // c(InteractionHand.OFF_HAND); TODO: What does this do?
+        startUsingItem(InteractionHand.OFF_HAND);
         sendPacket(new ClientboundSetEntityDataPacket(getId(), getEntityData(), false));
     }
 
