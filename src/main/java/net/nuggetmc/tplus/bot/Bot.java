@@ -119,21 +119,23 @@ public class Bot extends EntityPlayer {
 
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
-        bot.renderAll();
-        
+        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(
+        		new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, bot)));
         if(mobTargeting)
         	nmsWorld.addPlayerJoin(bot);
         else
         	nmsWorld.addEntity(bot);
 
+        bot.renderAll();
+        
         TerminatorPlus.getInstance().getManager().add(bot);
 
         return bot;
     }
 
     private void renderAll() {
-        Packet<?>[] packets = getRenderPackets();
-        Bukkit.getOnlinePlayers().forEach(p -> render(((CraftPlayer) p).getHandle().playerConnection, packets, false));
+        Packet<?>[] packets = getRenderPacketsNoTab();
+        Bukkit.getOnlinePlayers().forEach(p -> renderNoTab(((CraftPlayer) p).getHandle().playerConnection, packets, false));
     }
 
     private void render(PlayerConnection connection, Packet<?>[] packets, boolean login) {
@@ -147,6 +149,17 @@ public class Bot extends EntityPlayer {
             connection.sendPacket(packets[3]);
         }
     }
+    
+    private void renderNoTab(PlayerConnection connection, Packet<?>[] packets, boolean login) {
+        connection.sendPacket(packets[0]);
+        connection.sendPacket(packets[1]);
+
+        if (login) {
+            scheduler.runTaskLater(plugin, () -> connection.sendPacket(packets[2]), 10);
+        } else {
+            connection.sendPacket(packets[2]);
+        }
+    }
 
     public void render(PlayerConnection connection, boolean login) {
         render(connection, getRenderPackets(), login);
@@ -155,6 +168,14 @@ public class Bot extends EntityPlayer {
     private Packet<?>[] getRenderPackets() {
         return new Packet[] {
             new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, this),
+            new PacketPlayOutNamedEntitySpawn(this),
+            new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true),
+            new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f))
+        };
+    }
+    
+    private Packet<?>[] getRenderPacketsNoTab() {
+        return new Packet[] {
             new PacketPlayOutNamedEntitySpawn(this),
             new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true),
             new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f))
