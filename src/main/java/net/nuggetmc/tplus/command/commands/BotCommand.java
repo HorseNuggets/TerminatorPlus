@@ -14,10 +14,10 @@ import net.nuggetmc.tplus.utils.Debugger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.command.CommandSender;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
@@ -116,20 +116,28 @@ public class BotCommand extends CommandInstance {
 
     @Command(
         name = "give",
-        desc = "Gives specified item to all bots.",
+        desc = "Gives a specified item to all bots.",
         usage = "<item>"
     )
     public void give(CommandSender sender, List<String> args) {
-        String i = args.get(0);
-        Material item = Material.matchMaterial(i);
-        ItemStack itemToGive = new ItemStack(item);
-
-        if (item == null) {
-            sender.sendMessage(ChatColor.RED + "Failed to give all bots a " + ChatColor.YELLOW + item);
-        } else {
-            TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.setDefaultItem(itemToGive));
-            sender.sendMessage(ChatColor.GREEN + "Successfully gave all bots a " + ChatColor.BLUE + item);
+        if (args.isEmpty()) {
+            commandHandler.sendUsage(sender, this, "give <item>");
+            return;
         }
+
+        String itemName = args.get(0);
+        Material type = Material.matchMaterial(itemName);
+
+        if (type == null) {
+            sender.sendMessage("The item " + ChatColor.YELLOW + itemName + ChatColor.RESET + " is not valid!");
+            return;
+        }
+
+        ItemStack item = new ItemStack(type);
+
+        manager.fetch().forEach(bot -> bot.setDefaultItem(item));
+
+        sender.sendMessage("Successfully set the default item to " + ChatColor.YELLOW + item.getType() + ChatColor.RESET + " for all current bots.");
     }
 
     @Command(
