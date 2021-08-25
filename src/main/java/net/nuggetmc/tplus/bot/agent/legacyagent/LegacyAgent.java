@@ -1,7 +1,7 @@
 package net.nuggetmc.tplus.bot.agent.legacyagent;
 
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.PacketPlayOutBlockBreakAnimation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundBlockDestructionPacket;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.BotManager;
 import net.nuggetmc.tplus.bot.agent.Agent;
@@ -16,7 +16,7 @@ import net.nuggetmc.tplus.utils.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -749,7 +749,7 @@ public class LegacyAgent extends Agent {
         bot.setItem(new ItemStack(item));
 
         if (level == LegacyLevel.EAST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D || level == LegacyLevel.WEST_D) {
-            bot.pitch = 69;
+            bot.setXRot(69);
 
             scheduler.runTaskLater(plugin, () -> {
                 btCheck.put(player, true);
@@ -832,9 +832,9 @@ public class LegacyAgent extends Agent {
                     if (player.isDead()) {
                         this.cancel();
 
-                        PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
+                        ClientboundBlockDestructionPacket crack = new ClientboundBlockDestructionPacket(crackList.get(block), new BlockPos(block.getX(), block.getY(), block.getZ()), -1);
                         for (Player all : Bukkit.getOnlinePlayers()) {
-                            ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
+                            ((CraftPlayer) all).getHandle().connection.send(crack);
                         }
 
                         crackList.remove(block);
@@ -845,9 +845,9 @@ public class LegacyAgent extends Agent {
                     if (!block.equals(cur) || block.getType() != cur.getType()) {
                         this.cancel();
 
-                        PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
+                        ClientboundBlockDestructionPacket crack = new ClientboundBlockDestructionPacket(crackList.get(block), new BlockPos(block.getX(), block.getY(), block.getZ()), -1);
                         for (Player all : Bukkit.getOnlinePlayers()) {
-                            ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
+                            ((CraftPlayer) all).getHandle().connection.send(crack);
                         }
 
                         crackList.remove(block);
@@ -860,9 +860,9 @@ public class LegacyAgent extends Agent {
                     if (i == 9) {
                         this.cancel();
 
-                        PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
+                        ClientboundBlockDestructionPacket crack = new ClientboundBlockDestructionPacket(crackList.get(block), new BlockPos(block.getX(), block.getY(), block.getZ()), -1);
                         for (Player all : Bukkit.getOnlinePlayers()) {
-                            ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
+                            ((CraftPlayer) all).getHandle().connection.send(crack);
                         }
 
                         if (sound != null) {
@@ -890,9 +890,9 @@ public class LegacyAgent extends Agent {
 
                     if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME) return;
 
-                    PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), i);
+                    ClientboundBlockDestructionPacket crack = new ClientboundBlockDestructionPacket(crackList.get(block), new BlockPos(block.getX(), block.getY(), block.getZ()), i);
                     for (Player all : Bukkit.getOnlinePlayers()) {
-                        ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
+                        ((CraftPlayer) all).getHandle().connection.send(crack);
                     }
 
                     mining.put(this, (byte) (i + 1));
@@ -1167,7 +1167,7 @@ public class LegacyAgent extends Agent {
             }
 
             case NEAREST_BOT_DIFFER: {
-                String name = bot.getName();
+                String name = bot.getName().getString();
 
                 for (Bot otherBot : manager.fetch()) {
                     if (bot != otherBot) {
@@ -1183,13 +1183,13 @@ public class LegacyAgent extends Agent {
             }
 
             case NEAREST_BOT_DIFFER_ALPHA: {
-                String name = bot.getName().replaceAll("[^A-Za-z]+", "");
+                String name = bot.getName().getString().replaceAll("[^A-Za-z]+", "");
 
                 for (Bot otherBot : manager.fetch()) {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName().replaceAll("[^A-Za-z]+", "")) && validateCloserPlayer(player, loc, result)) {
+                        if (!name.equals(otherBot.getName().getString().replaceAll("[^A-Za-z]+", "")) && validateCloserPlayer(player, loc, result)) {
                             result = player;
                         }
                     }

@@ -1,10 +1,14 @@
 package net.nuggetmc.tplus.bot.agent.legacyagent;
 
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
@@ -36,20 +40,20 @@ public class LegacyUtils {
 
     public static Sound breakBlockSound(Block block) {
         try {
-            World nmsWorld = ((CraftWorld) block.getWorld()).getHandle();
-            net.minecraft.server.v1_16_R3.Block nmsBlock = nmsWorld.getType(new BlockPosition(block.getX(), block.getY(), block.getZ())).getBlock();
+            Level nmsWorld = ((CraftWorld) block.getWorld()).getHandle();
+            net.minecraft.world.level.block.Block nmsBlock = nmsWorld.getBlockState(new BlockPos(block.getX(), block.getY(), block.getZ())).getBlock();
 
-            SoundEffectType soundEffectType = nmsBlock.getStepSound(nmsBlock.getBlockData());
+            SoundType soundEffectType = nmsBlock.getSoundType(nmsBlock.defaultBlockState());
 
-            Field breakSound = SoundEffectType.class.getDeclaredField("stepSound");
+            Field breakSound = SoundType.class.getDeclaredField("stepSound");
             breakSound.setAccessible(true);
-            SoundEffect nmsSound = (SoundEffect) breakSound.get(soundEffectType);
+            SoundEvent nmsSound = (SoundEvent) breakSound.get(soundEffectType);
 
-            Field keyField = SoundEffect.class.getDeclaredField("b");
+            Field keyField = SoundEvent.class.getDeclaredField("location");
             keyField.setAccessible(true);
-            MinecraftKey nmsString = (MinecraftKey) keyField.get(nmsSound);
+            ResourceLocation nmsString = (ResourceLocation) keyField.get(nmsSound);
 
-            return Sound.valueOf(nmsString.getKey().replace(".", "_").toUpperCase());
+            return Sound.valueOf(nmsString.getPath().replace(".", "_").toUpperCase());
         } catch (IllegalAccessException | NoSuchFieldException ex) {
             return null;
         }

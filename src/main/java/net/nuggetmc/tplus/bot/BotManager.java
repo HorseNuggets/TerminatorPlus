@@ -1,13 +1,13 @@
 package net.nuggetmc.tplus.bot;
 
-import net.minecraft.server.v1_16_R3.PlayerConnection;
+import net.minecraft.server.network.ServerPlayerConnection;
 import net.nuggetmc.tplus.bot.agent.Agent;
 import net.nuggetmc.tplus.bot.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.tplus.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.bot.event.BotDeathEvent;
 import net.nuggetmc.tplus.utils.MojangAPI;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,7 +40,7 @@ public class BotManager implements Listener {
 
     public void add(Bot bot) {
         if (joinMessages) {
-            Bukkit.broadcastMessage(ChatColor.YELLOW + bot.getName() + " joined the game");
+            Bukkit.broadcastMessage(ChatColor.YELLOW + bot.getName().getString() + " joined the game");
         }
 
         bots.add(bot);
@@ -48,7 +48,7 @@ public class BotManager implements Listener {
 
     public Bot getFirst(String name) {
         for (Bot bot : bots) {
-            if (name.equals(bot.getName())) {
+            if (name.equals(bot.getName().getString())) {
                 return bot;
             }
         }
@@ -57,7 +57,7 @@ public class BotManager implements Listener {
     }
 
     public List<String> fetchNames() {
-        return bots.stream().map(Bot::getName).collect(Collectors.toList());
+        return bots.stream().map(bot -> bot.getName().getString()).collect(Collectors.toList());
     }
 
     public Agent getAgent() {
@@ -165,7 +165,7 @@ public class BotManager implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        PlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().playerConnection;
+        ServerPlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().connection;
         bots.forEach(bot -> bot.render(connection, true));
     }
 

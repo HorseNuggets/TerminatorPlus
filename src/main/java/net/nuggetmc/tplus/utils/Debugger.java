@@ -1,6 +1,6 @@
 package net.nuggetmc.tplus.utils;
 
-import net.minecraft.server.v1_16_R3.EntityLiving;
+import net.minecraft.world.entity.LivingEntity;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.agent.Agent;
@@ -222,7 +222,7 @@ public class Debugger {
 
     public void tpall() {
         Player player = (Player) sender;
-        TerminatorPlus.getInstance().getManager().fetch().stream().filter(EntityLiving::isAlive).forEach(bot -> bot.getBukkitEntity().teleport(player));
+        TerminatorPlus.getInstance().getManager().fetch().stream().filter(LivingEntity::isAlive).forEach(bot -> bot.getBukkitEntity().teleport(player));
     }
 
     public void viewsession() {
@@ -352,14 +352,14 @@ public class Debugger {
     }
 
     public void tp() {
-        Bot bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch().stream().filter(EntityLiving::isAlive).collect(Collectors.toSet()));
+        Bot bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch().stream().filter(LivingEntity::isAlive).collect(Collectors.toSet()));
 
         if (bot == null) {
             print("Failed to locate a bot.");
             return;
         }
 
-        print("Located bot", ChatColor.GREEN + bot.getName() + ChatColor.RESET + ".");
+        print("Located bot", ChatColor.GREEN + bot.getName().getString() + ChatColor.RESET + ".");
 
         if (sender instanceof Player) {
             print("Teleporting...");
