@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.server.network.ServerPlayerConnection;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -534,14 +535,14 @@ public class Bot extends ServerPlayer {
         this.dieCheck();
     }
 
-    /*@Override // TODO: Reimplement
-    public void collide(Entity entity) {
-        if (!this.isPassengerOfSameVehicle(entity) && !entity.noclip && !this.noclip) {
+    @Override
+    public void push(Entity entity) {
+        if (!this.isPassengerOfSameVehicle(entity) && !entity.noPhysics && !this.noPhysics) {
             double d0 = entity.getX() - this.getX();
             double d1 = entity.getZ() - this.getZ();
-            double d2 = MathHelper.a(d0, d1);
+            double d2 = Mth.absMax(d0, d1);
             if (d2 >= 0.009999999776482582D) {
-                d2 = MathHelper.sqrt(d2);
+                d2 = Math.sqrt(d2);
                 d0 /= d2;
                 d1 /= d2;
                 double d3 = 1.0D / d2;
@@ -553,19 +554,16 @@ public class Bot extends ServerPlayer {
                 d1 *= d3;
                 d0 *= 0.05000000074505806D;
                 d1 *= 0.05000000074505806D;
-                d0 *= 1.0F - this.I;
-                d1 *= 1.0F - this.I;
-
                 if (!this.isVehicle()) {
                     velocity.add(new Vector(-d0 * 3, 0.0D, -d1 * 3));
                 }
 
                 if (!entity.isVehicle()) {
-                    entity.i(d0, 0.0D, d1);
+                    entity.push(d0, 0.0D, d1);
                 }
             }
         }
-    }*/
+    }
 
     @Override
     public boolean damageEntity0(DamageSource damagesource, float f) {
