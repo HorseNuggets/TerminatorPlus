@@ -1173,7 +1173,7 @@ public class LegacyAgent extends Agent {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName()) && validateCloserPlayer(player, loc, result)) {
+                        if (!name.equals(otherBot.getName().getString()) && validateCloserPlayer(player, loc, result)) {
                             result = player;
                         }
                     }

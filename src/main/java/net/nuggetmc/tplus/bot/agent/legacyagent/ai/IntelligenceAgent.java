@@ -181,7 +181,7 @@ public class IntelligenceAgent {
             Bot bot = entry.getKey();
             boolean check = i <= cutoff;
             if (check) {
-                print(ChatColor.GRAY + "[" + ChatColor.YELLOW + "#" + i + ChatColor.GRAY + "] " + ChatColor.GREEN + bot.getName()
+                print(ChatColor.GRAY + "[" + ChatColor.YELLOW + "#" + i + ChatColor.GRAY + "] " + ChatColor.GREEN + bot.getName().getString()
                         + ChatUtils.BULLET_FORMATTED + ChatColor.RED + bot.getKills() + " kills");
                 winners.add(bot);
             }
