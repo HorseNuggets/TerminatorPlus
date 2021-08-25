@@ -14,7 +14,7 @@ public class CustomGameProfile extends GameProfile {
         setSkin(skin);
     }
 
-    public CustomGameProfile(UUID uuid, String name, String skinName) {
+    public CustomGameProfile(UUID uuid, String name, String[] skinName) { // Some names have spaces in them and also illegal characters which can still be done with adding this
         super(uuid, name);
 
         setSkin(skinName);
