@@ -513,10 +513,10 @@ public class Bot extends ServerPlayer {
         sendPacket(new ClientboundRemoveEntitiesPacket(getId()));
 
         this.dead = true;
-        /*this.defaultContainer.b(this);
-        if (this.activeContainer != null) { // TODO: What does this do?
-            this.activeContainer.b(this);
-        }*/
+        this.inventoryMenu.removed(this);
+        if (this.containerMenu != null) {
+            this.containerMenu.removed(this);
+        }
     }
 
     private void dieCheck() {
