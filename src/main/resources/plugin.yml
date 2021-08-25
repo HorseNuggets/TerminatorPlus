@@ -1,5 +1,5 @@
 name: TerminatorPlus
-main: net.nuggetmc.ai.TerminatorPlus
+main: net.nuggetmc.tplus.TerminatorPlus
 version: 3.0-BETA
 api-version: 1.16
 author: HorseNuggets
