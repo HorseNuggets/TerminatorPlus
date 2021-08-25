@@ -6,7 +6,7 @@
 
     <groupId>net.nuggetmc</groupId>
     <artifactId>TerminatorPlus</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>3.1-BETA</version>
     <name>TerminatorPlus</name>
 
     <properties>
