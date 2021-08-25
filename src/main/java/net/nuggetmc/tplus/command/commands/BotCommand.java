@@ -140,6 +140,7 @@ public class BotCommand extends CommandInstance {
         sender.sendMessage("Successfully set the default item to " + ChatColor.YELLOW + item.getType() + ChatColor.RESET + " for all current bots.");
     }
 
+
     @Command(
         name = "info",
         desc = "Information about loaded bots.",
