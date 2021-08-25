@@ -140,6 +140,39 @@ public class BotCommand extends CommandInstance {
         sender.sendMessage("Successfully set the default item to " + ChatColor.YELLOW + item.getType() + ChatColor.RESET + " for all current bots.");
     }
 
+    @Command(
+        name = "armor",
+        desc = "Gives all bots an armor set.",
+        usage = "<armor tier> (example: leather)"
+    )
+    public void armor(CommandSender sender, List<String> args) {
+      String armor = args.get(0);
+      
+      ItemStack[] armorLeather = new ItemStack[4];
+        armorLeather[0] = new ItemStack(Material.LEATHER_BOOTS, 1);
+        armorLeather[1] = new ItemStack(Material.LEATHER_LEGGINGS, 1);
+        armorLeather[2] = new ItemStack(Material.LEATHER_CHESTPLATE, 1);
+        armorLeather[3] = new ItemStack(Material.LEATHER_HELMET, 1);
+        
+      ItemStack[] armorGold = new ItemStack[4];
+        armorGold[0] = new ItemStack(Material.GOLDEN_BOOTS, 1);
+        armorGold[1] = new ItemStack(Material.GOLDEN_LEGGINGS, 1);
+        armorGold[2] = new ItemStack(Material.GOLDEN_CHESTPLATE, 1);
+        armorGold[3] = new ItemStack(Material.GOLDEN_HELMET, 1);
+        
+        switch(armor) {
+          case leather:
+            armor = armorLeather;
+            break;
+          case gold:
+            armor = armorGold;
+            break;
+          default:
+            armor = armorGold;
+        } 
+        
+        manager.fetch().forEach(bot bot. setArmorContents(armor))
+    }
 
     @Command(
         name = "info",
