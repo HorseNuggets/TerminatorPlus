@@ -662,7 +662,7 @@ public class Bot extends EntityPlayer {
         setItem(item, EnumItemSlot.OFFHAND);
     }
 
-    private void setItem(org.bukkit.inventory.ItemStack item, EnumItemSlot slot) {
+    public void setItem(org.bukkit.inventory.ItemStack item, EnumItemSlot slot) {
         if (item == null) item = defaultItem;
 
         if (slot == EnumItemSlot.MAINHAND) {

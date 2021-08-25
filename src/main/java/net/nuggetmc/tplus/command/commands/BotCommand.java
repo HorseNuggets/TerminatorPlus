@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.command.commands;
 
+import net.minecraft.server.v1_16_R3.EnumItemSlot;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.BotManager;
@@ -22,9 +23,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class BotCommand extends CommandInstance {
 
@@ -46,6 +45,9 @@ public class BotCommand extends CommandInstance {
         this.agent = (LegacyAgent) manager.getAgent();
         this.scheduler = Bukkit.getScheduler();
         this.formatter = new DecimalFormat("0.##");
+        this.armorTiers = new HashMap<>();
+
+        this.armorTierSetup();
     }
 
     @Command
@@ -140,82 +142,92 @@ public class BotCommand extends CommandInstance {
         sender.sendMessage("Successfully set the default item to " + ChatColor.YELLOW + item.getType() + ChatColor.RESET + " for all current bots.");
     }
 
+    private final Map<String, ItemStack[]> armorTiers;
+
+    private void armorTierSetup() {
+        armorTiers.put("leather", new ItemStack[] {
+            new ItemStack(Material.LEATHER_BOOTS),
+            new ItemStack(Material.LEATHER_LEGGINGS),
+            new ItemStack(Material.LEATHER_CHESTPLATE),
+            new ItemStack(Material.LEATHER_HELMET),
+        });
+
+        armorTiers.put("chain", new ItemStack[] {
+            new ItemStack(Material.CHAINMAIL_BOOTS),
+            new ItemStack(Material.CHAINMAIL_LEGGINGS),
+            new ItemStack(Material.CHAINMAIL_CHESTPLATE),
+            new ItemStack(Material.CHAINMAIL_HELMET),
+        });
+
+        armorTiers.put("gold", new ItemStack[] {
+            new ItemStack(Material.GOLDEN_BOOTS),
+            new ItemStack(Material.GOLDEN_LEGGINGS),
+            new ItemStack(Material.GOLDEN_CHESTPLATE),
+            new ItemStack(Material.GOLDEN_HELMET),
+        });
+
+        armorTiers.put("iron", new ItemStack[] {
+            new ItemStack(Material.IRON_BOOTS),
+            new ItemStack(Material.IRON_LEGGINGS),
+            new ItemStack(Material.IRON_CHESTPLATE),
+            new ItemStack(Material.IRON_HELMET),
+        });
+
+        armorTiers.put("diamond", new ItemStack[] {
+            new ItemStack(Material.DIAMOND_BOOTS),
+            new ItemStack(Material.DIAMOND_LEGGINGS),
+            new ItemStack(Material.DIAMOND_CHESTPLATE),
+            new ItemStack(Material.DIAMOND_HELMET),
+        });
+
+        armorTiers.put("netherite", new ItemStack[] {
+            new ItemStack(Material.NETHERITE_BOOTS),
+            new ItemStack(Material.NETHERITE_LEGGINGS),
+            new ItemStack(Material.NETHERITE_CHESTPLATE),
+            new ItemStack(Material.NETHERITE_HELMET),
+        });
+    }
+
     @Command(
         name = "armor",
         desc = "Gives all bots an armor set.",
-        usage = "<armor tier>"
+        usage = "<armor-tier>",
+        autofill = "armorAutofill"
     )
+    @SuppressWarnings("deprecation")
     public void armor(CommandSender sender, List<String> args) {
-        String tier = args.get(0).toLowerCase();
-      
-        ItemStack[] armorLeather = new ItemStack[4];
-        armorLeather[0] = new ItemStack(Material.LEATHER_BOOTS);
-        armorLeather[1] = new ItemStack(Material.LEATHER_LEGGINGS);
-        armorLeather[2] = new ItemStack(Material.LEATHER_CHESTPLATE);
-        armorLeather[3] = new ItemStack(Material.LEATHER_HELMET);
-
-        ItemStack[] armorChain = new ItemStack[4];
-        armorChain[0] = new ItemStack(Material.CHAINMAIL_BOOTS);
-        armorChain[1] = new ItemStack(Material.CHAINMAIL_LEGGINGS);
-        armorChain[2] = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
-        armorChain[3] = new ItemStack(Material.CHAINMAIL_HELMET);
-
-        ItemStack[] armorGold = new ItemStack[4];
-        armorGold[0] = new ItemStack(Material.GOLDEN_BOOTS);
-        armorGold[1] = new ItemStack(Material.GOLDEN_LEGGINGS);
-        armorGold[2] = new ItemStack(Material.GOLDEN_CHESTPLATE);
-        armorGold[3] = new ItemStack(Material.GOLDEN_HELMET);
-
-        ItemStack[] armorIron = new ItemStack[4];
-        armorIron[0] = new ItemStack(Material.IRON_BOOTS);
-        armorIron[1] = new ItemStack(Material.IRON_LEGGINGS);
-        armorIron[2] = new ItemStack(Material.IRON_CHESTPLATE);
-        armorIron[3] = new ItemStack(Material.IRON_HELMET);
-
-        ItemStack[] armorDiamond = new ItemStack[4];
-        armorDiamond[0] = new ItemStack(Material.DIAMOND_BOOTS);
-        armorDiamond[1] = new ItemStack(Material.DIAMOND_LEGGINGS);
-        armorDiamond[2] = new ItemStack(Material.DIAMOND_CHESTPLATE);
-        armorDiamond[3] = new ItemStack(Material.DIAMOND_HELMET);
-
-        ItemStack[] armorNetherite = new ItemStack[4];
-        armorNetherite[0] = new ItemStack(Material.NETHERITE_BOOTS);
-        armorNetherite[1] = new ItemStack(Material.NETHERITE_LEGGINGS);
-        armorNetherite[2] = new ItemStack(Material.NETHERITE_CHESTPLATE);
-        armorNetherite[3] = new ItemStack(Material.NETHERITE_HELMET);
-
-        ItemStack[] armor;
-      
-        switch(tier) {
-          case "leather":
-            armor = armorLeather;
-            break;
-          case "chain":
-            armor = armorChain;
-            break;
-          case "gold":
-            armor = armorGold;
-            break;
-          case "iron":
-            armor = armorIron;
-            break;
-          case "diamond":
-            armor = armorDiamond;
-            break;
-          case "netherite":
-            armor = armorNetherite;
-            break;
-          default:
-            sender.sendMessage(ChatColor.RED + tier + ChatColor.RESET + " is not a valid tier!");
-            sender.sendMessage("Available Tiers: " + ChatColor.AQUA + "leather, chain, iron, gold, diamond, netherite");
+        if (args.isEmpty()) {
+            commandHandler.sendUsage(sender, this, "armor <armor-tier>");
             return;
-        } 
-        
+        }
+
+        String tier = args.get(0).toLowerCase();
+
+        if (!armorTiers.containsKey(tier)) {
+            sender.sendMessage(ChatColor.YELLOW + tier + ChatColor.RESET + " is not a valid tier!");
+            sender.sendMessage("Available tiers: " + ChatColor.YELLOW + String.join(ChatColor.RESET + ", " + ChatColor.YELLOW, armorTiers.keySet()));
+            return;
+        }
+
+        ItemStack[] armor = armorTiers.get(tier);
+
         manager.fetch().forEach(bot -> {
             bot.getBukkitEntity().getInventory().setArmorContents(armor);
-        bot.getBukkitEntity().updateInventory();
+            bot.getBukkitEntity().updateInventory();
+
+            // packet sending to ensure
+            bot.setItem(armor[0], EnumItemSlot.FEET);
+            bot.setItem(armor[1], EnumItemSlot.LEGS);
+            bot.setItem(armor[2], EnumItemSlot.CHEST);
+            bot.setItem(armor[3], EnumItemSlot.HEAD);
         });
-        sender.sendMessage("Successfully set the armor tier to " + ChatColor.GREEN + tier + ChatColor.RESET + " for all current bots.");
+
+        sender.sendMessage("Successfully set the armor tier to " + ChatColor.YELLOW + tier + ChatColor.RESET + " for all current bots.");
+    }
+
+    @Autofill
+    public List<String> armorAutofill(CommandSender sender, String[] args) {
+        return args.length == 2 ? new ArrayList<>(armorTiers.keySet()) : null;
     }
 
     @Command(
