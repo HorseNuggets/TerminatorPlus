@@ -355,7 +355,7 @@ public class Bot extends ServerPlayer {
 
     private void stopBlocking(int cooldown) {
         this.blocking = false;
-        // clearActiveItem(); TODO: What does this do?
+        stopUsingItem();
         scheduler.runTaskLater(plugin, () -> this.blockUse = false, cooldown);
         sendPacket(new ClientboundSetEntityDataPacket(getId(), getEntityData(), false));
     }
