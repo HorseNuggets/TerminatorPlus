@@ -522,6 +522,7 @@ public class Bot extends ServerPlayer {
 
     private void dieCheck() {
         if (removeOnDeath) {
+            remove(RemovalReason.KILLED);
             scheduler.runTask(plugin, () -> plugin.getManager().remove(this)); // maybe making this later will fix the concurrentmodificationexception?
             scheduler.runTaskLater(plugin, this::setDead, 30);
 
