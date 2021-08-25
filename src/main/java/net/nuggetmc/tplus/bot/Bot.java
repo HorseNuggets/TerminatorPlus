@@ -168,7 +168,7 @@ public class Bot extends ServerPlayer {
     private Packet<?>[] getRenderPackets() {
         return new Packet[] {
                 new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, this),
-                new ClientboundAddEntityPacket(this),
+                new ClientboundAddPlayerPacket(this),
                 new ClientboundSetEntityDataPacket(this.getId(), this.getEntityData(), true),
                 new ClientboundRotateHeadPacket(this, (byte) ((getYRot() * 256f) / 360f))
         };
