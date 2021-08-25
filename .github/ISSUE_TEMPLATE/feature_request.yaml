@@ -1,0 +1,41 @@
+name: Feature Request
+description: Suggest a Feature or Improvement
+title: "[Suggestion]: "
+labels: [enhancement]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing ideas!
+  - type: textarea
+    id: feature_suggestion
+    attributes:
+      label: Feature Request
+      description: Describe the feature or suggest an improvement.
+      placeholder: Add the ability to...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Options
+      description: Describe any alternatives you've considered.
+      placeholder: I tried to do this instead...
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Add any other useful information regarding your suggestion.
+    validations:
+      required: false
+  - type: checkboxes
+    id: conditions
+    attributes:
+      label: Checklist
+      description: By submitting this request, you have checked these conditions.
+      options:
+        - label: My suggestion does not match any existing suggestions on this repo
+          required: true
