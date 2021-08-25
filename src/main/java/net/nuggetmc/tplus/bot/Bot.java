@@ -119,12 +119,12 @@ public class Bot extends EntityPlayer {
 
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
+        bot.renderAll();
+        
         if(mobTargeting)
         	nmsWorld.addPlayerJoin(bot);
         else
         	nmsWorld.addEntity(bot);
-
-        bot.renderAll();
 
         TerminatorPlus.getInstance().getManager().add(bot);
 
