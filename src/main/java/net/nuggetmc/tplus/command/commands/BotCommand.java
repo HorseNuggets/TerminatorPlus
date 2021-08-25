@@ -15,6 +15,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
@@ -110,6 +112,18 @@ public class BotCommand extends CommandInstance {
         }
 
         manager.createBots((Player) sender, args.get(1), skin, n);
+    }
+
+    @Command(
+        name = "give",
+        desc = "Gives specified item to all bots.",
+        usage = "<item>"
+    )
+    public void give(CommandSender sender, List<String> args) {
+        String item = args.get(0);
+        ItemStack itemToGive = new ItemStack(Material.matchMaterial(item));
+        TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.setDefaultItem(itemToGive));
+        sender.sendMessage(ChatColor.GREEN + "Successfully gave all bots a " + item);
     }
 
     @Command(
