@@ -5,6 +5,7 @@ import net.nuggetmc.tplus.bot.Bot;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -131,7 +132,7 @@ public class LegacyBlockCheck {
         placeFinal(bot, player, block.getLocation());
     }
 
-    public void clutch(Bot bot, Player target) {
+    public void clutch(Bot bot, LivingEntity target) {
         Location botLoc = bot.getLocation();
 
         Material type = botLoc.clone().add(0, -1, 0).getBlock().getType();

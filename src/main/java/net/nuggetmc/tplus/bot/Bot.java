@@ -75,6 +75,8 @@ public class Bot extends EntityPlayer {
     private byte noFallTicks;
 
     private final Vector offset;
+    
+    public static boolean mobTargeting;
 
     private Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
@@ -117,7 +119,10 @@ public class Bot extends EntityPlayer {
 
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
-        nmsWorld.addEntity(bot);
+        if(mobTargeting)
+        	nmsWorld.addPlayerJoin(bot);
+        else
+        	nmsWorld.addEntity(bot);
 
         bot.renderAll();
 
