@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CommandHandler {
-
+    
     private final TerminatorPlus plugin;
 
     private final Map<String, List<String>> help;
@@ -106,7 +106,7 @@ public class CommandHandler {
                 + "[" + ChatColor.YELLOW + "/" + commandInstance.getName() + ChatColor.GRAY + "]");
         help.get(commandInstance.getName()).forEach(sender::sendMessage);
         sender.sendMessage(ChatUtils.LINE);
-    }
+    } // Not going to do very much here but you could easly create a string then ChatColor.translateAlternativeColorCodes('&', "");
 
     private void setHelp(CommandInstance commandInstance) {
         help.put(commandInstance.getName(), getCommandInfo(commandInstance));
@@ -120,7 +120,7 @@ public class CommandHandler {
      */
     public void sendUsage(CommandSender sender, CommandInstance command, String usage) {
         sender.sendMessage("Command Usage: " + ChatColor.YELLOW + "/" + command.getName() + " " + usage);
-    }
+    } // This isn't really needed at all just usless methods
 
     private List<String> getCommandInfo(CommandInstance commandInstance) {
         List<String> output = new ArrayList<>();
@@ -137,3 +137,4 @@ public class CommandHandler {
         return output.stream().sorted().collect(Collectors.toList());
     }
 }
+// You really shouldn't use the ChatColor.COLOR you should use ChatColor.translate really ahrd to read what you are trying to send to the player with all the chatcolor things in the way just my opinion makes it look nicer
