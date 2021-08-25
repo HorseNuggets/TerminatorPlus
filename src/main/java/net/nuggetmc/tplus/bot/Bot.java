@@ -222,7 +222,6 @@ public class Bot extends ServerPlayer {
         aliveTicks++;
 
         if (fireTicks > 0) --fireTicks;
-        //if (noDamageTicks > 0) --noDamageTicks; // TODO: Reimplement
         if (jumpTicks > 0) --jumpTicks;
         if (noFallTicks > 0) --noFallTicks;
 
@@ -290,21 +289,28 @@ public class Bot extends ServerPlayer {
             return;
         }
 
-        boolean lava = type == org.bukkit.Material.LAVA;
+        boolean lava = type == Material.LAVA;
+        boolean fire = type == Material.FIRE || type == Material.SOUL_FIRE;
 
-        if (lava || type == org.bukkit.Material.FIRE || type == Material.SOUL_FIRE) {
+        if (lava || fire) {
             ignite();
         }
 
-        /*if (noDamageTicks == 0) { TODO: Reimplement
+        if (invulnerableTime == 0) {
             if (lava) {
-                damageEntity(DamageSource.LAVA, 4);
-                noDamageTicks = 12;
+                damageEntity0(DamageSource.LAVA, 4);
+                invulnerableTime = 12;
+            } else if (fire) {
+                System.out.println("Damaging because IN_FIRE");
+                damageEntity0(DamageSource.IN_FIRE, 2);
+                invulnerableTime = 12;
             } else if (fireTicks > 1) {
-                damageEntity(DamageSource.IN_FIRE, 1);
-                noDamageTicks = 20;
+                System.out.println("Damaging because ON_FIRE");
+                damageEntity0(DamageSource.ON_FIRE, 1);
+                System.out.println(getHealth());
+                invulnerableTime = 20;
             }
-        }*/
+        }
 
         if (fireTicks == 1) {
             setOnFirePackets(false);
