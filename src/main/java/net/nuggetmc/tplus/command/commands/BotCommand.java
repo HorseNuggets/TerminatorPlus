@@ -143,35 +143,79 @@ public class BotCommand extends CommandInstance {
     @Command(
         name = "armor",
         desc = "Gives all bots an armor set.",
-        usage = "<armor tier> (example: leather)"
+        usage = "<armor tier>"
     )
     public void armor(CommandSender sender, List<String> args) {
-      String armor = args.get(0);
+        String tier = args.get(0).toLowerCase();
       
-      ItemStack[] armorLeather = new ItemStack[4];
-        armorLeather[0] = new ItemStack(Material.LEATHER_BOOTS, 1);
-        armorLeather[1] = new ItemStack(Material.LEATHER_LEGGINGS, 1);
-        armorLeather[2] = new ItemStack(Material.LEATHER_CHESTPLATE, 1);
-        armorLeather[3] = new ItemStack(Material.LEATHER_HELMET, 1);
-        
-      ItemStack[] armorGold = new ItemStack[4];
-        armorGold[0] = new ItemStack(Material.GOLDEN_BOOTS, 1);
-        armorGold[1] = new ItemStack(Material.GOLDEN_LEGGINGS, 1);
-        armorGold[2] = new ItemStack(Material.GOLDEN_CHESTPLATE, 1);
-        armorGold[3] = new ItemStack(Material.GOLDEN_HELMET, 1);
-        
-        switch(armor) {
-          case leather:
+        ItemStack[] armorLeather = new ItemStack[4];
+        armorLeather[0] = new ItemStack(Material.LEATHER_BOOTS);
+        armorLeather[1] = new ItemStack(Material.LEATHER_LEGGINGS);
+        armorLeather[2] = new ItemStack(Material.LEATHER_CHESTPLATE);
+        armorLeather[3] = new ItemStack(Material.LEATHER_HELMET);
+
+        ItemStack[] armorChain = new ItemStack[4];
+        armorChain[0] = new ItemStack(Material.CHAINMAIL_BOOTS);
+        armorChain[1] = new ItemStack(Material.CHAINMAIL_LEGGINGS);
+        armorChain[2] = new ItemStack(Material.CHAINMAIL_CHESTPLATE);
+        armorChain[3] = new ItemStack(Material.CHAINMAIL_HELMET);
+
+        ItemStack[] armorGold = new ItemStack[4];
+        armorGold[0] = new ItemStack(Material.GOLDEN_BOOTS);
+        armorGold[1] = new ItemStack(Material.GOLDEN_LEGGINGS);
+        armorGold[2] = new ItemStack(Material.GOLDEN_CHESTPLATE);
+        armorGold[3] = new ItemStack(Material.GOLDEN_HELMET);
+
+        ItemStack[] armorIron = new ItemStack[4];
+        armorIron[0] = new ItemStack(Material.IRON_BOOTS);
+        armorIron[1] = new ItemStack(Material.IRON_LEGGINGS);
+        armorIron[2] = new ItemStack(Material.IRON_CHESTPLATE);
+        armorIron[3] = new ItemStack(Material.IRON_HELMET);
+
+        ItemStack[] armorDiamond = new ItemStack[4];
+        armorDiamond[0] = new ItemStack(Material.DIAMOND_BOOTS);
+        armorDiamond[1] = new ItemStack(Material.DIAMOND_LEGGINGS);
+        armorDiamond[2] = new ItemStack(Material.DIAMOND_CHESTPLATE);
+        armorDiamond[3] = new ItemStack(Material.DIAMOND_HELMET);
+
+        ItemStack[] armorNetherite = new ItemStack[4];
+        armorNetherite[0] = new ItemStack(Material.NETHERITE_BOOTS);
+        armorNetherite[1] = new ItemStack(Material.NETHERITE_LEGGINGS);
+        armorNetherite[2] = new ItemStack(Material.NETHERITE_CHESTPLATE);
+        armorNetherite[3] = new ItemStack(Material.NETHERITE_HELMET);
+
+        ItemStack[] armor;
+      
+        switch(tier) {
+          case "leather":
             armor = armorLeather;
             break;
-          case gold:
+          case "chain":
+            armor = armorChain;
+            break;
+          case "gold":
             armor = armorGold;
             break;
+          case "iron":
+            armor = armorIron;
+            break;
+          case "diamond":
+            armor = armorDiamond;
+            break;
+          case "netherite":
+            armor = armorNetherite;
+            break;
           default:
-            armor = armorGold;
+            sender.sendMessage(ChatColor.RED + tier + ChatColor.RESET + " is not valid!");
+            sender.sendMessage("Available Tiers: " + ChatColor.AQUA + "leather, chain, iron, gold, diamond, netherite");
+            return;
         } 
         
-        manager.fetch().forEach(bot bot. setArmorContents(armor))
+        manager.fetch().forEach(bot -> {
+            bot.getBukkitEntity().getInventory().setArmorContents(armor);
+        bot.getBukkitEntity().updateInventory();
+        });
+        sender.sendMessage("Successfully set the armor tier to " + ChatColor.GREEN + tier + ChatColor.RESET + " for all current bots.");
     }
 
     @Command(
