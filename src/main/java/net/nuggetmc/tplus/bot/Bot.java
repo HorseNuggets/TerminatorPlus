@@ -134,8 +134,8 @@ public class Bot extends EntityPlayer {
     }
 
     private void renderAll() {
-        Packet<?>[] packets = getRenderPacketsNoTab();
-        Bukkit.getOnlinePlayers().forEach(p -> renderNoTab(((CraftPlayer) p).getHandle().playerConnection, packets, false));
+        Packet<?>[] packets = getRenderPacketsNoInfo();
+        Bukkit.getOnlinePlayers().forEach(p -> renderNoInfo(((CraftPlayer) p).getHandle().playerConnection, packets, false));
     }
 
     private void render(PlayerConnection connection, Packet<?>[] packets, boolean login) {
@@ -150,7 +150,7 @@ public class Bot extends EntityPlayer {
         }
     }
     
-    private void renderNoTab(PlayerConnection connection, Packet<?>[] packets, boolean login) {
+    private void renderNoInfo(PlayerConnection connection, Packet<?>[] packets, boolean login) {
         connection.sendPacket(packets[0]);
         connection.sendPacket(packets[1]);
 
@@ -174,7 +174,7 @@ public class Bot extends EntityPlayer {
         };
     }
     
-    private Packet<?>[] getRenderPacketsNoTab() {
+    private Packet<?>[] getRenderPacketsNoInfo() {
         return new Packet[] {
             new PacketPlayOutNamedEntitySpawn(this),
             new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true),
