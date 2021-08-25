@@ -170,7 +170,7 @@ public class Bot extends ServerPlayer {
                 new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, this),
                 new ClientboundAddEntityPacket(this),
                 new ClientboundSetEntityDataPacket(this.getId(), this.getEntityData(), true),
-                new ClientboundMoveEntityPacket.Rot(this.getId(), (byte) ((getYRot() * 256f) / 360f), (byte) getXRot(), isOnGround())
+                new ClientboundRotateHeadPacket(this, (byte) ((getYRot() * 256f) / 360f))
         };
     }
 
@@ -648,7 +648,7 @@ public class Bot extends ServerPlayer {
             yaw = vals[0];
             pitch = vals[1];
 
-            sendPacket(new ClientboundMoveEntityPacket.Rot(getId(), (byte) (yaw * 256 / 360f), (byte) pitch, isOnGround()));
+            sendPacket(new ClientboundRotateHeadPacket(this, (byte) (yaw * 256 / 360f)));
         }
         
         setRot(yaw, pitch);
