@@ -120,10 +120,16 @@ public class BotCommand extends CommandInstance {
         usage = "<item>"
     )
     public void give(CommandSender sender, List<String> args) {
-        String item = args.get(0);
-        ItemStack itemToGive = new ItemStack(Material.matchMaterial(item));
-        TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.setDefaultItem(itemToGive));
-        sender.sendMessage(ChatColor.GREEN + "Successfully gave all bots a " + item);
+        String i = args.get(0);
+        Material item = Material.matchMaterial(i);
+        ItemStack itemToGive = new ItemStack(item);
+
+        if (item == null) {
+            sender.sendMessage(ChatColor.RED + "Failed to give all bots a " + ChatColor.YELLOW + item);
+        } else {
+            TerminatorPlus.getInstance().getManager().fetch().forEach(b -> b.setDefaultItem(itemToGive));
+            sender.sendMessage(ChatColor.GREEN + "Successfully gave all bots a " + ChatColor.BLUE + item);
+        }
     }
 
     @Command(
