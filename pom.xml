@@ -60,12 +60,6 @@
             <artifactId>spigot</artifactId>
             <version>1.16.4-R0.1-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.jonahseguin</groupId>
-            <artifactId>drink</artifactId>
-            <version>1.0.2</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 
 </project>
