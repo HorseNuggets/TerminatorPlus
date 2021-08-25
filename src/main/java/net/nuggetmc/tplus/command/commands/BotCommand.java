@@ -206,7 +206,7 @@ public class BotCommand extends CommandInstance {
             armor = armorNetherite;
             break;
           default:
-            sender.sendMessage(ChatColor.RED + tier + ChatColor.RESET + " is not valid!");
+            sender.sendMessage(ChatColor.RED + tier + ChatColor.RESET + " is not a valid tier!");
             sender.sendMessage("Available Tiers: " + ChatColor.AQUA + "leather, chain, iron, gold, diamond, netherite");
             return;
         } 
