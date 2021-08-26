@@ -275,7 +275,7 @@ public class Bot extends EntityPlayer {
         if (noDamageTicks == 0) {
             if (lava) {
                 damageEntity(DamageSource.LAVA, 4);
-                noDamageTicks = 12;
+                noDamageTicks = 20;//this used to be 12 ticks but that would cause the bot to take damage too quickly
             } else if (fireTicks > 1) {
                 damageEntity(DamageSource.FIRE, 1);
                 noDamageTicks = 20;
