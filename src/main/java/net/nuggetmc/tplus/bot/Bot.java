@@ -498,7 +498,8 @@ public class Bot extends EntityPlayer {
 
     private void dieCheck() {
         if (removeOnDeath) {
-            scheduler.runTask(plugin, () -> plugin.getManager().remove(this)); // maybe making this later will fix the concurrentmodificationexception?
+            //scheduler.runTask(plugin, () -> plugin.getManager().remove(this)); // maybe making this later will fix the concurrentmodificationexception?
+            plugin.getManager().remove(this); //I replaced HashSet with ConcurrentHashMap.newKeySet which creates a "ConcurrentHashSet"
             scheduler.runTaskLater(plugin, this::setDead, 30);
 
             this.removeTab();
