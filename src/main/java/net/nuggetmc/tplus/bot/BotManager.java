@@ -18,6 +18,7 @@ import org.bukkit.util.Vector;
 
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class BotManager implements Listener {
@@ -30,7 +31,7 @@ public class BotManager implements Listener {
 
     public BotManager() {
         this.agent = new LegacyAgent(this);
-        this.bots = new HashSet<>();
+        this.bots = ConcurrentHashMap.newKeySet();
         this.numberFormat = NumberFormat.getInstance(Locale.US);
     }
 
