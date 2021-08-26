@@ -232,8 +232,9 @@ public class Bot extends EntityPlayer {
         fireDamageCheck();
         fallDamageCheck();
         
-        if(locY() < -64)
-        	an();
+        if(locY() < -64) {
+            an();
+        }
 
         oldVelocity = velocity.clone();
     }
