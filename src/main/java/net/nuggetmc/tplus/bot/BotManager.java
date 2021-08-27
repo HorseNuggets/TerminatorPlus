@@ -111,6 +111,7 @@ public class BotManager implements Listener {
                 bot.setNeuralNetwork(network == NeuralNetwork.RANDOM ? NeuralNetwork.generateRandomNetwork() : network);
                 bot.setShield(true);
                 bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
+                bot.setAttackRange(bot.getAttackRange());
                 //bot.setRemoveOnDeath(false);
             }
 
