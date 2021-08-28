@@ -181,8 +181,8 @@ public class LegacyBlockCheck {
                 bot.punch();
                 bot.sneak();
                 for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
-                bot.setItem(new ItemStack(Material.COBBLESTONE));
-                loc.getBlock().setType(Material.COBBLESTONE);
+                bot.setItem(new ItemStack(bot.getPlacementBlock()));
+                loc.getBlock().setType(bot.getPlacementBlock().getType());
             }
         }
     }
