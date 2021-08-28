@@ -656,7 +656,7 @@ public class Bot extends EntityPlayer {
             faceLocation(loc);
         }
 
-        setItem(new org.bukkit.inventory.ItemStack(Material.COBBLESTONE));
+        setItem(new org.bukkit.inventory.ItemStack(placementBlock));
         punch();
 
         Block block = loc.getBlock();
