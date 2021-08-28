@@ -142,6 +142,32 @@ public class BotCommand extends CommandInstance {
         sender.sendMessage("Successfully set the default item to " + ChatColor.YELLOW + item.getType() + ChatColor.RESET + " for all current bots.");
     }
 
+    @Command(
+        name = "place",
+        desc = "Sets the placement block for all bots.",
+        usage = "<block>"
+    )
+    public void give(CommandSender sender, List<String> args) {
+        if (args.isEmpty()) {
+            commandHandler.sendUsage(sender, this, "place <block>");
+            return;
+        }
+
+        String blockName = args.get(0);
+        Material type = Material.matchMaterial(blockName);
+
+        if (type == null) {
+            sender.sendMessage("The Material " + ChatColor.YELLOW + itemName + ChatColor.RESET + " is not valid!");
+            return;
+        }
+
+        ItemStack block = new ItemStack(type);
+
+        manager.fetch().forEach(bot -> bot.setPlacementBlock(block));
+
+        sender.sendMessage("Successfully set the placement block to " + ChatColor.YELLOW + block.getType() + ChatColor.RESET + " for all current bots.");
+    }
+
     private final Map<String, ItemStack[]> armorTiers;
 
     private void armorTierSetup() {
