@@ -147,7 +147,7 @@ public class BotCommand extends CommandInstance {
         desc = "Sets the placement block for all bots.",
         usage = "<block>"
     )
-    public void give(CommandSender sender, List<String> args) {
+    public void place(CommandSender sender, List<String> args) {
         if (args.isEmpty()) {
             commandHandler.sendUsage(sender, this, "place <block>");
             return;
@@ -157,7 +157,7 @@ public class BotCommand extends CommandInstance {
         Material type = Material.matchMaterial(blockName);
 
         if (type == null) {
-            sender.sendMessage("The Material " + ChatColor.YELLOW + itemName + ChatColor.RESET + " is not valid!");
+            sender.sendMessage("The Material " + ChatColor.YELLOW + blockName + ChatColor.RESET + " is not valid!");
             return;
         }
 
