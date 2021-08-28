@@ -166,7 +166,7 @@ public class Bot extends EntityPlayer {
         this.placementBlock = block;
     }
 
-    public Material getPlacementBlock() {
+    public ItemStack getPlacementBlock() {
         return placementBlock;
     }
 
