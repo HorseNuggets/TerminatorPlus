@@ -2,6 +2,7 @@ package net.nuggetmc.tplus.bot.agent.legacyagent;
 
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.bot.Bot;
+import net.nuggetmc.tplus.bot.agent.botagent.Goal;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -132,7 +133,7 @@ public class LegacyBlockCheck {
         placeFinal(bot, player, block.getLocation());
     }
 
-    public void clutch(Bot bot, LivingEntity target) {
+    public void clutch(Bot bot, Goal target) {
         Location botLoc = bot.getLocation();
 
         Material type = botLoc.clone().add(0, -1, 0).getBlock().getType();

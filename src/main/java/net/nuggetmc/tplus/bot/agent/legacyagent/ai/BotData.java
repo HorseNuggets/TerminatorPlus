@@ -1,6 +1,7 @@
 package net.nuggetmc.tplus.bot.agent.legacyagent.ai;
 
 import net.nuggetmc.tplus.bot.Bot;
+import net.nuggetmc.tplus.bot.agent.botagent.Goal;
 import net.nuggetmc.tplus.utils.MathUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
@@ -14,7 +15,7 @@ public class BotData {
 
     private final Map<BotDataType, Double> values;
 
-    private BotData(Bot bot, LivingEntity target) {
+    private BotData(Bot bot, Goal target) {
         this.values = new HashMap<>();
 
         Location a = bot.getLocation();
@@ -28,7 +29,7 @@ public class BotData {
         values.put(BotDataType.ENEMY_BLOCKING, target instanceof Player && ((Player)target).isBlocking() ? 1D : 0);
     }
 
-    public static BotData generate(Bot bot, LivingEntity target) {
+    public static BotData generate(Bot bot, Goal target) {
         return new BotData(bot, target);
     }
 

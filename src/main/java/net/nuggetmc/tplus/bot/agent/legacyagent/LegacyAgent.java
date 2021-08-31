@@ -5,6 +5,7 @@ import net.minecraft.server.v1_16_R3.PacketPlayOutBlockBreakAnimation;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.BotManager;
 import net.nuggetmc.tplus.bot.agent.Agent;
+import net.nuggetmc.tplus.bot.agent.botagent.Goal;
 import net.nuggetmc.tplus.bot.agent.legacyagent.ai.BotData;
 import net.nuggetmc.tplus.bot.agent.legacyagent.ai.BotNode;
 import net.nuggetmc.tplus.bot.agent.legacyagent.ai.NeuralNetwork;
@@ -107,42 +108,46 @@ public class LegacyAgent extends Agent {
         }
 
         Location loc = bot.getLocation();
-        LivingEntity livingTarget = locateTarget(bot, loc);
+        Goal goal = locateTarget(bot, loc);
 
-        if (livingTarget == null) {
+        if (goal == null) {
             stopMining(bot);
             return;
         }
 
-        blockCheck.clutch(bot, livingTarget);
+        blockCheck.clutch(bot, goal);
 
         fallDamageCheck(bot);
-        miscellaneousChecks(bot, livingTarget);
+        miscellaneousChecks(bot, goal);
 
         Player botPlayer = bot.getBukkitEntity();
-        Location target = offsets ? livingTarget.getLocation().add(bot.getOffset()) : livingTarget.getLocation();
+        Location target = offsets ? goal.getLocation().add(bot.getOffset()) : goal.getLocation();
 
         boolean ai = bot.hasNeuralNetwork();
 
         NeuralNetwork network = ai ? bot.getNeuralNetwork() : null;
 
         if (ai) {
-            network.feed(BotData.generate(bot, livingTarget));
+            network.feed(BotData.generate(bot, goal));
         }
 
         if (bot.tickDelay(3) && !miningAnim.containsKey(botPlayer)) {
             Location botEyeLoc = botPlayer.getEyeLocation();
-            Location playerEyeLoc = livingTarget.getEyeLocation();
-            Location playerLoc = livingTarget.getLocation();
+            Location playerEyeLoc = null;
+            if (goal.getLivingEntity() != null)
+                playerEyeLoc  = goal.getLivingEntity().getEyeLocation();
+            Location playerLoc = goal.getLocation(); //Goal#getLocation returns the living entity location or the location goal
 
             if (ai) {
-                if (network.check(BotNode.BLOCK) && loc.distance(livingTarget.getLocation()) < 6) {
+                if (network.check(BotNode.BLOCK) && loc.distance(goal.getLocation()) < 6) {
                     bot.block(10, 10);
                 }
             }
 
-            if (LegacyUtils.checkFreeSpace(botEyeLoc, playerEyeLoc) || LegacyUtils.checkFreeSpace(botEyeLoc, playerLoc)) {
-                attack(bot, livingTarget, loc);
+            if (goal.isEntityGoal() && playerEyeLoc != null){
+                if (LegacyUtils.checkFreeSpace(botEyeLoc, playerEyeLoc) || LegacyUtils.checkFreeSpace(botEyeLoc, playerLoc)) {
+                    attack(bot, goal.getLivingEntity(), loc);
+                }
             }
         }
 
@@ -157,9 +162,9 @@ public class LegacyAgent extends Agent {
             byte sideResult = 1;
 
             if (towerList.containsKey(botPlayer)) {
-                if (loc.getBlockY() > livingTarget.getLocation().getBlockY()) {
+                if (loc.getBlockY() > goal.getLocation().getBlockY()) {
                     towerList.remove(botPlayer);
-                    resetHand(bot, livingTarget, botPlayer);
+                    resetHand(bot, goal, botPlayer);
                 }
             }
 
@@ -176,33 +181,33 @@ public class LegacyAgent extends Agent {
 
             if (checkFence(bot, loc.getBlock(), botPlayer)) return;
 
-            if (checkDown(bot, botPlayer, livingTarget.getLocation(), bothXZ)) return;
+            if (checkDown(bot, botPlayer, goal.getLocation(), bothXZ)) return;
 
-            if ((withinTargetXZ || sameXZ) && checkUp(bot, livingTarget, botPlayer, target, withinTargetXZ)) return;
+            if ((withinTargetXZ || sameXZ) && checkUp(bot, goal, botPlayer, target, withinTargetXZ)) return;
 
-            if (bothXZ) sideResult = checkSide(bot, livingTarget, botPlayer);
+            if (bothXZ) sideResult = checkSide(bot, goal, botPlayer);
 
             switch (sideResult) {
                 case 1:
-                    resetHand(bot, livingTarget, botPlayer);
-                    if (!noJump.contains(botPlayer) && !waterGround) move(bot, livingTarget, loc, target, ai);
+                    resetHand(bot, goal, botPlayer);
+                    if (!noJump.contains(botPlayer) && !waterGround) move(bot, goal, loc, target, ai);
                     return;
 
                 case 2:
-                    if (!waterGround) move(bot, livingTarget, loc, target, ai);
+                    if (!waterGround) move(bot, goal, loc, target, ai);
             }
         }
 
         else if (LegacyMats.WATER.contains(loc.getBlock().getType())) {
-            swim(bot, target, botPlayer, livingTarget, LegacyMats.WATER.contains(loc.clone().add(0, -1, 0).getBlock().getType()));
+            swim(bot, target, botPlayer, goal, LegacyMats.WATER.contains(loc.clone().add(0, -1, 0).getBlock().getType()));
         }
     }
 
-    private void move(Bot bot, LivingEntity livingTarget, Location loc, Location target, boolean ai) {
+    private void move(Bot bot, Goal goal, Location loc, Location target, boolean ai) {
         Vector position = loc.toVector();
         Vector vel = target.toVector().subtract(position).normalize();
 
-        if (bot.tickDelay(5)) bot.faceLocation(livingTarget.getLocation());
+        if (bot.tickDelay(5)) bot.faceLocation(goal.getLocation());
         if (!bot.isOnGround()) return; // calling this a second time later on
 
         bot.stand(); // eventually create a memory system so packets do not have to be sent every tick
@@ -381,7 +386,7 @@ public class LegacyAgent extends Agent {
         }
     }
 
-    private void swim(Bot bot, Location loc, Player playerNPC, LivingEntity target, boolean anim) {
+    private void swim(Bot bot, Location loc, Player playerNPC, Goal target, boolean anim) {
         playerNPC.setSneaking(false);
 
         Location at = bot.getLocation();
@@ -424,7 +429,7 @@ public class LegacyAgent extends Agent {
         }
     }
 
-    private byte checkSide(Bot npc, LivingEntity target, Player playerNPC) {  // make it so they don't jump when checking side
+    private byte checkSide(Bot npc, Goal target, Player playerNPC) {  // make it so they don't jump when checking side
         Location a = playerNPC.getEyeLocation();
         Location b = target.getLocation().add(0, 1, 0);
 
@@ -445,7 +450,7 @@ public class LegacyAgent extends Agent {
         }
     }
 
-    private LegacyLevel checkNearby(LivingEntity target, Bot npc) {
+    private LegacyLevel checkNearby(Goal target, Bot npc) {
         Player player = npc.getBukkitEntity();
 
         npc.faceLocation(target.getLocation());
@@ -513,7 +518,7 @@ public class LegacyAgent extends Agent {
         return !LegacyMats.BREAK.contains(type);// && !LegacyMats.LEAVES.contains(type);
     }
 
-    private boolean checkUp(Bot npc, LivingEntity target, Player playerNPC, Location loc, boolean c) {
+    private boolean checkUp(Bot npc, Goal target, Player playerNPC, Location loc, boolean c) {
         Location a = playerNPC.getLocation();
         Location b = target.getLocation();
 
@@ -931,7 +936,7 @@ public class LegacyAgent extends Agent {
         }, 5);
     }
 
-    private void miscellaneousChecks(Bot bot, LivingEntity target) {
+    private void miscellaneousChecks(Bot bot, Goal target) {
         Player botPlayer = bot.getBukkitEntity();
         World world = botPlayer.getWorld();
         String worldName = world.getName();
@@ -1077,7 +1082,7 @@ public class LegacyAgent extends Agent {
         }
     }
 
-    private void resetHand(Bot npc, LivingEntity target, Player playerNPC) {
+    private void resetHand(Bot npc, Goal target, Player playerNPC) {
         if (!noFace.contains(npc)) { // LESSLAG if there is no if statement here
             npc.faceLocation(target.getLocation());
         }
@@ -1129,8 +1134,8 @@ public class LegacyAgent extends Agent {
         this.goal = goal;
     }
 
-    public LivingEntity locateTarget(Bot bot, Location loc) {
-        LivingEntity result = null;
+    public Goal locateTarget(Bot bot, Location loc) {
+        Goal result = null;
 
         switch (goal) {
             default:
@@ -1138,8 +1143,8 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (validateCloserEntity(player, loc, result)) {
-                        result = player;
+                    if (validateCloserEntity(player, loc, result.getLivingEntity())) {
+                        result = new Goal(player);
                     }
                 }
 
@@ -1148,8 +1153,8 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_VULNERABLE_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
-                        result = player;
+                    if (!PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result.getLivingEntity())) {
+                        result = new Goal(player);
                     }
                 }
 
@@ -1158,8 +1163,8 @@ public class LegacyAgent extends Agent {
             
             case NEAREST_HOSTILE: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if (entity instanceof Monster && validateCloserEntity(entity, loc, result)) {
-                        result = entity;
+                    if (entity instanceof Monster && validateCloserEntity(entity, loc, result.getLivingEntity())) {
+                        result = new Goal(entity);
                     }
                 }
 
@@ -1168,8 +1173,8 @@ public class LegacyAgent extends Agent {
             
             case NEAREST_MOB: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if (entity instanceof Mob && validateCloserEntity(entity, loc, result)) {
-                    	result = entity;
+                    if (entity instanceof Mob && validateCloserEntity(entity, loc, result.getLivingEntity())) {
+                    	result = new Goal(entity);
                     }
                 }
 
@@ -1181,8 +1186,8 @@ public class LegacyAgent extends Agent {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (validateCloserEntity(player, loc, result)) {
-                            result = player;
+                        if (validateCloserEntity(player, loc, result.getLivingEntity())) {
+                            result = new Goal(player);
                         }
                     }
                 }
@@ -1197,8 +1202,8 @@ public class LegacyAgent extends Agent {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName()) && validateCloserEntity(player, loc, result)) {
-                            result = player;
+                        if (!name.equals(otherBot.getName()) && validateCloserEntity(player, loc, result.getLivingEntity())) {
+                            result = new Goal(player);
                         }
                     }
                 }
@@ -1213,8 +1218,8 @@ public class LegacyAgent extends Agent {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result)) {
-                            result = player;
+                        if (!name.equals(otherBot.getName().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result.getLivingEntity())) {
+                            result = new Goal(player);
                         }
                     }
                 }
