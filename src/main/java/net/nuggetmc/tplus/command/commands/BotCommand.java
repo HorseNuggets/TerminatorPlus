@@ -328,12 +328,27 @@ public class BotCommand extends CommandInstance {
 
         String extra = ChatColor.GRAY + " [" + ChatColor.YELLOW + "/bot settings" + ChatColor.GRAY + "]";
 
-        if (arg1 == null || !arg1.equals("setgoal")) {
+        if (arg1 == null || (!arg1.equals("setgoal") && !arg1.equals("mobtarget"))) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage(ChatColor.GOLD + "Bot Settings" + extra);
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all future bots spawned to be targetted by hostile mobs.");
             sender.sendMessage(ChatUtils.LINE);
             return;
+        }
+        
+        if(arg1.equals("mobtarget"))
+        {
+        	if(arg2 == null || (!arg2.equals("true") && !arg2.equals("false")))
+        	{
+        		sender.sendMessage(ChatUtils.LINE);
+        		sender.sendMessage(ChatColor.GOLD + "Only true or false is accepted");
+        		sender.sendMessage(ChatUtils.LINE);
+        		return;
+        	}
+        	Bot.mobTargeting = Boolean.parseBoolean(arg2);
+        	sender.sendMessage("Mob targeting has been set to " + ChatColor.BLUE + arg2 + ChatColor.RESET + ".");
+        	return;
         }
 
         EnumTargetGoal goal = EnumTargetGoal.from(arg2 == null ? "" : arg2);
@@ -366,11 +381,15 @@ public class BotCommand extends CommandInstance {
 
         if (args.length == 2) {
             output.add("setgoal");
+            output.add("mobtarget");
         }
 
         else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("setgoal")) {
                 Arrays.stream(EnumTargetGoal.values()).forEach(goal -> output.add(goal.name().replace("_", "").toLowerCase()));
+            } else if (args[1].equalsIgnoreCase("mobtarget")) {
+                output.add("true");
+                output.add("false");
             }
         }
 

@@ -4,6 +4,7 @@ import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.utils.MathUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -13,7 +14,7 @@ public class BotData {
 
     private final Map<BotDataType, Double> values;
 
-    private BotData(Bot bot, Player target) {
+    private BotData(Bot bot, LivingEntity target) {
         this.values = new HashMap<>();
 
         Location a = bot.getLocation();
@@ -24,10 +25,10 @@ public class BotData {
         values.put(BotDataType.CRITICAL_HEALTH, health >= 5 ? 0 : 5D - health);
         values.put(BotDataType.DISTANCE_XZ, Math.sqrt(MathUtils.square(a.getX() - b.getX()) + MathUtils.square(a.getZ() - b.getZ())));
         values.put(BotDataType.DISTANCE_Y, b.getY() - a.getY());
-        values.put(BotDataType.ENEMY_BLOCKING, target.isBlocking() ? 1D : 0);
+        values.put(BotDataType.ENEMY_BLOCKING, target instanceof Player && ((Player)target).isBlocking() ? 1D : 0);
     }
 
-    public static BotData generate(Bot bot, Player target) {
+    public static BotData generate(Bot bot, LivingEntity target) {
         return new BotData(bot, target);
     }
 
