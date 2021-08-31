@@ -297,7 +297,7 @@ public class LegacyAgent extends Agent {
 
             Material itemType;
 
-            if (bot.getBukkitEntity().getWorld().getName().equals("world_nether")) {
+            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
                 itemType = Material.TWISTING_VINES;
             } else {
                 itemType = Material.WATER_BUCKET;
@@ -339,7 +339,7 @@ public class LegacyAgent extends Agent {
         Material placeType;
         Sound sound;
 
-        if (world.getName().equals("world_nether")) {
+        if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
             itemType = Material.TWISTING_VINES;
             sound = Sound.BLOCK_WEEPING_VINES_PLACE;
             placeType = itemType;
@@ -934,7 +934,7 @@ public class LegacyAgent extends Agent {
         Location loc = bot.getLocation();
 
         if (bot.isOnFire()) {
-            if (!worldName.equals("world_nether")) {
+            if (bot.getBukkitEntity().getWorld().getEnvironment() != World.Environment.NETHER) {
                 placeWaterDown(bot, world, loc);
             }
         }
@@ -942,7 +942,7 @@ public class LegacyAgent extends Agent {
         Material atType = loc.getBlock().getType();
 
         if (atType == Material.FIRE || atType == Material.SOUL_FIRE) {
-            if (!worldName.equals("world_nether")) {
+            if (bot.getBukkitEntity().getWorld().getEnvironment() != World.Environment.NETHER) {
                 placeWaterDown(bot, world, loc);
                 world.playSound(loc, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
             } else {
@@ -954,7 +954,7 @@ public class LegacyAgent extends Agent {
         }
 
         if (atType == Material.LAVA) {
-            if (worldName.equals("world_nether")) {
+            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
                 bot.attemptBlockPlace(loc, Material.COBBLESTONE, false);
             } else {
                 placeWaterDown(bot, world, loc);
@@ -965,7 +965,7 @@ public class LegacyAgent extends Agent {
         Material headType = head.getBlock().getType();
 
         if (headType == Material.LAVA) {
-            if (worldName.equals("world_nether")) {
+            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
                 bot.attemptBlockPlace(head, Material.COBBLESTONE, false);
             } else {
                 placeWaterDown(bot, world, head);
@@ -973,7 +973,7 @@ public class LegacyAgent extends Agent {
         }
 
         if (headType == Material.FIRE || headType == Material.SOUL_FIRE) {
-            if (worldName.equals("world_nether")) {
+            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
                 bot.look(BlockFace.DOWN);
                 bot.punch();
                 world.playSound(head, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
