@@ -1,0 +1,51 @@
+name: "CodeQL"
+
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java' ]
+        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
+        # Learn more:
+        # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Cache local repo
+      uses: actions/cache@v2
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v1
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v1
+
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.4
+      if: success()
+      with:
+        name: TerminatorPlus
+        path: target/
