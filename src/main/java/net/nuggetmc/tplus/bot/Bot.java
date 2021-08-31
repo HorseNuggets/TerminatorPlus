@@ -301,7 +301,7 @@ public class Bot extends EntityPlayer {
         if (noDamageTicks == 0) {
             if (lava) {
                 damageEntity(DamageSource.LAVA, 4);
-                noDamageTicks = 12;
+                noDamageTicks = 20;//this used to be 12 ticks but that would cause the bot to take damage too quickly
             } else if (fireTicks > 1) {
                 damageEntity(DamageSource.FIRE, 1);
                 noDamageTicks = 20;
@@ -524,8 +524,11 @@ public class Bot extends EntityPlayer {
 
     private void dieCheck() {
         if (removeOnDeath) {
-            //scheduler.runTask(plugin, () -> plugin.getManager().remove(this)); // maybe making this later will fix the concurrentmodificationexception?
-            plugin.getManager().remove(this); //this should fix the concurrentmodificationexception mentioned above, I used the ConcurrentHashMap.newKeySet to make a "ConcurrentHashSet"
+
+            // I replaced HashSet with ConcurrentHashMap.newKeySet which creates a "ConcurrentHashSet"
+            // this should fix the concurrentmodificationexception mentioned above, I used the ConcurrentHashMap.newKeySet to make a "ConcurrentHashSet"
+            plugin.getManager().remove(this);
+
             scheduler.runTaskLater(plugin, this::setDead, 30);
 
             this.removeTab();

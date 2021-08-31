@@ -31,7 +31,7 @@ public class BotManager implements Listener {
 
     public BotManager() {
         this.agent = new LegacyAgent(this);
-        this.bots = ConcurrentHashMap.newKeySet();
+        this.bots = ConcurrentHashMap.newKeySet(); //should fix concurrentmodificationexception
         this.numberFormat = NumberFormat.getInstance(Locale.US);
     }
 
