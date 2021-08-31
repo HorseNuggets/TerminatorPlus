@@ -367,15 +367,11 @@ public class BotCommand extends CommandInstance {
 
         if (args.length == 2) {
             output.add("setgoal");
-            output.add("mobtarget");
         }
 
         else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("setgoal")) {
                 Arrays.stream(EnumTargetGoal.values()).forEach(goal -> output.add(goal.name().replace("_", "").toLowerCase()));
-            } else if (args[1].equalsIgnoreCase("mobtarget")) {
-                output.add("true");
-                output.add("false");
             }
         }
 
