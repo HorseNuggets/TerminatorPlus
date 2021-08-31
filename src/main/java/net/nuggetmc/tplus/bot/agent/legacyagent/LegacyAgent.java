@@ -1143,7 +1143,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (validateCloserEntity(player, loc, result.getLivingEntity())) {
+                    if (validateCloserEntity(player, loc, result)) {
                         result = new Goal(player);
                     }
                 }
@@ -1153,7 +1153,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_VULNERABLE_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result.getLivingEntity())) {
+                    if (!PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
                         result = new Goal(player);
                     }
                 }
@@ -1163,7 +1163,7 @@ public class LegacyAgent extends Agent {
             
             case NEAREST_HOSTILE: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if (entity instanceof Monster && validateCloserEntity(entity, loc, result.getLivingEntity())) {
+                    if (entity instanceof Monster && validateCloserEntity(entity, loc, result)) {
                         result = new Goal(entity);
                     }
                 }
@@ -1173,7 +1173,7 @@ public class LegacyAgent extends Agent {
             
             case NEAREST_MOB: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if (entity instanceof Mob && validateCloserEntity(entity, loc, result.getLivingEntity())) {
+                    if (entity instanceof Mob && validateCloserEntity(entity, loc, result)) {
                     	result = new Goal(entity);
                     }
                 }
@@ -1186,7 +1186,7 @@ public class LegacyAgent extends Agent {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (validateCloserEntity(player, loc, result.getLivingEntity())) {
+                        if (validateCloserEntity(player, loc, result)) {
                             result = new Goal(player);
                         }
                     }
@@ -1202,7 +1202,7 @@ public class LegacyAgent extends Agent {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName()) && validateCloserEntity(player, loc, result.getLivingEntity())) {
+                        if (!name.equals(otherBot.getName()) && validateCloserEntity(player, loc, result)) {
                             result = new Goal(player);
                         }
                     }
@@ -1218,18 +1218,42 @@ public class LegacyAgent extends Agent {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result.getLivingEntity())) {
+                        if (!name.equals(otherBot.getName().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result)) {
                             result = new Goal(player);
                         }
                     }
                 }
+            }
+            case WALK_FORWARD:{
+                Location currentLocation = bot.getLocation();
+                switch (bot.getDirection()){
+                    case DOWN:
+                        currentLocation.add(0,-100,0);
+                        break;
+                    case UP:
+                        currentLocation.add(0,100,0);
+                        break;
+                    case EAST:
+                        currentLocation.add(100,0,0);
+                        break;
+                    case WEST:
+                        currentLocation.add(-100,0,0);
+                        break;
+                    case NORTH:
+                        currentLocation.add(0,0,-100);
+                        break;
+                    case SOUTH:
+                        currentLocation.add(0,0,100);
+                        break;
+                }
+                result = new Goal(currentLocation);
             }
         }
 
         return result;
     }
 
-    private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
+    private boolean validateCloserEntity(LivingEntity entity, Location loc, Goal result) {
         return loc.getWorld() == entity.getWorld() && !entity.isDead() && (result == null || loc.distance(entity.getLocation()) < loc.distance(result.getLocation()));
     }
 }

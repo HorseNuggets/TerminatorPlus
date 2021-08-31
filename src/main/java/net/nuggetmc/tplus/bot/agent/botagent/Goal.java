@@ -16,8 +16,9 @@ public class Goal { //TODO - Horse, rename this to LegacyGoal if you need to
         this.livingEntity = null;
     }
     public Location getLocation(){
-        if (locationGoal != null)
+        if (isLocationGoal()) {
             return locationGoal;
+        }
         return livingEntity.getLocation();
     }
     public boolean isLocationGoal(){
