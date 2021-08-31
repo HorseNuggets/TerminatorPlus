@@ -40,6 +40,7 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      run: mkdir -p target/
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
@@ -72,6 +73,5 @@ jobs:
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.4
-      run: mkdir -p target/
       with:
         path: target/
