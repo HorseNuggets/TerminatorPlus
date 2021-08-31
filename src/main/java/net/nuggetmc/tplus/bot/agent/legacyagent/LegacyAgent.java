@@ -1224,30 +1224,6 @@ public class LegacyAgent extends Agent {
                     }
                 }
             }
-            case WALK_FORWARD:{
-                Location currentLocation = bot.getLocation();
-                switch (bot.getDirection()){
-                    case DOWN:
-                        currentLocation.add(0,-100,0);
-                        break;
-                    case UP:
-                        currentLocation.add(0,100,0);
-                        break;
-                    case EAST:
-                        currentLocation.add(100,0,0);
-                        break;
-                    case WEST:
-                        currentLocation.add(-100,0,0);
-                        break;
-                    case NORTH:
-                        currentLocation.add(0,0,-100);
-                        break;
-                    case SOUTH:
-                        currentLocation.add(0,0,100);
-                        break;
-                }
-                result = new Goal(currentLocation);
-            }
         }
 
         return result;
