@@ -40,6 +40,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+
+    - name: Create directory
       run: mkdir -p target/
 
     # Initializes the CodeQL tools for scanning.
