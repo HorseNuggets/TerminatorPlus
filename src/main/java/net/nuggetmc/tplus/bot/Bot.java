@@ -75,8 +75,6 @@ public class Bot extends EntityPlayer {
     private byte noFallTicks;
 
     private final Vector offset;
-    
-    public static boolean mobTargeting;
 
     private Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
@@ -121,11 +119,8 @@ public class Bot extends EntityPlayer {
         bot.getBukkitEntity().setNoDamageTicks(0);
         Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(
         		new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, bot)));
-        if(mobTargeting)
-        	nmsWorld.addPlayerJoin(bot);
-        else
-        	nmsWorld.addEntity(bot);
 
+        nmsWorld.addEntity(bot);
         bot.renderAll();
         
         TerminatorPlus.getInstance().getManager().add(bot);

@@ -1157,16 +1157,7 @@ public class LegacyAgent extends Agent {
             }
             
             case NEAREST_HOSTILE: {
-            	World world = null;
-            	for(World wld : Bukkit.getWorlds())
-            	{
-            		if(((CraftWorld)wld).getHandle() == bot.getWorld())
-            		{
-            			world = wld;
-            			break;
-            		}
-            	}
-                for (LivingEntity entity : world.getLivingEntities()) {
+                for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
                     if (entity instanceof Monster && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
@@ -1176,16 +1167,7 @@ public class LegacyAgent extends Agent {
             }
             
             case NEAREST_MOB: {
-            	World world = null;
-            	for(World wld : Bukkit.getWorlds())
-            	{
-            		if(((CraftWorld)wld).getHandle() == bot.getWorld())
-            		{
-            			world = wld;
-            			break;
-            		}
-            	}
-                for (LivingEntity entity : world.getLivingEntities()) {
+                for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
                     if (entity instanceof Mob && validateCloserEntity(entity, loc, result)) {
                     	result = entity;
                     }
