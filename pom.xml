@@ -6,7 +6,7 @@
 
     <groupId>net.nuggetmc</groupId>
     <artifactId>TerminatorPlus</artifactId>
-    <version>3.2-BETA</version>
+    <version>3.1-BETA</version>
     <name>TerminatorPlus</name>
 
     <properties>
@@ -66,7 +66,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.16.5-R0.1-SNAPSHOT</version>
+            <version>1.16.4-R0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
