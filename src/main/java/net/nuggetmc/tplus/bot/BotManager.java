@@ -81,7 +81,7 @@ public class BotManager implements Listener {
 
         skinName = skinName == null ? name : skinName;
 
-        createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
+        createBots(sender.getTargetBlock(null, 32).getLocation(), name, MojangAPI.getSkin(skinName), n, network);
 
         sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
     }
@@ -112,6 +112,7 @@ public class BotManager implements Listener {
                 bot.setNeuralNetwork(network == NeuralNetwork.RANDOM ? NeuralNetwork.generateRandomNetwork() : network);
                 bot.setShield(true);
                 bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
+                bot.setAttackRange(bot.getAttackRange());
                 //bot.setRemoveOnDeath(false);
             }
 

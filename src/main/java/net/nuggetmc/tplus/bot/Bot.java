@@ -56,6 +56,7 @@ public class Bot extends EntityPlayer {
     }
 
     public ItemStack defaultItem;
+    public int attackRange;
 
     private boolean shield;
     private boolean blocking;
@@ -83,6 +84,7 @@ public class Bot extends EntityPlayer {
         this.scheduler = Bukkit.getScheduler();
         this.agent = plugin.getManager().getAgent();
         this.defaultItem = new ItemStack(Material.AIR);
+        this.attackRange = 3;
         this.velocity = new Vector(0, 0, 0);
         this.oldVelocity = velocity.clone();
         this.noFallTicks = 60;
@@ -117,6 +119,7 @@ public class Bot extends EntityPlayer {
 
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
+        bot.setAttackRange(bot.getAttackRange());
         nmsWorld.addEntity(bot);
 
         bot.renderAll();
@@ -158,6 +161,14 @@ public class Bot extends EntityPlayer {
 
     public void setDefaultItem(ItemStack item) {
         this.defaultItem = item;
+    }
+
+    public void setAttackRange(int radius) {
+        this.attackRange = radius;
+    }
+
+    public int getAttackRange() {
+        return attackRange;
     }
 
     public Vector getOffset() {
@@ -410,9 +421,11 @@ public class Bot extends EntityPlayer {
     }
 
     public void attack(org.bukkit.entity.Entity entity) {
+        Location loc = this.getLocation();
         faceLocation(entity.getLocation());
         punch();
 
+        if (loc.distance(entity.getLocation()) >= this.getAttackRange()) return;
         double damage = ItemUtils.getLegacyAttackDamage(defaultItem);
 
         if (entity instanceof Damageable) {

@@ -87,11 +87,11 @@ public class BotAgent extends Agent {
             move(bot, player, loc, target);
         }*/
 
-        if (bot.tickDelay(3)) attack(bot, player, loc);
+        if (bot.tickDelay(5)) attack(bot, player, loc);
     }
 
     private void attack(Bot bot, Player player, Location loc) {
-        if (PlayerUtils.isInvincible(player.getGameMode()) || player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= 4) return;
+        if (PlayerUtils.isInvincible(player.getGameMode()) || player.getNoDamageTicks() >= 5 || loc.distance(player.getLocation()) >= bot.getAttackRange()) return;
 
         bot.attack(player);
     }
