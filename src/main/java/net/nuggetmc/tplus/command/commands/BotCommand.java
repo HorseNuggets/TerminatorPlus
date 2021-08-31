@@ -342,8 +342,12 @@ public class BotCommand extends CommandInstance {
         if (goal == null) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage(ChatColor.GOLD + "Goal Selection Types" + extra);
-            Arrays.stream(EnumTargetGoal.values()).forEach(g -> sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + g.name().replace("_", "").toLowerCase()
-                    + ChatUtils.BULLET_FORMATTED + g.description()));
+            Arrays.stream(EnumTargetGoal.values()).forEach(g -> {
+                if (g.isTest())
+                    return;
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + g.name().replace("_", "").toLowerCase()
+                        + ChatUtils.BULLET_FORMATTED + g.description());
+            });
             sender.sendMessage(ChatUtils.LINE);
             return;
         }
@@ -371,7 +375,11 @@ public class BotCommand extends CommandInstance {
 
         else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("setgoal")) {
-                Arrays.stream(EnumTargetGoal.values()).forEach(goal -> output.add(goal.name().replace("_", "").toLowerCase()));
+                Arrays.stream(EnumTargetGoal.values()).forEach(goal -> {
+                    if (goal.isTest())
+                        return; //don't show test goals
+                    output.add(goal.name().replace("_", "").toLowerCase());
+                });
             }
         }
 
