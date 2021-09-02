@@ -8,7 +8,6 @@ public class CommandMethod {
     private final String name;
     private final Set<String> aliases;
     private final String description;
-    private final String usage;
     private final String permission;
 
     private final CommandInstance handler;
@@ -16,11 +15,10 @@ public class CommandMethod {
     private final Method method;
     private final Method autofiller;
 
-    public CommandMethod(String name, Set<String> aliases, String description, String usage, String permission, CommandInstance handler, Method method, Method autofiller) {
+    public CommandMethod(String name, Set<String> aliases, String description, String permission, CommandInstance handler, Method method, Method autofiller) {
         this.name = name;
         this.aliases = aliases;
         this.description = description;
-        this.usage = usage;
         this.permission = permission;
         this.handler = handler;
         this.method = method;
@@ -37,10 +35,6 @@ public class CommandMethod {
 
     public String getDescription() {
         return description;
-    }
-
-    public String getUsage() {
-        return usage;
     }
 
     public String getPermission() {
@@ -61,6 +55,6 @@ public class CommandMethod {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "{name=\"" + name + "\",aliases=" + aliases + ",description=\"" + description + "\",usage=\"" + usage + "\",permission=\"" + permission + "\",method=" + method + ",autofiller=" + autofiller + "}";
+        return getClass().getSimpleName() + "{name=\"" + name + "\",aliases=" + aliases + ",description=\"" + description + "\",permission=\"" + permission + "\",method=" + method + ",autofiller=" + autofiller + "}";
     }
 }

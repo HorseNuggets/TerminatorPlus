@@ -19,4 +19,18 @@ public class ChatUtils {
     public static String trim16(String str) {
         return str.length() > 16 ? str.substring(0, 16) : str;
     }
+
+    public static String camelToDashed(String input) {
+        StringBuilder result = new StringBuilder();
+
+        for (char ch : input.toCharArray()) {
+            if (Character.isUpperCase(ch)) {
+                result.append("-").append(Character.toLowerCase(ch));
+            } else {
+                result.append(ch);
+            }
+        }
+
+        return result.toString();
+    }
 }

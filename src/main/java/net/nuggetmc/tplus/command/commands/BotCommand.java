@@ -8,8 +8,10 @@ import net.nuggetmc.tplus.bot.agent.legacyagent.EnumTargetGoal;
 import net.nuggetmc.tplus.bot.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
+import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.Autofill;
 import net.nuggetmc.tplus.command.annotation.Command;
+import net.nuggetmc.tplus.command.annotation.OptArg;
 import net.nuggetmc.tplus.utils.ChatUtils;
 import net.nuggetmc.tplus.utils.Debugger;
 import org.bukkit.Bukkit;
@@ -51,83 +53,31 @@ public class BotCommand extends CommandInstance {
     }
 
     @Command
-    public void root(CommandSender sender, List<String> args) {
+    public void root(CommandSender sender) {
         commandHandler.sendRootInfo(this, sender);
     }
 
     @Command(
         name = "create",
-        desc = "Create a bot.",
-        usage = "<name> [skin]"
+        desc = "Create a bot."
     )
-    public void create(CommandSender sender, List<String> args) {
-        if (!(sender instanceof Player)) {
-            return;
-        }
-
-        if (args.isEmpty()) {
-            commandHandler.sendUsage(sender, this, "create <name> [skin]");
-            return;
-        }
-
-        String skin;
-
-        if (args.size() < 2) {
-            skin = null;
-        } else {
-            skin = args.get(1);
-        }
-
-        manager.createBots((Player) sender, args.get(0), skin, 1);
+    public void create(Player sender, @Arg("name") String name, @OptArg("skin") String skin) {
+        manager.createBots(sender, name, skin, 1);
     }
 
     @Command(
         name = "multi",
-        desc = "Create multiple bots at once.",
-        usage = "<amount> <name> [skin]"
+        desc = "Create multiple bots at once."
     )
-    public void multi(CommandSender sender, List<String> args) {
-        if (!(sender instanceof Player)) {
-            return;
-        }
-
-        if (args.size() < 2) {
-            commandHandler.sendUsage(sender, this, "multi <amount> <name> [skin]");
-            return;
-        }
-
-        String skin;
-
-        if (args.size() < 3) {
-            skin = null;
-        } else {
-            skin = args.get(2);
-        }
-
-        int n;
-
-        try {
-            n = Integer.parseInt(args.get(0));
-        } catch (NumberFormatException e) {
-            sender.sendMessage("The amount must be an integer!");
-            return;
-        }
-
-        manager.createBots((Player) sender, args.get(1), skin, n);
+    public void multi(Player sender, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin) {
+        manager.createBots(sender, name, skin, amount);
     }
 
     @Command(
         name = "give",
-        desc = "Gives a specified item to all bots.",
-        usage = "<item>"
+        desc = "Gives a specified item to all bots."
     )
-    public void give(CommandSender sender, List<String> args) {
-        if (args.isEmpty()) {
-            commandHandler.sendUsage(sender, this, "give <item>");
-            return;
-        }
-
-        String itemName = args.get(0);
+    public void give(CommandSender sender, @Arg("item-name") String itemName) {
         Material type = Material.matchMaterial(itemName);
 
         if (type == null) {
@@ -191,17 +141,11 @@ public class BotCommand extends CommandInstance {
     @Command(
         name = "armor",
         desc = "Gives all bots an armor set.",
-        usage = "<armor-tier>",
         autofill = "armorAutofill"
     )
     @SuppressWarnings("deprecation")
-    public void armor(CommandSender sender, List<String> args) {
-        if (args.isEmpty()) {
-            commandHandler.sendUsage(sender, this, "armor <armor-tier>");
-            return;
-        }
-
-        String tier = args.get(0).toLowerCase();
+    public void armor(CommandSender sender, @Arg("armor-tier") String armorTier) {
+        String tier = armorTier.toLowerCase();
 
         if (!armorTiers.containsKey(tier)) {
             sender.sendMessage(ChatColor.YELLOW + tier + ChatColor.RESET + " is not a valid tier!");
@@ -233,17 +177,9 @@ public class BotCommand extends CommandInstance {
     @Command(
         name = "info",
         desc = "Information about loaded bots.",
-        usage = "[name]",
         autofill = "infoAutofill"
     )
-    public void info(CommandSender sender, List<String> args) {
-        if (args.isEmpty()) {
-            commandHandler.sendUsage(sender, this, "info <name>");
-            return;
-        }
-
-        String name = args.get(0);
-
+    public void info(CommandSender sender, @Arg("bot-name") String name) {
         if (name == null) {
             sender.sendMessage(ChatColor.YELLOW + "Bot GUI coming soon!");
             return;
@@ -301,7 +237,7 @@ public class BotCommand extends CommandInstance {
         name = "reset",
         desc = "Remove all loaded bots."
     )
-    public void reset(CommandSender sender, List<String> args) {
+    public void reset(CommandSender sender) {
         sender.sendMessage("Removing every bot...");
         int size = manager.fetch().size();
         manager.reset();
@@ -316,6 +252,10 @@ public class BotCommand extends CommandInstance {
         }
     }
 
+    /*
+     * EVENTUALLY, we should make a command parent hierarchy system soon too! (so we don't have to do this crap)
+     * basically, in the @Command annotation, you can include a "parent" for the command, so it will be a subcommand under the specified parent
+     */
     @Command(
         name = "settings",
         desc = "Make changes to the global configuration file and bot-specific settings.",
@@ -381,15 +321,9 @@ public class BotCommand extends CommandInstance {
     @Command(
         name = "debug",
         desc = "Debug plugin code.",
-        usage = "<expression>",
         visible = false
     )
-    public void debug(CommandSender sender, List<String> args) {
-        if (args.isEmpty()) {
-            commandHandler.sendUsage(sender, this, "debug <expression>");
-            return;
-        }
-
-        new Debugger(sender).execute(args.get(0));
+    public void debug(CommandSender sender, @Arg("expression") String expression) {
+        new Debugger(sender).execute(expression);
     }
 }

@@ -86,7 +86,7 @@ public class CommandHandler {
                     }
 
                     String methodName = cmd.name();
-                    CommandMethod commandMethod = new CommandMethod(methodName, Sets.newHashSet(cmd.aliases()), cmd.desc(), cmd.usage(), perm, command, method, autofiller);
+                    CommandMethod commandMethod = new CommandMethod(methodName, Sets.newHashSet(cmd.aliases()), cmd.desc(), perm, command, method, autofiller);
 
                     command.addMethod(methodName, commandMethod);
                 }
@@ -110,16 +110,6 @@ public class CommandHandler {
 
     private void setHelp(CommandInstance commandInstance) {
         help.put(commandInstance.getName(), getCommandInfo(commandInstance));
-    }
-
-    /*
-     * TODO
-     * Eventually, this will be a LOT better, basically not having to have this method
-     * at all (kind of like Drink), and even better, we won't even need a "usage" field
-     * in the @Command annotation, and can create the usage message from the method parameters.
-     */
-    public void sendUsage(CommandSender sender, CommandInstance command, String usage) {
-        sender.sendMessage("Command Usage: " + ChatColor.YELLOW + "/" + command.getName() + " " + usage);
     }
 
     private List<String> getCommandInfo(CommandInstance commandInstance) {

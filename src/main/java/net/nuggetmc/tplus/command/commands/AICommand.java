@@ -7,8 +7,10 @@ import net.nuggetmc.tplus.bot.agent.legacyagent.ai.IntelligenceAgent;
 import net.nuggetmc.tplus.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
+import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.Autofill;
 import net.nuggetmc.tplus.command.annotation.Command;
+import net.nuggetmc.tplus.command.annotation.OptArg;
 import net.nuggetmc.tplus.utils.ChatUtils;
 import net.nuggetmc.tplus.utils.MathUtils;
 import org.bukkit.Bukkit;
@@ -49,82 +51,26 @@ public class AICommand extends CommandInstance {
 
     @Command(
         name = "random",
-        desc = "Create bots with random neural networks, collecting feed data.",
-        usage = "<amount> <name> [skin]"
+        desc = "Create bots with random neural networks, collecting feed data."
     )
-    public void random(CommandSender sender, List<String> args) {
-        if (!(sender instanceof Player)) {
-            return;
-        }
-
-        if (args.size() < 2) {
-            commandHandler.sendUsage(sender, this, "random <amount> <name> [skin]");
-            return;
-        }
-
-        String skin;
-
-        if (args.size() < 3) {
-            skin = null;
-        } else {
-            skin = args.get(2);
-        }
-
-        int n;
-
-        try {
-            n = Integer.parseInt(args.get(0));
-        } catch (NumberFormatException e) {
-            sender.sendMessage("The amount must be an integer!");
-            return;
-        }
-
-        manager.createBots((Player) sender, args.get(1), skin, n, NeuralNetwork.RANDOM);
+    public void random(Player sender, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin) {
+        manager.createBots(sender, name, skin, amount, NeuralNetwork.RANDOM);
     }
 
     @Command(
         name = "reinforcement",
-        desc = "Begin an AI training session.",
-        usage = "<population-size> <name> [skin]"
+        desc = "Begin an AI training session."
     )
-    public void reinforcement(CommandSender sender, List<String> args) {
-        if (!(sender instanceof Player)) {
-            return;
-        }
-
-        Player player = (Player) sender;
-
-        if (args.size() < 2) {
-            commandHandler.sendUsage(player, this, "reinforcement <amount> <name> [skin]");
-            return;
-        }
-
-        String skin;
-
-        if (args.size() < 3) {
-            skin = null;
-        } else {
-            skin = args.get(2);
-        }
-
-        int populationSize;
-
-        try {
-            populationSize = Integer.parseInt(args.get(0));
-        } catch (NumberFormatException e) {
-            player.sendMessage("The population size must be an integer!");
-            return;
-        }
-
+    public void reinforcement(Player sender, @Arg("population-size") int populationSize, @Arg("name") String name, @OptArg("skin") String skin) {
         if (agent != null) {
-            player.sendMessage("A session is already active.");
+            sender.sendMessage("A session is already active.");
             return;
         }
 
-        player.sendMessage("Starting a new session...");
+        sender.sendMessage("Starting a new session...");
 
-        agent = new IntelligenceAgent(this, populationSize, args.get(1), skin);
-        agent.addUser(player);
+        agent = new IntelligenceAgent(this, populationSize, name, skin);
+        agent.addUser(sender);
     }
 
     public IntelligenceAgent getSession() {
@@ -135,7 +81,7 @@ public class AICommand extends CommandInstance {
         name = "stop",
         desc = "End a currently running AI training session."
     )
-    public void stop(CommandSender sender, List<String> args) {
+    public void stop(CommandSender sender) {
         if (agent == null) {
             sender.sendMessage("No session is currently active.");
             return;
@@ -162,17 +108,9 @@ public class AICommand extends CommandInstance {
     @Command(
         name = "info",
         desc = "Display neural network information about a bot.",
-        usage = "<name>",
         autofill = "infoAutofill"
     )
-    public void info(CommandSender sender, List<String> args) {
-        if (args.isEmpty()) {
-            commandHandler.sendUsage(sender, this, "info <name>");
-            return;
-        }
-
-        String name = args.get(0);
-
+    public void info(CommandSender sender, @Arg("bot-name") String name) {
         sender.sendMessage("Processing request...");
 
         scheduler.runTaskAsynchronously(plugin, () -> {
