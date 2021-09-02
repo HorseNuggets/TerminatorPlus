@@ -2,6 +2,7 @@ package net.nuggetmc.tplus.bot.agent.legacyagent;
 
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import net.minecraft.server.v1_16_R3.PacketPlayOutBlockBreakAnimation;
+import net.minecraft.server.v1_16_R3.PathfinderGoal;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.BotManager;
 import net.nuggetmc.tplus.bot.agent.Agent;
@@ -1134,6 +1135,8 @@ public class LegacyAgent extends Agent {
 
         switch (goal) {
             default:
+                return null;
+            case NONE:
                 return null;
 
             case NEAREST_PLAYER: {
