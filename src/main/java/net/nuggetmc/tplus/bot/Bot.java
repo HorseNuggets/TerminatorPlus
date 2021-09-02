@@ -116,7 +116,7 @@ public class Bot extends EntityPlayer {
         }, bot);
 
         bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
-        bot.getBukkitEntity().setNoDamageTicks(0);
+        bot.getBukkitEntity().setNoDamageTicks(10);
         Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(
         		new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, bot)));
 
@@ -225,7 +225,6 @@ public class Bot extends EntityPlayer {
         aliveTicks++;
 
         if (fireTicks > 0) --fireTicks;
-        if (noDamageTicks > 0) --noDamageTicks;
         if (jumpTicks > 0) --jumpTicks;
         if (noFallTicks > 0) --noFallTicks;
 
