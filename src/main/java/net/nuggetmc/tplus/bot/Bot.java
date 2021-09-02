@@ -56,6 +56,7 @@ public class Bot extends EntityPlayer {
     }
 
     public ItemStack defaultItem;
+    public ItemStack placementBlock;
 
     private boolean shield;
     private boolean blocking;
@@ -88,6 +89,7 @@ public class Bot extends EntityPlayer {
         this.noFallTicks = 60;
         this.fireTicks = 0;
         this.removeOnDeath = true;
+        this.placementBlock = new ItemStack(Material.COBBLESTONE);
         this.offset = MathUtils.circleOffset(3);
 
         datawatcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
@@ -179,6 +181,14 @@ public class Bot extends EntityPlayer {
 
     public void setDefaultItem(ItemStack item) {
         this.defaultItem = item;
+    }
+
+    public void setPlacementBlock(ItemStack block) {
+        this.placementBlock = block;
+    }
+
+    public ItemStack getPlacementBlock() {
+        return placementBlock;
     }
 
     public Vector getOffset() {
@@ -671,7 +681,7 @@ public class Bot extends EntityPlayer {
             faceLocation(loc);
         }
 
-        setItem(new org.bukkit.inventory.ItemStack(Material.COBBLESTONE));
+        setItem(new org.bukkit.inventory.ItemStack(placementBlock));
         punch();
 
         Block block = loc.getBlock();

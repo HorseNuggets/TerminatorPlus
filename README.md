@@ -17,7 +17,7 @@ TerminatorPlus currently utilizes classic population-based reinforcement learnin
 
 ### API Support
 
-The jar artifact can be used as a dependency for your own plugins, however stronger support will come in the future. Below is an exmaple of a simple bot creation method provided.
+The jar artifact can be used as a dependency for your own plugins, however stronger support will come in the future. Below is an example of a simple bot creation method provided.
 
 ```java
 Location loc = player.getLocation();
