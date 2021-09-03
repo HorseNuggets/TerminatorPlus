@@ -22,7 +22,6 @@ import java.util.List;
 import static net.nuggetmc.tplus.TerminatorPlus.getInstance;
 
 public class BotListGUI {
-    private final DecimalFormat formatter;
     private Bot[] bots = new Bot[getInstance().getManager().fetch().size()];
 
     private int page;
@@ -64,29 +63,13 @@ public class BotListGUI {
             Bot bot = bots[i];
             ItemStack head = PlayerUtils.getPlayerHead(bot.getSkinName());
             ItemMeta headMeta = head.getItemMeta();
-            headMeta.setDisplayName(ChatColor.GOLD + bot.getSkinName() + ChatColor.WHITE + " - Bot " + (i + 1) + " of " + bots.length);
+            headMeta.setDisplayName(ChatColor.GOLD + bot.getName() + ChatColor.WHITE + " - Bot " + (i + 1) + " of " + bots.length);
 
 
 
-            // Lore to add to head, stats about the bot.
-
-            String world = bot.getBukkitEntity().getWorld().getName();
-            Location loc = bot.getLocation();
-
-            String location = org.bukkit.ChatColor.AQUA + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
-
-            Vector vel = bot.getVelocity();
-            String velocity = org.bukkit.ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
-
-
-            List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.WHITE + "World - " + ChatColor.YELLOW + world);
-            lore.add(ChatColor.WHITE + "Location - " + ChatColor.AQUA + location);
-            lore.add(ChatColor.WHITE + "Velocity - " + ChatColor.AQUA + velocity);
-            lore.add(ChatColor.WHITE + "Health - " + ChatColor.RED + bot.getHealth());
-            lore.add(ChatColor.WHITE + "Kills - " + ChatColor.RED + bot.getKills());
-
-            headMeta.setLore(lore);
+            // Fetching info about the bot
+            // and adding bot info to the lore of the head.
+            headMeta.setLore(bot.botLore());
 
 
 
@@ -136,7 +119,6 @@ public class BotListGUI {
     }
 
     public BotListGUI(Player p, int page){
-        this.formatter = new DecimalFormat("0.##");
         botListGUI = createBotListGUI(p,page);
     }
 

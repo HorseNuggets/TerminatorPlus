@@ -197,30 +197,8 @@ public class BotCommand extends CommandInstance {
                     return;
                 }
 
-                /*
-                 * time created
-                 * current life (how long it has lived for)
-                 * health
-                 * inventory
-                 * current target
-                 * current kills
-                 * skin
-                 * neural network values (network name if loaded, otherwise RANDOM)
-                 */
 
-                String botName = bot.getName();
-                String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
-                Location loc = bot.getLocation();
-                String strLoc = ChatColor.YELLOW + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
-                Vector vel = bot.getVelocity();
-                String strVel = ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
-
-                sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(ChatColor.GREEN + botName);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "World: " + world);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Position: " + strLoc);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + strVel);
-                sender.sendMessage(ChatUtils.LINE);
+                UIManager.openBotGUI((Player) sender, bot);
             }
 
             catch (Exception e) {

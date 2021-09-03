@@ -19,48 +19,36 @@ import java.util.List;
 import static net.nuggetmc.tplus.TerminatorPlus.getInstance;
 
 public class BotGUI {
-    private final DecimalFormat formatter;
     private Inventory botGUI;
     private Bot bot;
 
     public Inventory createBotGUI(Player p, Bot bot) {
         this.bot = bot;
+
+        // Create inventory
         Inventory inventory = Bukkit.createInventory(null, 54, ChatColor.DARK_GREEN + "TerminatorPlus" + ChatColor.DARK_GRAY + " | Bots | " + ChatColor.AQUA + bot.getName());
+
+        // Create item that acts as the filler for the UI, which in this case is a black glass plane.
         ItemStack backgroundItem = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta backgroundItemMeta = backgroundItem.getItemMeta();
         backgroundItemMeta.setDisplayName(" ");
         backgroundItem.setItemMeta(backgroundItemMeta);
 
-        // set entire inventory to black glass planes to create a pseudo-background
+        // Set entire inventory to black glass planes to create a pseudo-background
         for (int i = 0; i < 54; i++) {
             inventory.setItem(i, backgroundItem);
         }
 
+        // Creating the bot's head with the correct skin, not just the skin linked to the name the bot uses.
         ItemStack head = PlayerUtils.getPlayerHead(bot.getSkinName());
         ItemMeta headMeta = head.getItemMeta();
         headMeta.setDisplayName(ChatColor.GOLD + bot.getName());
 
 
 
-        // Lore to add to head, stats about the bot.
-
-        String world = bot.getBukkitEntity().getWorld().getName();
-        Location loc = bot.getLocation();
-
-        String location = org.bukkit.ChatColor.AQUA + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
-
-        Vector vel = bot.getVelocity();
-        String velocity = org.bukkit.ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
-
-
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.WHITE + "World - " + ChatColor.YELLOW + world);
-        lore.add(ChatColor.WHITE + "Location - " + ChatColor.AQUA + location);
-        lore.add(ChatColor.WHITE + "Velocity - " + ChatColor.AQUA + velocity);
-        lore.add(ChatColor.WHITE + "Health - " + ChatColor.RED + bot.getHealth());
-        lore.add(ChatColor.WHITE + "Kills - " + ChatColor.RED + bot.getKills());
-
-        headMeta.setLore(lore);
+        // Fetching info about the bot
+        // and adding bot info to the lore of the head.
+        headMeta.setLore(bot.botLore());
 
 
 
@@ -108,9 +96,10 @@ public class BotGUI {
     }
 
     public BotGUI(Player p, Bot bot){
-        this.formatter = new DecimalFormat("0.##");
         botGUI = createBotGUI(p, bot);
     }
+
+
 
     // public accessor method for getting the inventory (GUI)
     public Inventory fetch(){
