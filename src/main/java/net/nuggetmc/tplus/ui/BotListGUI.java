@@ -62,9 +62,9 @@ public class BotListGUI {
         // start putting playerHeads in the inventory to represent bots
         for (int i = (page-1)*45; i < (page*45) && i < bots.length; i++){
             Bot bot = bots[i];
-            ItemStack head = PlayerUtils.getPlayerHead(bot.getName());
+            ItemStack head = PlayerUtils.getPlayerHead(bot.getSkinName());
             ItemMeta headMeta = head.getItemMeta();
-            headMeta.setDisplayName(ChatColor.GOLD + bot.getName() + ChatColor.WHITE + " - Bot " + (i + 1) + " of " + bots.length);
+            headMeta.setDisplayName(ChatColor.GOLD + bot.getSkinName() + ChatColor.WHITE + " - Bot " + (i + 1) + " of " + bots.length);
 
 
 

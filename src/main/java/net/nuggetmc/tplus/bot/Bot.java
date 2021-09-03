@@ -57,6 +57,8 @@ public class Bot extends EntityPlayer {
 
     public ItemStack defaultItem;
 
+    private String skinName;
+
     private boolean shield;
     private boolean blocking;
     private boolean blockUse;
@@ -107,6 +109,7 @@ public class Bot extends EntityPlayer {
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
+
 
         bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND) {
 
@@ -626,6 +629,15 @@ public class Bot extends EntityPlayer {
 
         velocity = vel;
     }
+
+    public String getSkinName(){
+        return skinName;
+    }
+
+    public void setSkinName(String skinName){
+        this.skinName = skinName;
+    }
+
 
     public int getKills() {
         return kills;

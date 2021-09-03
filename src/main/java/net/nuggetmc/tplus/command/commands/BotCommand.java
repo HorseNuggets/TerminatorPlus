@@ -180,9 +180,9 @@ public class BotCommand extends CommandInstance {
         desc = "Information about loaded bots.",
         autofill = "infoAutofill"
     )
-    public void info(CommandSender sender, @Arg("bot-name") String name) {
+    public void info(CommandSender sender, @OptArg("bot-name") String name) {
         if (name == null) {
-            sender.sendMessage(ChatColor.YELLOW + "Bot GUI coming soon!");
+            UIManager.openBotListGUI((Player) sender, 1);
             return;
         }
 
@@ -234,14 +234,6 @@ public class BotCommand extends CommandInstance {
         return args.length == 2 ? manager.fetchNames() : null;
     }
 
-
-    @Command(
-            name = "infoall",
-            desc = "Information about loaded bots in a GUI format."
-    )
-    public void infoAll(CommandSender sender) {
-        UIManager.openBotListGUI((Player) sender, 1);
-    }
 
     @Command(
         name = "reset",

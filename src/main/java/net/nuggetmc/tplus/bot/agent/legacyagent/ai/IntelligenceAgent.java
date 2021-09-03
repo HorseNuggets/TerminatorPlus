@@ -109,8 +109,6 @@ public class IntelligenceAgent {
 
         print("Fetching skin data for " + ChatColor.GREEN + skinName + ChatColor.RESET + "...");
 
-        String[] skinData = MojangAPI.getSkin(skinName);
-
         String botName = this.botName.endsWith("%") ? this.botName : this.botName + "%";
 
         print("Creating " + (populationSize == 1 ? "new bot" : ChatColor.RED + NumberFormat.getInstance(Locale.US).format(populationSize) + ChatColor.RESET + " new bots")
@@ -125,7 +123,7 @@ public class IntelligenceAgent {
             Set<Bot> bots;
 
             if (loadedProfiles == null) {
-                bots = manager.createBots(loc, botName, skinData, populationSize, NeuralNetwork.RANDOM);
+                bots = manager.createBots(loc, botName, skinName, populationSize, NeuralNetwork.RANDOM);
             } else {
                 List<NeuralNetwork> networks = new ArrayList<>();
                 loadedProfiles.forEach(profile -> networks.add(NeuralNetwork.createNetworkFromProfile(profile)));
@@ -137,7 +135,7 @@ public class IntelligenceAgent {
                     return;
                 }
 
-                bots = manager.createBots(loc, botName, skinData, networks);
+                bots = manager.createBots(loc, botName, skinName, networks);
             }
 
             bots.forEach(bot -> {

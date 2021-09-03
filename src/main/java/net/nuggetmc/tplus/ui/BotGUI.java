@@ -36,7 +36,7 @@ public class BotGUI {
             inventory.setItem(i, backgroundItem);
         }
 
-        ItemStack head = PlayerUtils.getPlayerHead(bot.getName());
+        ItemStack head = PlayerUtils.getPlayerHead(bot.getSkinName());
         ItemMeta headMeta = head.getItemMeta();
         headMeta.setDisplayName(ChatColor.GOLD + bot.getName());
 
