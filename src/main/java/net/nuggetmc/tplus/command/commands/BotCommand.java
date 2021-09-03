@@ -12,6 +12,7 @@ import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.Autofill;
 import net.nuggetmc.tplus.command.annotation.Command;
 import net.nuggetmc.tplus.command.annotation.OptArg;
+import net.nuggetmc.tplus.ui.UIManager;
 import net.nuggetmc.tplus.utils.ChatUtils;
 import net.nuggetmc.tplus.utils.Debugger;
 import org.bukkit.Bukkit;
@@ -231,6 +232,15 @@ public class BotCommand extends CommandInstance {
     @Autofill
     public List<String> infoAutofill(CommandSender sender, String[] args) {
         return args.length == 2 ? manager.fetchNames() : null;
+    }
+
+
+    @Command(
+            name = "infoall",
+            desc = "Information about loaded bots in a GUI format."
+    )
+    public void infoAll(CommandSender sender) {
+        UIManager.openBotListGUI((Player) sender, 1);
     }
 
     @Command(
