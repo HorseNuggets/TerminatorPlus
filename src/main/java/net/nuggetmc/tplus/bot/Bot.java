@@ -759,7 +759,7 @@ public class Bot extends EntityPlayer {
     public List<String> botLore(){
 
         long aliveTimeHours = TimeUnit.SECONDS.toHours(this.getAliveTicks() / 20);
-        long aliveTimeMinutes = TimeUnit.SECONDS.toMinutes((this.getAliveTicks() / 20) % 60);
+        long aliveTimeMinutes = TimeUnit.SECONDS.toMinutes((this.getAliveTicks() / 20) % 3600);
         long aliveTimeSeconds = TimeUnit.SECONDS.toSeconds((this.getAliveTicks() / 20) % 60);
         String aliveTime;
         if (aliveTimeHours == 0){
