@@ -24,9 +24,13 @@ public class BotGUI {
 
     public Inventory createBotGUI(Player p, Bot bot) {
         this.bot = bot;
+        String invTitle = ChatColor.DARK_GREEN + "TerminatorPlus" + ChatColor.DARK_GRAY + " | Bots | " + ChatColor.AQUA + bot.getName();
+        if (invTitle.length() > 35){
+            invTitle = invTitle.substring(0, 35) + "...";
+        }
 
         // Create inventory
-        Inventory inventory = Bukkit.createInventory(null, 54, ChatColor.DARK_GREEN + "TerminatorPlus" + ChatColor.DARK_GRAY + " | Bots | " + ChatColor.AQUA + bot.getName());
+        Inventory inventory = Bukkit.createInventory(null, 54, invTitle);
 
         // Create item that acts as the filler for the UI, which in this case is a black glass plane.
         ItemStack backgroundItem = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
