@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="TerminatorPlus:jar">
+    <output-path>$PROJECT_DIR$/../../../Vanilla Local Servers/Paper Plugin Testing Server 1.16.5/plugins</output-path>
+    <root id="archive" name="TerminatorPlus.jar">
+      <element id="module-output" name="TerminatorPlus" />
+    </root>
+  </artifact>
+</component>
