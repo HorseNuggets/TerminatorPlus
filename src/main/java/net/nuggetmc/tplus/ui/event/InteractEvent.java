@@ -48,7 +48,7 @@ public class InteractEvent implements Listener {
                 bot.reset();
                 bot.removeVisually();
                 getInstance().getManager().remove(bot);
-                p.sendMessage("Bot has been removed!");
+                p.sendMessage("Bot " + ChatColor.GREEN + bot.getName() + ChatColor.RESET + " has been removed!");
                 UIManager.openBotListGUI(p, UIManager.playerBotListGUIs.get(p).getPage());
                 return;
             }

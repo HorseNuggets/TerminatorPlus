@@ -197,8 +197,11 @@ public class BotCommand extends CommandInstance {
                     return;
                 }
 
-
-                UIManager.openBotGUI((Player) sender, bot);
+                List<String> botLore = bot.botLore();
+                sender.sendMessage("Statistics about bot " + ChatColor.GREEN + name +  ChatColor.RESET + ":");
+                for(String str : botLore){
+                    sender.sendMessage(str);
+                }
             }
 
             catch (Exception e) {
