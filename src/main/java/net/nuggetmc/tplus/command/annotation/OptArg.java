@@ -5,16 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-public @interface Command {
-    String name() default "";
-
-    String[] aliases() default {};
-
-    String desc() default "Blank description.";
-
-    String autofill() default "";
-
-    boolean visible() default true;
+public @interface OptArg {
+    String value() default "";
 }

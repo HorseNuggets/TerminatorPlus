@@ -13,8 +13,6 @@ import net.nuggetmc.tplus.utils.ChatUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import java.util.List;
-
 public class MainCommand extends CommandInstance {
 
     private BaseComponent[] rootInfo;
@@ -24,7 +22,7 @@ public class MainCommand extends CommandInstance {
     }
 
     @Command
-    public void root(CommandSender sender, List<String> args) {
+    public void root(CommandSender sender) {
         if (rootInfo == null) {
             rootInfoSetup();
         }
