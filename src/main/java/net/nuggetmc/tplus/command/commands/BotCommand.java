@@ -56,6 +56,25 @@ public class BotCommand extends CommandInstance {
     }
 
     @Command(
+            name = "settarget",
+            desc = "test",
+            usage = "[x] [y] [z]"
+    )
+    public void settarget(CommandSender sender,List<String> args){
+        if (args.size() == 0){
+            if (sender instanceof Player){
+                targetLocation = ((Player) sender).getLocation();
+                sender.sendMessage(ChatColor.GREEN + "Done!");
+            }
+        }else if (args.size() == 3){
+            int x = Integer.parseInt(args.get(0)),y = Integer.parseInt(args.get(1)),z = Integer.parseInt(args.get(2));
+            targetLocation = new Location(Bukkit.getWorlds().get(0),x,y,z);
+            sender.sendMessage(ChatColor.GREEN + "Done!");
+        }
+    }
+    public static Location targetLocation;
+
+    @Command(
         name = "create",
         desc = "Create a bot.",
         usage = "<name> [skin]"

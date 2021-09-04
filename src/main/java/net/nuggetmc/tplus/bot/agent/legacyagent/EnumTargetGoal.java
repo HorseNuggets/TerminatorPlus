@@ -11,6 +11,7 @@ public enum EnumTargetGoal {
     NEAREST_BOT("Locate the nearest bot."),
     NEAREST_BOT_DIFFER("Locate the nearest bot with a different username."),
     NEAREST_BOT_DIFFER_ALPHA("Locate the nearest bot with a different username after filtering out non-alpha characters."),
+    WALK_FORWARD("Walk forward."),
     NONE("No target goal.");
 
     private static final Map<String, EnumTargetGoal> VALUES = new HashMap<String, EnumTargetGoal>() {
@@ -22,6 +23,7 @@ public enum EnumTargetGoal {
             this.put("nearestmob", NEAREST_MOB);
             this.put("nearestbot", NEAREST_BOT);
             this.put("nearestbotdiffer", NEAREST_BOT_DIFFER);
+            this.put("forward",WALK_FORWARD);
             this.put("nearestbotdifferalpha", NEAREST_BOT_DIFFER_ALPHA);
         }
     };

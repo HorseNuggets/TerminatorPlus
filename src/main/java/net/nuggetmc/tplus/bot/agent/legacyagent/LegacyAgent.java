@@ -12,6 +12,7 @@ import net.nuggetmc.tplus.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.bot.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.bot.event.BotDeathEvent;
 import net.nuggetmc.tplus.bot.event.BotFallDamageEvent;
+import net.nuggetmc.tplus.command.commands.BotCommand;
 import net.nuggetmc.tplus.utils.MathUtils;
 import net.nuggetmc.tplus.utils.PlayerUtils;
 import org.bukkit.*;
@@ -122,7 +123,7 @@ public class LegacyAgent extends Agent {
 
         Player botPlayer = bot.getBukkitEntity();
         Location target = offsets ? goal.getLocation().add(bot.getOffset()) : goal.getLocation();
-
+        Bukkit.broadcastMessage("Bots target location: " + ChatColor.GREEN + target);
         boolean ai = bot.hasNeuralNetwork();
 
         NeuralNetwork network = ai ? bot.getNeuralNetwork() : null;
@@ -1223,6 +1224,35 @@ public class LegacyAgent extends Agent {
                         }
                     }
                 }
+            }
+            case WALK_FORWARD:{
+                /*
+                Location currentLocation = bot.getLocation();
+                switch (bot.getDirection()){
+                    case DOWN:
+                        currentLocation.add(0,-10,0);
+                        break;
+                    case UP:
+                        currentLocation.add(0,10,0);
+                        break;
+                    case EAST:
+                        currentLocation.add(10,0,0);
+                        break;
+                    case WEST:
+                        currentLocation.add(-10,0,0);
+                        break;
+                    case NORTH:
+                        currentLocation.add(0,0,-10);
+                        break;
+                    case SOUTH:
+                        currentLocation.add(0,0,10);
+                        break;
+                }
+                result = new Goal(currentLocation);
+                 */
+                if (BotCommand.targetLocation == null)
+                    return null;
+                result = new Goal(BotCommand.targetLocation);
             }
         }
 
