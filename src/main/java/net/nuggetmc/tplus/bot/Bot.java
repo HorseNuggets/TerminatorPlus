@@ -664,7 +664,9 @@ public class Bot extends EntityPlayer {
 
         if (!block.getType().isSolid()) {
             block.setType(type);
-            if (world != null) world.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+            SoundGroup group = loc.getBlock().getBlockData().getSoundGroup();
+
+            if (world != null) world.playSound(loc, group.getPlaceSound(), SoundCategory.BLOCKS, 1, 1);
         }
     }
 

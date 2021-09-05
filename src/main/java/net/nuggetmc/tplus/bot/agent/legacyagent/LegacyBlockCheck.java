@@ -24,7 +24,8 @@ public class LegacyBlockCheck {
 
     private void placeFinal(Bot bot, Player player, Location loc) {
         if (loc.getBlock().getType() != bot.getPlacementBlock().getType()) {
-            for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+            SoundGroup group = loc.getBlock().getBlockData().getSoundGroup();
+            for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, group.getPlaceSound(), SoundCategory.BLOCKS, 1, 1);
             bot.setItem(new ItemStack(bot.getPlacementBlock()));
             loc.getBlock().setType(bot.getPlacementBlock().getType());
 
@@ -115,19 +116,22 @@ public class LegacyBlockCheck {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 Block b2 = loc.clone().add(0, -1, 0).getBlock();
                 if (LegacyMats.SPAWN.contains(b2.getType())) {
-                    for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+                    SoundGroup group = loc.getBlock().getBlockData().getSoundGroup();
+                    for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, group.getPlaceSound(), SoundCategory.BLOCKS, 1, 1);
                     placeFinal(bot, player, b2.getLocation());
                 }
             }, 1);
 
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+                SoundGroup group = loc.getBlock().getBlockData().getSoundGroup();
+                for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, group.getPlaceSound(), SoundCategory.BLOCKS, 1, 1);
                 placeFinal(bot, player, block.getLocation());
             }, 3);
             return;
         }
 
-        for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+        SoundGroup group = loc.getBlock().getBlockData().getSoundGroup();
+            for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, group.getPlaceSound(), SoundCategory.BLOCKS, 1, 1);
         placeFinal(bot, player, block.getLocation());
     }
 
@@ -180,7 +184,8 @@ public class LegacyBlockCheck {
 
                 bot.punch();
                 bot.sneak();
-                for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+                SoundGroup group = loc.getBlock().getBlockData().getSoundGroup();
+                for (Player all : Bukkit.getOnlinePlayers()) all.playSound(loc, group.getPlaceSound(), SoundCategory.BLOCKS, 1, 1);
                 bot.setItem(new ItemStack(bot.getPlacementBlock()));
                 loc.getBlock().setType(bot.getPlacementBlock().getType());
             }
