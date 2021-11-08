@@ -317,7 +317,25 @@ public class BotCommand extends CommandInstance {
 
         return output;
     }
-
+    @Command(
+        name = "jump",
+        desc = "enable/disable jumping",
+        autofill = "enabledDisabled"
+    )
+    public void disableJump(CommandSender sender,@Arg("enabled") String enabled){
+        if(enabled.equals("true")){
+            agent.setJumpEnabled(true);
+        }else if(enabled.equals("false")){
+            agent.setJumpEnabled(false);
+        }
+    }
+    @Autofill
+    public List<String> enabledDisabled(CommandSender sender, String[] args) {
+        List<String> list = new ArrayList<String>();
+        list.add("true");
+        list.add("false");
+        return list;
+    }
     @Command(
         name = "debug",
         desc = "Debug plugin code.",

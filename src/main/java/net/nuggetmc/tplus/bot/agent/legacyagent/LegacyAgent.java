@@ -16,7 +16,6 @@ import net.nuggetmc.tplus.utils.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.LivingEntity;
@@ -66,6 +65,7 @@ public class LegacyAgent extends Agent {
     public final Set<Player> noJump = new HashSet<>();
 
     public final Set<Bot> slow = new HashSet<>();
+    private boolean jumpEnabled = true;
 
     @Override
     protected void tick() {
@@ -229,7 +229,11 @@ public class LegacyAgent extends Agent {
         if (slow.contains(bot)) {
             vel.setY(0).multiply(0.5);
         } else {
-            vel.setY(0.4);
+            if(jumpEnabled||!bot.getLocation().add(bot.getLocation().getDirection().setY(0)).getBlock().getType().equals(Material.AIR)){
+                vel.setY(0.4);
+            }else {
+                vel.setY(0.06);
+            }
         }
 
         vel.setY(vel.getY() - Math.random() * 0.05);
@@ -1226,5 +1230,12 @@ public class LegacyAgent extends Agent {
 
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
         return loc.getWorld() == entity.getWorld() && !entity.isDead() && (result == null || loc.distance(entity.getLocation()) < loc.distance(result.getLocation()));
+    }
+    public void setJumpEnabled(boolean jumpEnabled) {
+        this.jumpEnabled = jumpEnabled;
+    }
+
+    public boolean isJumpEnabled() {
+        return jumpEnabled;
     }
 }

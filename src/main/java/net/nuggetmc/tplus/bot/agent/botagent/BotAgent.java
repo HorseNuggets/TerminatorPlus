@@ -7,6 +7,7 @@ import net.nuggetmc.tplus.utils.MathUtils;
 import net.nuggetmc.tplus.utils.PlayerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -21,7 +22,7 @@ import java.util.Set;
 public class BotAgent extends Agent {
 
     private int count;
-
+    private boolean jumpEnabled = true;
     public BotAgent(BotManager manager) {
         super(manager);
     }
@@ -120,8 +121,11 @@ public class BotAgent extends Agent {
         } else {
             vel.multiply(0.4);
         }
-
-        vel.setY(0.4);
+        if(jumpEnabled||!bot.getLocation().add(bot.getLocation().getDirection().setY(0)).getBlock().getType().equals(Material.AIR)){
+            vel.setY(0.4);
+        }else {
+            vel.setY(0.01);
+        }
 
         bot.jump(vel);
     }
@@ -138,5 +142,13 @@ public class BotAgent extends Agent {
         }
 
         return result;
+    }
+
+    public void setJumpEnabled(boolean jumpEnabled) {
+        this.jumpEnabled = jumpEnabled;
+    }
+
+    public boolean isJumpEnabled() {
+        return jumpEnabled;
     }
 }
