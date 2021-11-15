@@ -1,140 +1,66 @@
 package net.nuggetmc.tplus.ui;
 
-import net.nuggetmc.tplus.bot.Bot;
-
 import net.md_5.bungee.api.ChatColor;
-
+import net.nuggetmc.tplus.TerminatorPlus;
+import net.nuggetmc.tplus.bot.Bot;
+import net.nuggetmc.tplus.ui.menu.buttons.Button;
+import net.nuggetmc.tplus.ui.menu.menu.PaginatedMenu;
+import net.nuggetmc.tplus.utils.ItemBuilder;
 import net.nuggetmc.tplus.utils.PlayerUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.util.Vector;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
-import static net.nuggetmc.tplus.TerminatorPlus.getInstance;
+public class BotListGUI extends PaginatedMenu {
+    @Override
+    public String getPagesTitle(Player player) {
+        return ChatColor.DARK_GREEN + "TerminatorPlus" + ChatColor.DARK_GRAY + " | Bots"; //for some reason getPage() breaks the gui if its over 1 ?!
+    }
 
-public class BotListGUI {
-    private Bot[] bots = new Bot[getInstance().getManager().fetch().size()];
-
-    private int page;
-
-
-
-    private Inventory botListGUI;
-    public Inventory createBotListGUI(Player p, int page){
-        // prevent negative pages from occurring
-        if (page < 1){
-            page = 1;
-        }
-        // prevent infinite pages
-        if (((page - 1) * 45) > getInstance().getManager().fetch().size()){
-            page -= 1;
-        }
-
-        Inventory inventory = Bukkit.createInventory(null, 54, ChatColor.DARK_GREEN + "TerminatorPlus" + ChatColor.DARK_GRAY + " | Bots | " + ChatColor.AQUA + "Page " + page);
-        this.page = page;
-        ItemStack backgroundItem = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemMeta backgroundItemMeta = backgroundItem.getItemMeta();
-        backgroundItemMeta.setDisplayName(" ");
-        backgroundItem.setItemMeta(backgroundItemMeta);
-
-        // set entire inventory to black glass planes to create a pseudo-background
-        for (int i = 0; i < 54; i++) {
-            inventory.setItem(i, backgroundItem);
-        }
-
-        // change list of bots from set to array so it can be indexed easier
+    @Override
+    public List<Button> getPaginatedButtons(Player player) {
+        Set<Bot> bots = TerminatorPlus.getInstance().getManager().fetch();
+        List<Button> buttons = new ArrayList<>();
         int index = 0;
-        for (Bot bot : getInstance().getManager().fetch()){
-            bots[index] = bot;
-            index++;
+        for (Bot bot : bots) {
+            buttons.add(new BotButton(++index,bots.size(), bot));
+        }
+        return buttons;
+    }
+
+    @Override
+    public List<Button> getPersistantSlots(Player player) {
+        return null;
+    }
+    private class BotButton extends Button {
+        private int index,total;
+        private Bot bot;
+
+        private BotButton(int index,int total,Bot bot1) {
+            this.index = index;
+            this.total = total;
+            this.bot = bot1;
         }
 
-        // start putting playerHeads in the inventory to represent bots
-        for (int i = (page-1)*45; i < (page*45) && i < bots.length; i++){
-            Bot bot = bots[i];
-            ItemStack head = PlayerUtils.getPlayerHead(bot.getSkinName());
-            ItemMeta headMeta = head.getItemMeta();
-            headMeta.setDisplayName(ChatColor.GOLD + bot.getName() + ChatColor.WHITE + " - Bot " + (i + 1) + " of " + bots.length);
-
-
-
-            // Fetching info about the bot
-            // and adding bot info to the lore of the head.
-            headMeta.setLore(bot.botLore());
-
-
-
-            head.setItemMeta(headMeta);
-            inventory.setItem(i - (page-1)*45, head);
+        @Override
+        public ItemStack getItem(Player player) {
+            return new ItemBuilder(PlayerUtils.getPlayerHead(bot.getSkinName())).name(ChatColor.GOLD + bot.getName() + ChatColor.RESET + " - Bot " + index + " out of " + total)
+                    .lore(bot.botLore()).build();
         }
 
-        ItemStack item = new ItemStack(Material.ARROW);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(" ");
-        item.setItemMeta(meta);
-
-        if (page > 1){
-            // back button
-            item.setType(Material.ARROW);
-            meta.setDisplayName(ChatColor.GOLD + "Previous Page");
-            item.setItemMeta(meta);
-            inventory.setItem(48, item);
+        @Override
+        public void onClick(Player player, int slot, ClickType clickType, InventoryClickEvent event) {
+            new BotManagerGUI(bot).open(player);
         }
 
-        if ((page*45) < bots.length){
-            // forward button
-            item.setType(Material.ARROW);
-            meta.setDisplayName(ChatColor.GOLD + "Next Page");
-            item.setItemMeta(meta);
-            inventory.setItem(50, item);
+        @Override
+        public int getSlot() {
+            return 0;
         }
-
-        // close menu button
-        item.setType(Material.BARRIER);
-        meta.setDisplayName(ChatColor.RED + "Close Menu");
-        item.setItemMeta(meta);
-        inventory.setItem(49, item);
-
-        // remove any maps for previous player inventories
-        try{ UIManager.playerInventories.remove(p); }
-        catch(Exception e){ }
-
-        // add new map for player inventory
-        UIManager.playerInventories.put(p, inventory);
-
-        // remove any maps for previous player GUIs
-        try{ UIManager.playerBotListGUIs.remove(p); }
-        catch(Exception e){ }
-
-        return inventory;
     }
-
-    public BotListGUI(Player p, int page){
-        botListGUI = createBotListGUI(p,page);
-    }
-
-
-    public Inventory fetch(){
-        return botListGUI;
-    }
-
-    public int getPage(){
-        return this.page;
-    }
-
-    public Bot getBot(int index){
-        return bots[index];
-    }
-
-
-
 }

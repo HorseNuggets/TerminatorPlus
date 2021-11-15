@@ -181,8 +181,8 @@ public class BotCommand extends CommandInstance {
         autofill = "infoAutofill"
     )
     public void info(CommandSender sender, @OptArg("bot-name") String name) {
-        if (name == null) {
-            UIManager.openBotListGUI((Player) sender, 1);
+        if (name == null && sender instanceof Player) {
+            UIManager.openBotListGUI((Player) sender);
             return;
         }
 

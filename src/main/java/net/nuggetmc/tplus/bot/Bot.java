@@ -795,7 +795,6 @@ public class Bot extends EntityPlayer {
         lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Health - " + net.md_5.bungee.api.ChatColor.RED + this.getHealth());
         lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Kills - " + net.md_5.bungee.api.ChatColor.RED + this.getKills());
         lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Neural Network - " + net.md_5.bungee.api.ChatColor.GREEN + neuralNetwork);
-
         return lore;
     }
 }
