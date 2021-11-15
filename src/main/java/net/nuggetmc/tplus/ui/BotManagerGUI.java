@@ -1,4 +1,4 @@
-package net.nuggetmc.tplus.ui.menu;
+package net.nuggetmc.tplus.ui;
 
 import net.md_5.bungee.api.ChatColor;
 import net.nuggetmc.tplus.bot.Bot;
