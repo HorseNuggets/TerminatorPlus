@@ -2,6 +2,7 @@ package net.nuggetmc.tplus;
 
 import net.nuggetmc.tplus.bot.BotManager;
 import net.nuggetmc.tplus.command.CommandHandler;
+import net.nuggetmc.tplus.ui.menu.MenuListener;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -41,7 +42,7 @@ public class TerminatorPlus extends JavaPlugin {
         this.handler = new CommandHandler(this);
 
         // Register event listeners
-        this.registerEvents(manager);
+        this.registerEvents(manager,new MenuListener());
     }
 
     @Override

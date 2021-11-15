@@ -81,24 +81,25 @@ public class BotManager implements Listener {
 
         skinName = skinName == null ? name : skinName;
 
-        createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
+        createBots(sender.getLocation(), name, skinName, n, network);
 
         sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
     }
 
-    public Set<Bot> createBots(Location loc, String name, String[] skin, int n, NeuralNetwork network) {
+    public Set<Bot> createBots(Location loc, String name, String skinName, int n, NeuralNetwork network) {
         List<NeuralNetwork> networks = new ArrayList<>();
 
         for (int i = 0; i < n; i++) {
             networks.add(network);
         }
 
-        return createBots(loc, name, skin, networks);
+        return createBots(loc, name, skinName, networks);
     }
 
-    public Set<Bot> createBots(Location loc, String name, String[] skin, List<NeuralNetwork> networks) {
+    public Set<Bot> createBots(Location loc, String name, String skinName, List<NeuralNetwork> networks) {
         Set<Bot> bots = new HashSet<>();
         World world = loc.getWorld();
+        String[] skin = MojangAPI.getSkin(skinName);
 
         int n = networks.size();
         int i = 1;
@@ -107,6 +108,7 @@ public class BotManager implements Listener {
 
         for (NeuralNetwork network : networks) {
             Bot bot = Bot.createBot(loc, name.replace("%", String.valueOf(i)), skin);
+            bot.setSkinName(skinName);
 
             if (network != null) {
                 bot.setNeuralNetwork(network == NeuralNetwork.RANDOM ? NeuralNetwork.generateRandomNetwork() : network);

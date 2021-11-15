@@ -12,6 +12,7 @@ import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.Autofill;
 import net.nuggetmc.tplus.command.annotation.Command;
 import net.nuggetmc.tplus.command.annotation.OptArg;
+import net.nuggetmc.tplus.ui.UIManager;
 import net.nuggetmc.tplus.utils.ChatUtils;
 import net.nuggetmc.tplus.utils.Debugger;
 import org.bukkit.Bukkit;
@@ -179,9 +180,9 @@ public class BotCommand extends CommandInstance {
         desc = "Information about loaded bots.",
         autofill = "infoAutofill"
     )
-    public void info(CommandSender sender, @Arg("bot-name") String name) {
-        if (name == null) {
-            sender.sendMessage(ChatColor.YELLOW + "Bot GUI coming soon!");
+    public void info(CommandSender sender, @OptArg("bot-name") String name) {
+        if (name == null && sender instanceof Player) {
+            UIManager.openBotListGUI((Player) sender);
             return;
         }
 
@@ -196,30 +197,11 @@ public class BotCommand extends CommandInstance {
                     return;
                 }
 
-                /*
-                 * time created
-                 * current life (how long it has lived for)
-                 * health
-                 * inventory
-                 * current target
-                 * current kills
-                 * skin
-                 * neural network values (network name if loaded, otherwise RANDOM)
-                 */
-
-                String botName = bot.getName();
-                String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
-                Location loc = bot.getLocation();
-                String strLoc = ChatColor.YELLOW + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
-                Vector vel = bot.getVelocity();
-                String strVel = ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
-
-                sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(ChatColor.GREEN + botName);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "World: " + world);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Position: " + strLoc);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + strVel);
-                sender.sendMessage(ChatUtils.LINE);
+                List<String> botLore = bot.botLore();
+                sender.sendMessage("Statistics about bot " + ChatColor.GREEN + name +  ChatColor.RESET + ":");
+                for(String str : botLore){
+                    sender.sendMessage(str);
+                }
             }
 
             catch (Exception e) {
@@ -232,6 +214,7 @@ public class BotCommand extends CommandInstance {
     public List<String> infoAutofill(CommandSender sender, String[] args) {
         return args.length == 2 ? manager.fetchNames() : null;
     }
+
 
     @Command(
         name = "reset",

@@ -30,13 +30,12 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.UUID;
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Bot extends EntityPlayer {
-
+    private final DecimalFormat formatter;
     private final TerminatorPlus plugin;
     private final BukkitScheduler scheduler;
     private final Agent agent;
@@ -56,6 +55,8 @@ public class Bot extends EntityPlayer {
     }
 
     public ItemStack defaultItem;
+
+    private String skinName;
 
     private boolean shield;
     private boolean blocking;
@@ -79,6 +80,7 @@ public class Bot extends EntityPlayer {
     private Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
         super(minecraftServer, worldServer, profile, manager);
 
+        this.formatter = new DecimalFormat("0.##");
         this.plugin = TerminatorPlus.getInstance();
         this.scheduler = Bukkit.getScheduler();
         this.agent = plugin.getManager().getAgent();
@@ -107,6 +109,7 @@ public class Bot extends EntityPlayer {
         PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
+
 
         bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND) {
 
@@ -627,6 +630,15 @@ public class Bot extends EntityPlayer {
         velocity = vel;
     }
 
+    public String getSkinName(){
+        return skinName;
+    }
+
+    public void setSkinName(String skinName){
+        this.skinName = skinName;
+    }
+
+
     public int getKills() {
         return kills;
     }
@@ -741,5 +753,48 @@ public class Bot extends EntityPlayer {
         this.aL = this.aK;
         this.lastYaw = this.yaw;
         this.lastPitch = this.pitch;
+    }
+
+
+    public List<String> botLore(){
+
+        long aliveTimeHours = TimeUnit.SECONDS.toHours(this.getAliveTicks() / 20);
+        long aliveTimeMinutes = TimeUnit.SECONDS.toMinutes((this.getAliveTicks() / 20) % 3600);
+        long aliveTimeSeconds = TimeUnit.SECONDS.toSeconds((this.getAliveTicks() / 20) % 60);
+        String aliveTime;
+        if (aliveTimeHours == 0){
+            aliveTime = String.format("%02d", aliveTimeMinutes) + ":" + String.format("%02d", aliveTimeSeconds);
+        }
+        else{
+            aliveTime = aliveTimeHours + ":" + String.format("%02d", aliveTimeMinutes) + ":" + String.format("%02d", aliveTimeSeconds);
+        }
+
+
+
+        String world = this.getBukkitEntity().getWorld().getName();
+        Location loc = this.getLocation();
+
+        String location = org.bukkit.ChatColor.AQUA + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
+
+        Vector vel = this.getVelocity();
+        String velocity = org.bukkit.ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
+
+        String neuralNetwork;
+        try{
+            neuralNetwork = this.getNeuralNetwork().toString();
+        }
+        catch (Exception e){
+            neuralNetwork = "None";
+        }
+
+        List<String> lore = new ArrayList<>();
+        lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Time Alive - " + net.md_5.bungee.api.ChatColor.YELLOW + aliveTime);
+        lore.add(net.md_5.bungee.api.ChatColor.WHITE + "World - " + net.md_5.bungee.api.ChatColor.YELLOW + world);
+        lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Location - " + net.md_5.bungee.api.ChatColor.AQUA + location);
+        lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Velocity - " + net.md_5.bungee.api.ChatColor.AQUA + velocity);
+        lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Health - " + net.md_5.bungee.api.ChatColor.RED + this.getHealth());
+        lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Kills - " + net.md_5.bungee.api.ChatColor.RED + this.getKills());
+        lore.add(net.md_5.bungee.api.ChatColor.WHITE + "Neural Network - " + net.md_5.bungee.api.ChatColor.GREEN + neuralNetwork);
+        return lore;
     }
 }
