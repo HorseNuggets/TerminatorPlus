@@ -12,7 +12,7 @@ import net.nuggetmc.tplus.utils.Debugger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class CommandHandler {
             commandMap.put(command.getName(), command);
             bukkitCommandMap.register(fallback, command);
 
-            Method[] methods = command.getClass().getDeclaredMethods();
+            Method[] methods = command.getClass().getMethods();
 
             for (Method method : methods) {
                 if (method.isAnnotationPresent(Command.class)) {

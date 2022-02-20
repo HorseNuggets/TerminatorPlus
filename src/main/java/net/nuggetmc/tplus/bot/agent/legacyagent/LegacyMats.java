@@ -71,7 +71,7 @@ public class LegacyMats {
         Material.LAVA,
         Material.TALL_GRASS,
         Material.SNOW,
-        Material.GRASS_PATH,
+        Material.DIRT_PATH,
         Material.CAVE_AIR,
         Material.VINE,
         Material.FERN,
