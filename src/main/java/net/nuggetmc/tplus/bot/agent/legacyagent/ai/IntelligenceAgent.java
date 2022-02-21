@@ -1,6 +1,6 @@
 package net.nuggetmc.tplus.bot.agent.legacyagent.ai;
 
-import net.minecraft.server.v1_16_R3.EntityLiving;
+import net.minecraft.world.entity.LivingEntity;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.BotManager;
@@ -141,7 +141,7 @@ public class IntelligenceAgent {
             }
 
             bots.forEach(bot -> {
-                String name = bot.getName();
+                String name = bot.getScoreboardName();
 
                 while (this.bots.containsKey(name)) {
                     name += "_";
@@ -245,7 +245,7 @@ public class IntelligenceAgent {
     }
 
     private int aliveCount() {
-        return (int) bots.values().stream().filter(EntityLiving::isAlive).count();
+        return (int) bots.values().stream().filter(LivingEntity::isAlive).count();
     }
 
     private void close() {

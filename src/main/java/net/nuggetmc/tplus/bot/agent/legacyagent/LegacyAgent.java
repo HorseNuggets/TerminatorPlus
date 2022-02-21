@@ -1,7 +1,5 @@
 package net.nuggetmc.tplus.bot.agent.legacyagent;
 
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.PacketPlayOutBlockBreakAnimation;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.BotManager;
 import net.nuggetmc.tplus.bot.agent.Agent;
@@ -16,8 +14,6 @@ import net.nuggetmc.tplus.utils.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -753,7 +749,7 @@ public class LegacyAgent extends Agent {
         bot.setItem(new ItemStack(item));
 
         if (level == LegacyLevel.EAST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D || level == LegacyLevel.WEST_D) {
-            bot.pitch = 69;
+            //bot.pitch = 69;
 
             scheduler.runTaskLater(plugin, () -> {
                 btCheck.put(player, true);
@@ -836,10 +832,10 @@ public class LegacyAgent extends Agent {
                     if (player.isDead()) {
                         this.cancel();
 
-                        PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
+                        /*PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
                         for (Player all : Bukkit.getOnlinePlayers()) {
                             ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
-                        }
+                        }*/
 
                         crackList.remove(block);
                         mining.remove(this);
@@ -849,10 +845,10 @@ public class LegacyAgent extends Agent {
                     if (!block.equals(cur) || block.getType() != cur.getType()) {
                         this.cancel();
 
-                        PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
+                        /*PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
                         for (Player all : Bukkit.getOnlinePlayers()) {
                             ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
-                        }
+                        }*/
 
                         crackList.remove(block);
                         mining.remove(this);
@@ -864,10 +860,10 @@ public class LegacyAgent extends Agent {
                     if (i == 9) {
                         this.cancel();
 
-                        PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
+                        /*PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), -1);
                         for (Player all : Bukkit.getOnlinePlayers()) {
                             ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
-                        }
+                        }*/
 
                         if (sound != null) {
                             for (Player all : Bukkit.getOnlinePlayers()) all.playSound(block.getLocation(), sound, SoundCategory.BLOCKS, 1, 1);
@@ -894,10 +890,10 @@ public class LegacyAgent extends Agent {
 
                     if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME) return;
 
-                    PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), i);
+                    /*PacketPlayOutBlockBreakAnimation crack = new PacketPlayOutBlockBreakAnimation(crackList.get(block), new BlockPosition(block.getX(), block.getY(), block.getZ()), i);
                     for (Player all : Bukkit.getOnlinePlayers()) {
                         ((CraftPlayer) all).getHandle().playerConnection.sendPacket(crack);
-                    }
+                    }*/
 
                     mining.put(this, (byte) (i + 1));
                 }
@@ -1191,13 +1187,13 @@ public class LegacyAgent extends Agent {
             }
 
             case NEAREST_BOT_DIFFER: {
-                String name = bot.getName();
+                String name = bot.getScoreboardName();
 
                 for (Bot otherBot : manager.fetch()) {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName()) && validateCloserEntity(player, loc, result)) {
+                        if (!name.equals(otherBot.getScoreboardName()) && validateCloserEntity(player, loc, result)) {
                             result = player;
                         }
                     }
@@ -1207,13 +1203,13 @@ public class LegacyAgent extends Agent {
             }
 
             case NEAREST_BOT_DIFFER_ALPHA: {
-                String name = bot.getName().replaceAll("[^A-Za-z]+", "");
+                String name = bot.getScoreboardName().replaceAll("[^A-Za-z]+", "");
 
                 for (Bot otherBot : manager.fetch()) {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result)) {
+                        if (!name.equals(otherBot.getScoreboardName().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result)) {
                             result = player;
                         }
                     }

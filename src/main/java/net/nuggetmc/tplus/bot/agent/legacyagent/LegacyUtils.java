@@ -1,10 +1,8 @@
 package net.nuggetmc.tplus.bot.agent.legacyagent;
 
-import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
@@ -35,7 +33,7 @@ public class LegacyUtils {
     }
 
     public static Sound breakBlockSound(Block block) {
-        try {
+        /*try {
             World nmsWorld = ((CraftWorld) block.getWorld()).getHandle();
             net.minecraft.server.v1_16_R3.Block nmsBlock = nmsWorld.getType(new BlockPosition(block.getX(), block.getY(), block.getZ())).getBlock();
 
@@ -52,6 +50,8 @@ public class LegacyUtils {
             return Sound.valueOf(nmsString.getKey().replace(".", "_").toUpperCase());
         } catch (IllegalAccessException | NoSuchFieldException ex) {
             return null;
-        }
+        }*/
+
+        return null;
     }
 }
