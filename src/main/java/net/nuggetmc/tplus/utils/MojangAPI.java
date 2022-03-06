@@ -27,15 +27,25 @@ public class MojangAPI {
 
     // CATCHING NULL ILLEGALSTATEEXCEPTION BAD!!!! eventually fix from the getAsJsonObject thingy
     public static String[] pullFromAPI(String name) {
-        try {
-            String uuid = new JsonParser().parse(new InputStreamReader(new URL("https://api.mojang.com/users/profiles/minecraft/" + name)
-                    .openStream())).getAsJsonObject().get("id").getAsString();
-            JsonObject property = new JsonParser()
-                    .parse(new InputStreamReader(new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false")
-                            .openStream())).getAsJsonObject().get("properties").getAsJsonArray().get(0).getAsJsonObject();
-            return new String[] {property.get("value").getAsString(), property.get("signature").getAsString()};
-        } catch (IOException | IllegalStateException e) {
-            return null;
+        if (name.startsWith("https://mineskin.org/")) {
+            try {
+                name = name.substring(name.indexOf("https://mineskin.org/") + 21);
+                JsonObject property = new JsonParser().parse(new InputStreamReader(new URL("https://api.mineskin.org/get/uuid/"+name).openStream())).getAsJsonObject().get("data").getAsJsonObject().get("texture").getAsJsonObject();
+                return new String[]{property.get("value").getAsString(), property.get("signature").getAsString()};
+            } catch (IOException | IllegalStateException e) {
+                return null;
+            }
+        } else{
+            try {
+                String uuid = new JsonParser().parse(new InputStreamReader(new URL("https://api.mojang.com/users/profiles/minecraft/" + name)
+                        .openStream())).getAsJsonObject().get("id").getAsString();
+                JsonObject property = new JsonParser()
+                        .parse(new InputStreamReader(new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false")
+                                .openStream())).getAsJsonObject().get("properties").getAsJsonArray().get(0).getAsJsonObject();
+                return new String[]{property.get("value").getAsString(), property.get("signature").getAsString()};
+            } catch (IOException | IllegalStateException e) {
+                return null;
+            }
         }
     }
 }
