@@ -1,13 +1,13 @@
 package net.nuggetmc.tplus.bot;
 
-import net.minecraft.server.v1_16_R3.PlayerConnection;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.nuggetmc.tplus.bot.agent.Agent;
 import net.nuggetmc.tplus.bot.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.tplus.bot.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.bot.event.BotDeathEvent;
 import net.nuggetmc.tplus.utils.MojangAPI;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -41,7 +41,7 @@ public class BotManager implements Listener {
 
     public void add(Bot bot) {
         if (joinMessages) {
-            Bukkit.broadcastMessage(ChatColor.YELLOW + bot.getName() + " joined the game");
+            Bukkit.broadcastMessage(ChatColor.YELLOW + (bot.getName() + " joined the game"));
         }
 
         bots.add(bot);
@@ -58,7 +58,7 @@ public class BotManager implements Listener {
     }
 
     public List<String> fetchNames() {
-        return bots.stream().map(Bot::getName).collect(Collectors.toList());
+        return bots.stream().map(Bot::getName).map(component -> component.getString()).collect(Collectors.toList());
     }
 
     public Agent getAgent() {
@@ -166,7 +166,7 @@ public class BotManager implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        PlayerConnection connection = ((CraftPlayer) event.getPlayer()).getHandle().playerConnection;
+        ServerGamePacketListenerImpl connection = ((CraftPlayer) event.getPlayer()).getHandle().connection;
         bots.forEach(bot -> bot.render(connection, true));
     }
 

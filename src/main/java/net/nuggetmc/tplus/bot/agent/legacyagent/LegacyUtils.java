@@ -1,10 +1,13 @@
 package net.nuggetmc.tplus.bot.agent.legacyagent;
 
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
@@ -35,23 +38,12 @@ public class LegacyUtils {
     }
 
     public static Sound breakBlockSound(Block block) {
-        try {
-            World nmsWorld = ((CraftWorld) block.getWorld()).getHandle();
-            net.minecraft.server.v1_16_R3.Block nmsBlock = nmsWorld.getType(new BlockPosition(block.getX(), block.getY(), block.getZ())).getBlock();
+        Level nmsWorld = ((CraftWorld) block.getWorld()).getHandle();
+        BlockState blockState = nmsWorld.getBlockState(new BlockPos(block.getX(), block.getY(), block.getZ()));
+        net.minecraft.world.level.block.Block nmsBlock = blockState.getBlock();
 
-            SoundEffectType soundEffectType = nmsBlock.getStepSound(nmsBlock.getBlockData());
+        SoundType soundEffectType = nmsBlock.getSoundType(blockState);
 
-            Field breakSound = SoundEffectType.class.getDeclaredField("stepSound");
-            breakSound.setAccessible(true);
-            SoundEffect nmsSound = (SoundEffect) breakSound.get(soundEffectType);
-
-            Field keyField = SoundEffect.class.getDeclaredField("b");
-            keyField.setAccessible(true);
-            MinecraftKey nmsString = (MinecraftKey) keyField.get(nmsSound);
-
-            return Sound.valueOf(nmsString.getKey().replace(".", "_").toUpperCase());
-        } catch (IllegalAccessException | NoSuchFieldException ex) {
-            return null;
-        }
+        return Sound.valueOf( soundEffectType.getBreakSound().getLocation().getPath().replace(".", "_").toUpperCase());
     }
 }

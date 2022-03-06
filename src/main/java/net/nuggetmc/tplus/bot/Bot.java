@@ -4,8 +4,27 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import net.minecraft.server.v1_16_R3.Chunk;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.bot.agent.Agent;
 import net.nuggetmc.tplus.bot.agent.legacyagent.ai.NeuralNetwork;
@@ -19,14 +38,15 @@ import org.bukkit.World;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
@@ -35,7 +55,7 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Bot extends EntityPlayer {
+public class Bot extends ServerPlayer {
 
     private final TerminatorPlus plugin;
     private final BukkitScheduler scheduler;
@@ -76,8 +96,8 @@ public class Bot extends EntityPlayer {
 
     private final Vector offset;
 
-    private Bot(MinecraftServer minecraftServer, WorldServer worldServer, GameProfile profile, PlayerInteractManager manager) {
-        super(minecraftServer, worldServer, profile, manager);
+    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
+        super(minecraftServer, worldServer, profile);
 
         this.plugin = TerminatorPlus.getInstance();
         this.scheduler = Bukkit.getScheduler();
@@ -90,7 +110,7 @@ public class Bot extends EntityPlayer {
         this.removeOnDeath = true;
         this.offset = MathUtils.circleOffset(3);
 
-        datawatcher.set(new DataWatcherObject<>(16, DataWatcherRegistry.a), (byte) 0xFF);
+        //this.entityData.set(new EntityDataAccessor<>(16, EntityDataSerializers.BYTE), (byte) 0xFF);
     }
 
     public static Bot createBot(Location loc, String name) {
@@ -99,28 +119,28 @@ public class Bot extends EntityPlayer {
 
     public static Bot createBot(Location loc, String name, String[] skin) {
         MinecraftServer nmsServer = ((CraftServer) Bukkit.getServer()).getServer();
-        WorldServer nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
+        ServerLevel nmsWorld = ((CraftWorld) Objects.requireNonNull(loc.getWorld())).getHandle();
 
         UUID uuid = BotUtils.randomSteveUUID();
 
         CustomGameProfile profile = new CustomGameProfile(uuid, ChatUtils.trim16(name), skin);
-        PlayerInteractManager interactManager = new PlayerInteractManager(nmsWorld);
 
-        Bot bot = new Bot(nmsServer, nmsWorld, profile, interactManager);
+        Bot bot = new Bot(nmsServer, nmsWorld, profile);
 
-        bot.playerConnection = new PlayerConnection(nmsServer, new NetworkManager(EnumProtocolDirection.CLIENTBOUND) {
+        bot.connection = new ServerGamePacketListenerImpl(nmsServer, new Connection(PacketFlow.CLIENTBOUND) {
 
             @Override
-            public void sendPacket(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> genericfuturelistener) { }
+            public void send(Packet<?> packet, @Nullable GenericFutureListener<? extends Future<? super Void>> genericfuturelistener) {
 
+            }
         }, bot);
 
-        bot.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+        bot.setPos(loc.getX(), loc.getY(), loc.getZ());
+        bot.setRot(loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
-        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(
-        		new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, bot)));
-
-        nmsWorld.addEntity(bot);
+        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
+        		new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, bot)));
+        nmsWorld.addFreshEntity(bot);
         bot.renderAll();
         
         TerminatorPlus.getInstance().getManager().add(bot);
@@ -130,50 +150,50 @@ public class Bot extends EntityPlayer {
 
     private void renderAll() {
         Packet<?>[] packets = getRenderPacketsNoInfo();
-        Bukkit.getOnlinePlayers().forEach(p -> renderNoInfo(((CraftPlayer) p).getHandle().playerConnection, packets, false));
+        Bukkit.getOnlinePlayers().forEach(p -> renderNoInfo(((CraftPlayer) p).getHandle().connection, packets, false));
     }
 
-    private void render(PlayerConnection connection, Packet<?>[] packets, boolean login) {
-        connection.sendPacket(packets[0]);
-        connection.sendPacket(packets[1]);
-        connection.sendPacket(packets[2]);
+    private void render(ServerGamePacketListenerImpl connection, Packet<?>[] packets, boolean login) {
+        connection.send(packets[0]);
+        connection.send(packets[1]);
+        connection.send(packets[2]);
 
         if (login) {
-            scheduler.runTaskLater(plugin, () -> connection.sendPacket(packets[3]), 10);
+            scheduler.runTaskLater(plugin, () -> connection.send(packets[3]), 10);
         } else {
-            connection.sendPacket(packets[3]);
+            connection.send(packets[3]);
         }
     }
     
-    private void renderNoInfo(PlayerConnection connection, Packet<?>[] packets, boolean login) {
-        connection.sendPacket(packets[0]);
-        connection.sendPacket(packets[1]);
+    private void renderNoInfo(ServerGamePacketListenerImpl connection, Packet<?>[] packets, boolean login) {
+        connection.send(packets[0]);
+        connection.send(packets[1]);
 
         if (login) {
-            scheduler.runTaskLater(plugin, () -> connection.sendPacket(packets[2]), 10);
+            scheduler.runTaskLater(plugin, () -> connection.send(packets[2]), 10);
         } else {
-            connection.sendPacket(packets[2]);
+            connection.send(packets[2]);
         }
     }
 
-    public void render(PlayerConnection connection, boolean login) {
+    public void render(ServerGamePacketListenerImpl connection, boolean login) {
         render(connection, getRenderPackets(), login);
     }
 
     private Packet<?>[] getRenderPackets() {
         return new Packet[] {
-            new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, this),
-            new PacketPlayOutNamedEntitySpawn(this),
-            new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true),
-            new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f))
+            new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, this),
+            new ClientboundAddPlayerPacket(this),
+            new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
+            new ClientboundRotateHeadPacket(this, (byte) ((this.yHeadRot * 256f) / 360f))
         };
     }
     
     private Packet<?>[] getRenderPacketsNoInfo() {
         return new Packet[] {
-            new PacketPlayOutNamedEntitySpawn(this),
-            new PacketPlayOutEntityMetadata(this.getId(), this.getDataWatcher(), true),
-            new PacketPlayOutEntityHeadRotation(this, (byte) ((this.yaw * 256f) / 360f))
+            new ClientboundAddPlayerPacket(this),
+            new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
+            new ClientboundRotateHeadPacket(this, (byte) ((this.yHeadRot * 256f) / 360f))
         };
     }
 
@@ -211,7 +231,7 @@ public class Bot extends EntityPlayer {
     }
 
     private void sendPacket(Packet<?> packet) {
-        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().playerConnection.sendPacket(packet));
+        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(packet));
     }
 
     @Override
@@ -225,7 +245,7 @@ public class Bot extends EntityPlayer {
         aliveTicks++;
 
         if (fireTicks > 0) --fireTicks;
-        if (noDamageTicks > 0) --noDamageTicks;
+        if (invulnerableTime > 0) --invulnerableTime;
         if (jumpTicks > 0) --jumpTicks;
         if (noFallTicks > 0) --noFallTicks;
 
@@ -253,19 +273,19 @@ public class Bot extends EntityPlayer {
         fireDamageCheck();
         fallDamageCheck();
         
-        if(locY() < -64) {
-            an();
+        if(position().y < -64) {
+            die(DamageSource.OUT_OF_WORLD);
         }
 
         oldVelocity = velocity.clone();
     }
 
     private void loadChunks() {
-        net.minecraft.server.v1_16_R3.World world = getWorld();
+        Level world = getLevel();
 
-        for (int i = chunkX - 1; i <= chunkX + 1; i++) {
-            for (int j = chunkZ - 1; j <= chunkZ + 1; j++) {
-                Chunk chunk = world.getChunkAt(i, j);
+        for (int i = chunkPosition().x - 1; i <= chunkPosition().x + 1; i++) {
+            for (int j = chunkPosition().z - 1; j <= chunkPosition().z + 1; j++) {
+                LevelChunk chunk = world.getChunk(i, j);
 
                 if (!chunk.loaded) {
                     chunk.loaded = true;
@@ -293,13 +313,13 @@ public class Bot extends EntityPlayer {
             ignite();
         }
 
-        if (noDamageTicks == 0) {
+        if (invulnerableTime == 0) {
             if (lava) {
-                damageEntity(DamageSource.LAVA, 4);
-                noDamageTicks = 20;//this used to be 12 ticks but that would cause the bot to take damage too quickly
+                hurt(DamageSource.LAVA, 4);
+                invulnerableTime = 20;//this used to be 12 ticks but that would cause the bot to take damage too quickly
             } else if (fireTicks > 1) {
-                damageEntity(DamageSource.FIRE, 1);
-                noDamageTicks = 20;
+                hurt(DamageSource.IN_FIRE, 1);
+                invulnerableTime = 20;
             }
         }
 
@@ -314,8 +334,8 @@ public class Bot extends EntityPlayer {
     }
 
     public void setOnFirePackets(boolean onFire) {
-        datawatcher.set(new DataWatcherObject<>(0, DataWatcherRegistry.a), onFire ? (byte) 1 : (byte) 0);
-        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, false));
+        //entityData.set(new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), onFire ? (byte) 1 : (byte) 0);
+        //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
     }
 
     public boolean isOnFire() {
@@ -329,7 +349,7 @@ public class Bot extends EntityPlayer {
             plugin.getManager().getAgent().onFallDamage(event);
 
             if (!event.isCancelled()) {
-                damageEntity(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
+                hurt(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
             }
         }
     }
@@ -347,15 +367,15 @@ public class Bot extends EntityPlayer {
     private void startBlocking() {
         this.blocking = true;
         this.blockUse = true;
-        c(EnumHand.OFF_HAND);
-        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, true));
+        startUsingItem(InteractionHand.OFF_HAND);
+        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
     }
 
     private void stopBlocking(int cooldown) {
         this.blocking = false;
-        clearActiveItem();
+        stopUsingItem();
         scheduler.runTaskLater(plugin, () -> this.blockUse = false, cooldown);
-        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, true));
+        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
     }
 
     public boolean isBlocking() {
@@ -365,6 +385,7 @@ public class Bot extends EntityPlayer {
     public void setShield(boolean enabled) {
         this.shield = enabled;
 
+        System.out.println("set shield");
         setItemOffhand(new org.bukkit.inventory.ItemStack(enabled ? Material.SHIELD : Material.AIR));
     }
 
@@ -390,7 +411,7 @@ public class Bot extends EntityPlayer {
             }
         }
 
-        this.move(EnumMoveType.SELF, new Vec3D(velocity.getX(), y, velocity.getZ()));
+        this.move(MoverType.SELF, new Vec3(velocity.getX(), y, velocity.getZ()));
     }
 
     @Override
@@ -442,7 +463,7 @@ public class Bot extends EntityPlayer {
     }
 
     public void punch() {
-        swingHand(EnumHand.MAIN_HAND);
+        swing(InteractionHand.MAIN_HAND);
     }
 
     public boolean checkGround() {
@@ -453,7 +474,7 @@ public class Bot extends EntityPlayer {
         }
 
         World world = getBukkitEntity().getWorld();
-        AxisAlignedBB box = getBoundingBox();
+        AABB box = getBoundingBox();
 
         double[] xVals = new double[] {
             box.minX,
@@ -467,7 +488,7 @@ public class Bot extends EntityPlayer {
 
         for (double x : xVals) {
             for (double z : zVals) {
-                Location loc = new Location(world, x, locY() - 0.01, z);
+                Location loc = new Location(world, x, position().y - 0.01, z);
                 Block block = world.getBlockAt(loc);
 
                 if (block.getType().isSolid() && BotUtils.solidAt(loc)) {
@@ -500,7 +521,7 @@ public class Bot extends EntityPlayer {
     }
 
     private void removeTab() {
-        sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, this));
+        sendPacket(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER, this));
     }
 
     public void setRemoveOnDeath(boolean enabled) {
@@ -508,12 +529,12 @@ public class Bot extends EntityPlayer {
     }
 
     private void setDead() {
-        sendPacket(new PacketPlayOutEntityDestroy(getId()));
+        sendPacket(new ClientboundRemoveEntitiesPacket(getId()));
 
         this.dead = true;
-        this.defaultContainer.b(this);
-        if (this.activeContainer != null) {
-            this.activeContainer.b(this);
+        this.inventoryMenu.removed(this);
+        if (this.containerMenu != null) {
+            this.containerMenu.removed(this);
         }
     }
 
@@ -531,25 +552,19 @@ public class Bot extends EntityPlayer {
     }
 
     @Override
-    public void die() {
-        super.die();
-        this.dieCheck();
-    }
-
-    @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
         this.dieCheck();
     }
 
     @Override
-    public void collide(Entity entity) {
-        if (!this.isSameVehicle(entity) && !entity.noclip && !this.noclip) {
-            double d0 = entity.locX() - this.locX();
-            double d1 = entity.locZ() - this.locZ();
-            double d2 = MathHelper.a(d0, d1);
+    public void push(Entity entity) {
+        if (!this.isPassengerOfSameVehicle(entity) && !entity.noPhysics && !this.noPhysics) {
+            double d0 = entity.getX() - this.getZ();
+            double d1 = entity.getX() - this.getZ();
+            double d2 = Mth.absMax(d0, d1);
             if (d2 >= 0.009999999776482582D) {
-                d2 = MathHelper.sqrt(d2);
+                d2 = Math.sqrt(d2);
                 d0 /= d2;
                 d1 /= d2;
                 double d3 = 1.0D / d2;
@@ -561,32 +576,30 @@ public class Bot extends EntityPlayer {
                 d1 *= d3;
                 d0 *= 0.05000000074505806D;
                 d1 *= 0.05000000074505806D;
-                d0 *= 1.0F - this.I;
-                d1 *= 1.0F - this.I;
 
                 if (!this.isVehicle()) {
-                    velocity.add(new Vector(-d0 * 3, 0.0D, -d1 * 3));
+                    velocity.add(new Vector(-d0, 0.0D, -d1));
                 }
 
                 if (!entity.isVehicle()) {
-                    entity.i(d0, 0.0D, d1);
+                    entity.push(d0, 0.0D, d1);
                 }
             }
         }
     }
 
     @Override
-    public boolean damageEntity(DamageSource damagesource, float f) {
-        net.minecraft.server.v1_16_R3.Entity attacker = damagesource.getEntity();
+    public boolean hurt(DamageSource damagesource, float f) {
+        Entity attacker = damagesource.getEntity();
 
         float damage;
 
-        boolean playerInstance = attacker instanceof EntityPlayer;
+        boolean playerInstance = attacker instanceof ServerPlayer;
 
         Player killer;
 
         if (playerInstance) {
-            killer = ((EntityPlayer) attacker).getBukkitEntity();
+            killer = ((ServerPlayer) attacker).getBukkitEntity();
 
             BotDamageByPlayerEvent event = new BotDamageByPlayerEvent(this, killer, f);
 
@@ -602,7 +615,7 @@ public class Bot extends EntityPlayer {
             damage = f;
         }
 
-        boolean damaged = super.damageEntity(damagesource, damage);
+        boolean damaged = super.hurt(damagesource, damage);
 
         if (!damaged && blocking) {
             getBukkitEntity().getWorld().playSound(getLocation(), Sound.ITEM_SHIELD_BLOCK, 1, 1);
@@ -651,17 +664,17 @@ public class Bot extends EntityPlayer {
         float yaw, pitch;
 
         if (keepYaw) {
-            yaw = this.yaw;
+            yaw = this.getYRot();
             pitch = MathUtils.fetchPitch(dir);
         } else {
             float[] vals = MathUtils.fetchYawPitch(dir);
             yaw = vals[0];
             pitch = vals[1];
 
-            sendPacket(new PacketPlayOutEntityHeadRotation(getBukkitEntity().getHandle(), (byte) (yaw * 256 / 360f)));
+            sendPacket(new ClientboundRotateHeadPacket(getBukkitEntity().getHandle(), (byte) (yaw * 256 / 360f)));
         }
 
-        setYawPitch(yaw, pitch);
+        setRot(yaw, pitch);
     }
 
     public void attemptBlockPlace(Location loc, Material type, boolean down) {
@@ -684,35 +697,39 @@ public class Bot extends EntityPlayer {
     }
 
     public void setItem(org.bukkit.inventory.ItemStack item) {
-        setItem(item, EnumItemSlot.MAINHAND);
+        setItem(item, EquipmentSlot.MAINHAND);
     }
 
     public void setItemOffhand(org.bukkit.inventory.ItemStack item) {
-        setItem(item, EnumItemSlot.OFFHAND);
+        setItem(item, EquipmentSlot.OFFHAND);
+        System.out.println("set offhand");
     }
 
-    public void setItem(org.bukkit.inventory.ItemStack item, EnumItemSlot slot) {
+    public void setItem(org.bukkit.inventory.ItemStack item, EquipmentSlot slot) {
         if (item == null) item = defaultItem;
 
-        if (slot == EnumItemSlot.MAINHAND) {
+        System.out.println("set");
+        if (slot == EquipmentSlot.MAINHAND) {
             getBukkitEntity().getInventory().setItemInMainHand(item);
-        } else if (slot == EnumItemSlot.OFFHAND) {
+        } else if (slot == EquipmentSlot.OFFHAND) {
             getBukkitEntity().getInventory().setItemInOffHand(item);
         }
 
-        sendPacket(new PacketPlayOutEntityEquipment(getId(), new ArrayList<>(Collections.singletonList(
+        System.out.println("slot = " + slot);
+        System.out.println("item = " + item);
+        sendPacket(new ClientboundSetEquipmentPacket(getId(), new ArrayList<>(Collections.singletonList(
             new Pair<>(slot, CraftItemStack.asNMSCopy(item))
         ))));
     }
 
     public void swim() {
         getBukkitEntity().setSwimming(true);
-        registerPose(EntityPose.SWIMMING);
+        registerPose(Pose.SWIMMING);
     }
 
     public void sneak() {
         getBukkitEntity().setSneaking(true);
-        registerPose(EntityPose.CROUCHING);
+        registerPose(Pose.CROUCHING);
     }
 
     public void stand() {
@@ -720,26 +737,27 @@ public class Bot extends EntityPlayer {
         player.setSneaking(false);
         player.setSwimming(false);
 
-        registerPose(EntityPose.STANDING);
+        registerPose(Pose.STANDING);
     }
 
-    private void registerPose(EntityPose pose) {
-        datawatcher.set(DataWatcherRegistry.s.a(6), pose);
-        sendPacket(new PacketPlayOutEntityMetadata(getId(), datawatcher, false));
+    private void registerPose(Pose pose) {
+        //entityData.set(new EntityDataAccessor<>(6, EntityDataSerializers.POSE), pose);
+        //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
     }
 
     @Override
-    public void playerTick() {
-        if (this.hurtTicks > 0) {
-            this.hurtTicks -= 1;
+    public void doTick() {
+        if (this.hurtTime > 0) {
+            this.hurtTime -= 1;
         }
 
-        entityBaseTick();
-        tickPotionEffects();
+        baseTick();
+        tickEffects();
 
-        this.aU = (int) this.aT;
-        this.aL = this.aK;
-        this.lastYaw = this.yaw;
-        this.lastPitch = this.pitch;
+        this.animStepO = (int) this.animStep;
+        this.yBodyRotO = this.yBodyRot;
+        this.yHeadRotO = this.yHeadRot;
+        this.yRotO = this.getYRot();
+        this.xRotO = this.getXRot();
     }
 }

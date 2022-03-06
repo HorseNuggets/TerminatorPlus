@@ -1,6 +1,6 @@
 package net.nuggetmc.tplus.command.commands;
 
-import net.minecraft.server.v1_16_R3.EnumItemSlot;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.bot.BotManager;
@@ -160,10 +160,10 @@ public class BotCommand extends CommandInstance {
             bot.getBukkitEntity().updateInventory();
 
             // packet sending to ensure
-            bot.setItem(armor[0], EnumItemSlot.FEET);
-            bot.setItem(armor[1], EnumItemSlot.LEGS);
-            bot.setItem(armor[2], EnumItemSlot.CHEST);
-            bot.setItem(armor[3], EnumItemSlot.HEAD);
+            bot.setItem(armor[0], EquipmentSlot.FEET);
+            bot.setItem(armor[1], EquipmentSlot.LEGS);
+            bot.setItem(armor[2], EquipmentSlot.CHEST);
+            bot.setItem(armor[3], EquipmentSlot.HEAD);
         });
 
         sender.sendMessage("Successfully set the armor tier to " + ChatColor.YELLOW + tier + ChatColor.RESET + " for all current bots.");
@@ -207,7 +207,7 @@ public class BotCommand extends CommandInstance {
                  * neural network values (network name if loaded, otherwise RANDOM)
                  */
 
-                String botName = bot.getName();
+                String botName = bot.getName().getString();
                 String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
                 Location loc = bot.getLocation();
                 String strLoc = ChatColor.YELLOW + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
