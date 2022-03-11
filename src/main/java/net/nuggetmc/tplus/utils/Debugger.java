@@ -359,7 +359,7 @@ public class Debugger {
             return;
         }
 
-        print("Located bot", (ChatColor.GREEN.toString() + bot.getName() + ChatColor.RESET.toString() + "."));
+        print("Located bot", (ChatColor.GREEN + bot.getBotName() + ChatColor.RESET + "."));
 
         if (sender instanceof Player) {
             print("Teleporting...");

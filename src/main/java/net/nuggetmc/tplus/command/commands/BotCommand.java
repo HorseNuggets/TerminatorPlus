@@ -207,7 +207,7 @@ public class BotCommand extends CommandInstance {
                  * neural network values (network name if loaded, otherwise RANDOM)
                  */
 
-                String botName = bot.getName().getString();
+                String botName = bot.getBotName();
                 String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
                 Location loc = bot.getLocation();
                 String strLoc = ChatColor.YELLOW + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
