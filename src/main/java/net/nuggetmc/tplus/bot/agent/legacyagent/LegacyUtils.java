@@ -7,10 +7,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
 import org.bukkit.util.Vector;
-
-import java.lang.reflect.Field;
 
 public class LegacyUtils {
 

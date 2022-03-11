@@ -38,15 +38,14 @@ import org.bukkit.World;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_18_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
@@ -61,6 +60,7 @@ public class Bot extends ServerPlayer {
     private final BukkitScheduler scheduler;
     private final Agent agent;
 
+    private final String name;
     private NeuralNetwork network;
 
     public NeuralNetwork getNeuralNetwork() {
@@ -96,9 +96,10 @@ public class Bot extends ServerPlayer {
 
     private final Vector offset;
 
-    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
+    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, String name, GameProfile profile) {
         super(minecraftServer, worldServer, profile);
 
+        this.name = name;
         this.plugin = TerminatorPlus.getInstance();
         this.scheduler = Bukkit.getScheduler();
         this.agent = plugin.getManager().getAgent();
@@ -110,7 +111,12 @@ public class Bot extends ServerPlayer {
         this.removeOnDeath = true;
         this.offset = MathUtils.circleOffset(3);
 
-        //this.entityData.set(new EntityDataAccessor<>(16, EntityDataSerializers.BYTE), (byte) 0xFF);
+        this.entityData.set(new EntityDataAccessor<>(17, EntityDataSerializers.BYTE), (byte) 0xFF);
+    }
+
+    @Deprecated
+    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
+        this(minecraftServer, worldServer, profile.getName(), profile);
     }
 
     public static Bot createBot(Location loc, String name) {
@@ -125,7 +131,7 @@ public class Bot extends ServerPlayer {
 
         CustomGameProfile profile = new CustomGameProfile(uuid, ChatUtils.trim16(name), skin);
 
-        Bot bot = new Bot(nmsServer, nmsWorld, profile);
+        Bot bot = new Bot(nmsServer, nmsWorld, name, profile);
 
         bot.connection = new ServerGamePacketListenerImpl(nmsServer, new Connection(PacketFlow.CLIENTBOUND) {
 
@@ -146,6 +152,10 @@ public class Bot extends ServerPlayer {
         TerminatorPlus.getInstance().getManager().add(bot);
 
         return bot;
+    }
+
+    public String getBotName()  {
+        return name;
     }
 
     private void renderAll() {
@@ -334,8 +344,8 @@ public class Bot extends ServerPlayer {
     }
 
     public void setOnFirePackets(boolean onFire) {
-        //entityData.set(new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), onFire ? (byte) 1 : (byte) 0);
-        //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
+        entityData.set(new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), onFire ? (byte) 1 : (byte) 0);
+        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
     }
 
     public boolean isOnFire() {
@@ -385,7 +395,6 @@ public class Bot extends ServerPlayer {
     public void setShield(boolean enabled) {
         this.shield = enabled;
 
-        System.out.println("set shield");
         setItemOffhand(new org.bukkit.inventory.ItemStack(enabled ? Material.SHIELD : Material.AIR));
     }
 
@@ -702,21 +711,18 @@ public class Bot extends ServerPlayer {
 
     public void setItemOffhand(org.bukkit.inventory.ItemStack item) {
         setItem(item, EquipmentSlot.OFFHAND);
-        System.out.println("set offhand");
     }
 
     public void setItem(org.bukkit.inventory.ItemStack item, EquipmentSlot slot) {
         if (item == null) item = defaultItem;
 
-        System.out.println("set");
         if (slot == EquipmentSlot.MAINHAND) {
             getBukkitEntity().getInventory().setItemInMainHand(item);
         } else if (slot == EquipmentSlot.OFFHAND) {
             getBukkitEntity().getInventory().setItemInOffHand(item);
         }
 
-        System.out.println("slot = " + slot);
-        System.out.println("item = " + item);
+
         sendPacket(new ClientboundSetEquipmentPacket(getId(), new ArrayList<>(Collections.singletonList(
             new Pair<>(slot, CraftItemStack.asNMSCopy(item))
         ))));

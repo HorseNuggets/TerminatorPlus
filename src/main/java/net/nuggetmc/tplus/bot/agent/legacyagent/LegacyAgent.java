@@ -16,7 +16,7 @@ import net.nuggetmc.tplus.utils.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -1190,13 +1190,13 @@ public class LegacyAgent extends Agent {
             }
 
             case NEAREST_BOT_DIFFER: {
-                String name = bot.getName().getString();
+                String name = bot.getBotName();
 
                 for (Bot otherBot : manager.fetch()) {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName()) && validateCloserEntity(player, loc, result)) {
+                        if (!name.equals(otherBot.getBotName()) && validateCloserEntity(player, loc, result)) {
                             result = player;
                         }
                     }
@@ -1206,13 +1206,13 @@ public class LegacyAgent extends Agent {
             }
 
             case NEAREST_BOT_DIFFER_ALPHA: {
-                String name = bot.getName().getString().replaceAll("[^A-Za-z]+", "");
+                String name = bot.getBotName().replaceAll("[^A-Za-z]+", "");
 
                 for (Bot otherBot : manager.fetch()) {
                     if (bot != otherBot) {
                         Player player = otherBot.getBukkitEntity();
 
-                        if (!name.equals(otherBot.getName().getString().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result)) {
+                        if (!name.equals(otherBot.getBotName().replaceAll("[^A-Za-z]+", "")) && validateCloserEntity(player, loc, result)) {
                             result = player;
                         }
                     }

@@ -141,7 +141,7 @@ public class IntelligenceAgent {
             }
 
             bots.forEach(bot -> {
-                String name = bot.getName().getString();
+                String name = bot.getBotName();
 
                 while (this.bots.containsKey(name)) {
                     name += "_";
@@ -181,7 +181,7 @@ public class IntelligenceAgent {
             Bot bot = entry.getKey();
             boolean check = i <= cutoff;
             if (check) {
-                print(ChatColor.GRAY + "[" + ChatColor.YELLOW + "#" + i + ChatColor.GRAY + "] " + ChatColor.GREEN + bot.getName()
+                print(ChatColor.GRAY + "[" + ChatColor.YELLOW + "#" + i + ChatColor.GRAY + "] " + ChatColor.GREEN + bot.getBotName()
                         + ChatUtils.BULLET_FORMATTED + ChatColor.RED + bot.getKills() + " kills");
                 winners.add(bot);
             }
