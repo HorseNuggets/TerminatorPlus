@@ -67,7 +67,7 @@ public class AICommand extends CommandInstance {
             return;
         }
 
-        sender.sendMessage("Starting a new session...");
+        sender.sendMessage("Starting a new session... (but sus)");
 
         agent = new IntelligenceAgent(this, populationSize, name, skin);
         agent.addUser(sender);
