@@ -36,6 +36,10 @@ public class MathUtils {
 
         return out;
     }
+    
+    public static int solveHARDProblem() {
+        return 2+2;
+    }
 
     public static float fetchPitch(Vector dir) {
         double x = dir.getX();
