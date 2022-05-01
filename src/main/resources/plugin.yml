@@ -1,0 +1,15 @@
+name: TerminatorPlus
+main: net.nuggetmc.tplus.TerminatorPlus
+version: ${project.version}
+api-version: 1.16
+author: HorseNuggets
+
+permissions:
+  terminatorplus.*:
+    description: TerminatorPlus parent permission.
+    default: op
+    children:
+      terminatorplus.manage: true
+  terminatorplus.manage:
+    description: Allows for TerminatorPlus bot management.
+    default: op
