@@ -23,8 +23,7 @@ import java.util.stream.Collectors;
 
 public class Debugger {
 
-    private static final String PREFIX = ChatColor.YELLOW + "[DEBUG] " + ChatColor.RESET;
-
+    private static final String PREFIX = ChatUtils.translate("&e[DEBUG] &r");
     private final CommandSender sender;
 
     public Debugger(CommandSender sender) {
@@ -58,12 +57,12 @@ public class Debugger {
             Object[] args = content.isEmpty() ? null : buildObjects(content);
 
             Statement statement = new Statement(this, name, args);
-            print("Running the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\"...");
+            print(ChatUtils.translate("Running the expression \"&b" + cmd + "&r \"..."));
             statement.execute();
         }
 
         catch (Exception e) {
-            print("Error: the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\" failed to execute.");
+            print("Error: the expression \"&b" + cmd + "&r \" failed to execute.");
             print(e.toString());
         }
     }
@@ -80,11 +79,8 @@ public class Debugger {
 
                 try {
                     obj = Double.parseDouble(value);
-                } catch (NumberFormatException ignored) { }
-
-                try {
                     obj = Integer.parseInt(value);
-                } catch (NumberFormatException ignored) { }
+                } catch (NumberFormatException ignored) {}
 
                 if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
                     obj = Boolean.parseBoolean(value);
@@ -105,7 +101,7 @@ public class Debugger {
         World world = Bukkit.getWorld("world");
 
         if (world == null) {
-            print("world is null");
+            print("World is returning as null.");
             return;
         }
 
@@ -137,14 +133,14 @@ public class Debugger {
             switch (n) {
                 case 1: {
                     for (int i = 0; i < 20; i++) {
-                        Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                     }
                     break;
                 }
 
                 case 2: {
                     for (int i = 0; i < 30; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
                     }
                     break;
@@ -152,7 +148,7 @@ public class Debugger {
 
                 case 3: {
                     for (int i = 0; i < 30; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
                         bot.setShield(true);
                         bot.setDefaultItem(new ItemStack(Material.STONE_AXE));
@@ -162,7 +158,7 @@ public class Debugger {
 
                 case 4: {
                     for (int i = 0; i < 40; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
                         bot.setShield(true);
                         bot.setDefaultItem(new ItemStack(Material.IRON_AXE));
@@ -172,7 +168,7 @@ public class Debugger {
 
                 case 5: {
                     for (int i = 0; i < 50; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
                         bot.setShield(true);
                         bot.setDefaultItem(new ItemStack(Material.DIAMOND_AXE));

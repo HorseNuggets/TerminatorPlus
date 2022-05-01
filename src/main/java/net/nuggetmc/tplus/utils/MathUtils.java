@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 public class MathUtils {
 
     public static final Random RANDOM = new Random();
-    public static final DecimalFormat FORMATTER_1 = new DecimalFormat("0.#");
     public static final DecimalFormat FORMATTER_2 = new DecimalFormat("0.##");
 
     public static float[] fetchYawPitch(Vector dir) {
@@ -84,10 +83,6 @@ public class MathUtils {
         return n * n;
     }
 
-    public static String round1Dec(double n) {
-        return FORMATTER_1.format(n);
-    }
-
     public static String round2Dec(double n) {
         return FORMATTER_2.format(n);
     }
@@ -102,10 +97,6 @@ public class MathUtils {
     public static double generateConnectionValue(List<Double> list, double mutationSize) {
         double[] bounds = getBounds(list, mutationSize);
         return random(bounds[0], bounds[1]);
-    }
-
-    public static double generateConnectionValue(List<Double> list) {
-        return generateConnectionValue(list, 0);
     }
 
     public static double random(double low, double high) {
@@ -165,19 +156,5 @@ public class MathUtils {
             mid - p,
             mid + p
         };
-    }
-
-    public static double getMutationSize(int generation) {
-        int shift = 4;
-
-        if (generation <= shift + 1) {
-            return 7.38905609893;
-        }
-
-        double a = 0.8;
-        double b = -8.5 - shift;
-        double c = 2;
-
-        return Math.pow(a, generation + b) + c;
     }
 }

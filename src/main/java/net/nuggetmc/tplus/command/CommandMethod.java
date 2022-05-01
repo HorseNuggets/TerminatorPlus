@@ -28,27 +28,15 @@ public class CommandMethod {
     public String getName() {
         return name;
     }
-
-    public Set<String> getAliases() {
-        return aliases;
-    }
-
     public String getDescription() {
         return description;
     }
-
-    public String getPermission() {
-        return permission;
-    }
-
     public CommandInstance getHandler() {
         return handler;
     }
-
     public Method getMethod() {
         return method;
     }
-
     public Method getAutofiller() {
         return autofiller;
     }

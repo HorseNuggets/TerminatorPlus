@@ -50,15 +50,13 @@ public abstract class CommandInstance extends BukkitCommand {
             return false;
         }
 
-        CommandMethod method;
+        CommandMethod method = null;
 
-        if (args.length == 0) {
+        if (args.length == 0)
             method = methods.get("");
-        } else if (methods.containsKey(args[0])) {
+
+        if (methods.containsKey(args[0]))
             method = methods.get(args[0]);
-        } else {
-            method = methods.get("");
-        }
 
         if (method == null) {
             sender.sendMessage(ChatColor.RED + "There is no root command present for the " + ChatColor.YELLOW + getName() + ChatColor.RED + " command.");
@@ -237,11 +235,11 @@ public abstract class CommandInstance extends BukkitCommand {
 
         if (args.length > 1) {
             CommandMethod commandMethod = methods.get(args[0]);
-            Method autofiller = commandMethod.getAutofiller();
+            Method filler = commandMethod.getAutofiller();
 
-            if (autofiller != null) {
+            if (filler != null) {
                 try {
-                    return (List<String>) autofiller.invoke(commandMethod.getHandler(), sender, args);
+                    return (List<String>) filler.invoke(commandMethod.getHandler(), sender, args);
                 } catch (InvocationTargetException | IllegalAccessException e) {
                     e.printStackTrace();
                 }
