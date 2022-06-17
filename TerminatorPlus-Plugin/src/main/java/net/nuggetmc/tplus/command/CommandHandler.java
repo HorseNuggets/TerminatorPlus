@@ -2,13 +2,13 @@ package net.nuggetmc.tplus.command;
 
 import com.google.common.collect.Sets;
 import net.nuggetmc.tplus.TerminatorPlus;
+import net.nuggetmc.tplus.api.utils.ChatUtils;
+import net.nuggetmc.tplus.api.utils.DebugLogUtils;
 import net.nuggetmc.tplus.command.annotation.Command;
 import net.nuggetmc.tplus.command.annotation.Require;
 import net.nuggetmc.tplus.command.commands.AICommand;
 import net.nuggetmc.tplus.command.commands.BotCommand;
 import net.nuggetmc.tplus.command.commands.MainCommand;
-import net.nuggetmc.tplus.utils.ChatUtils;
-import net.nuggetmc.tplus.utils.Debugger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
@@ -62,7 +62,7 @@ public class CommandHandler {
                     try {
                         method.setAccessible(true);
                     } catch (SecurityException e) {
-                        Debugger.log("Failed to access method " + method.getName() + ".");
+                        DebugLogUtils.log("Failed to access method " + method.getName() + ".");
                         continue;
                     }
 

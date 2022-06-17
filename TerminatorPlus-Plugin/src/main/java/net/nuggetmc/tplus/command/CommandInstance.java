@@ -1,13 +1,13 @@
 package net.nuggetmc.tplus.command;
 
 import net.md_5.bungee.api.ChatColor;
+import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.OptArg;
 import net.nuggetmc.tplus.command.annotation.TextArg;
 import net.nuggetmc.tplus.command.exception.ArgCountException;
 import net.nuggetmc.tplus.command.exception.ArgParseException;
 import net.nuggetmc.tplus.command.exception.NonPlayerException;
-import net.nuggetmc.tplus.utils.ChatUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;

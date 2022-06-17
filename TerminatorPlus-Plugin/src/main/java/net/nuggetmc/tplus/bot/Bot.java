@@ -25,12 +25,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
+import net.nuggetmc.tplus.api.agent.Agent;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
-import net.nuggetmc.tplus.bot.agent.Agent;
-import net.nuggetmc.tplus.bot.event.BotDamageByPlayerEvent;
-import net.nuggetmc.tplus.bot.event.BotFallDamageEvent;
-import net.nuggetmc.tplus.bot.event.BotKilledByPlayerEvent;
-import net.nuggetmc.tplus.utils.*;
+import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
+import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
+import net.nuggetmc.tplus.api.event.BotKilledByPlayerEvent;
+import net.nuggetmc.tplus.api.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -71,6 +71,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private byte groundTicks;
     private byte jumpTicks;
     private byte noFallTicks;
+
     private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
         super(minecraftServer, worldServer, profile);
 
@@ -173,6 +174,14 @@ public class Bot extends ServerPlayer implements Terminator {
 
     public void render(ServerGamePacketListenerImpl connection, boolean login) {
         render(connection, getRenderPackets(), login);
+    }
+
+    @Override
+    public void renderBot(Object packetListener, boolean login) {
+        if (!(packetListener instanceof ServerGamePacketListenerImpl)) {
+            throw new IllegalArgumentException("packetListener must be a instance of ServerGamePacketListenerImpl");
+        }
+        render((ServerGamePacketListenerImpl) packetListener, login);
     }
 
     private Packet<?>[] getRenderPackets() {
@@ -336,6 +345,7 @@ public class Bot extends ServerPlayer implements Terminator {
         fireTicks = 100;
     }
 
+    @Override
     public void setOnFirePackets(boolean onFire) {
         //entityData.set(new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), onFire ? (byte) 1 : (byte) 0);
         //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
@@ -667,6 +677,7 @@ public class Bot extends ServerPlayer implements Terminator {
         return getBukkitEntity().getLocation();
     }
 
+    @Override
     public void faceLocation(Location loc) {
         look(loc.toVector().subtract(getLocation().toVector()), false);
     }

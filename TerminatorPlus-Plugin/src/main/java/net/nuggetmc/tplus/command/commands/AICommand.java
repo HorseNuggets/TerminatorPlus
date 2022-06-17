@@ -1,18 +1,19 @@
 package net.nuggetmc.tplus.command.commands;
 
 import net.nuggetmc.tplus.TerminatorPlus;
-import net.nuggetmc.tplus.bot.Bot;
-import net.nuggetmc.tplus.bot.BotManager;
-import net.nuggetmc.tplus.bot.agent.legacyagent.ai.IntelligenceAgent;
+import net.nuggetmc.tplus.api.AIManager;
+import net.nuggetmc.tplus.api.Terminator;
+import net.nuggetmc.tplus.api.agent.legacyagent.ai.IntelligenceAgent;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
+import net.nuggetmc.tplus.api.utils.ChatUtils;
+import net.nuggetmc.tplus.api.utils.MathUtils;
+import net.nuggetmc.tplus.bot.BotManagerImpl;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
 import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.Autofill;
 import net.nuggetmc.tplus.command.annotation.Command;
 import net.nuggetmc.tplus.command.annotation.OptArg;
-import net.nuggetmc.tplus.utils.ChatUtils;
-import net.nuggetmc.tplus.utils.MathUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -22,7 +23,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AICommand extends CommandInstance {
+public class AICommand extends CommandInstance implements AIManager {
 
     /*
      * ideas
@@ -31,7 +32,7 @@ public class AICommand extends CommandInstance {
      */
 
     private final TerminatorPlus plugin;
-    private final BotManager manager;
+    private final BotManagerImpl manager;
     private final BukkitScheduler scheduler;
 
     private IntelligenceAgent agent;
@@ -69,7 +70,7 @@ public class AICommand extends CommandInstance {
 
         sender.sendMessage("Starting a new session...");
 
-        agent = new IntelligenceAgent(this, populationSize, name, skin);
+        agent = new IntelligenceAgent(this, populationSize, name, skin, plugin, plugin.getManager());
         agent.addUser(sender);
     }
 
@@ -94,6 +95,7 @@ public class AICommand extends CommandInstance {
         scheduler.runTaskLater(plugin, () -> sender.sendMessage("The session " + ChatColor.YELLOW + name + ChatColor.RESET + " has been closed."), 10);
     }
 
+    @Override
     public void clearSession() {
         if (agent != null) {
             agent.stop();
@@ -115,7 +117,7 @@ public class AICommand extends CommandInstance {
 
         scheduler.runTaskAsynchronously(plugin, () -> {
             try {
-                Bot bot = manager.getFirst(name);
+                Terminator bot = manager.getFirst(name);
 
                 if (bot == null) {
                     sender.sendMessage("Could not find bot " + ChatColor.GREEN + name + ChatColor.RESET + "!");

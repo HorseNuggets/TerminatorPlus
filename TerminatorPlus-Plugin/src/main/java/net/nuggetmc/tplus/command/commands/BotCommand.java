@@ -1,18 +1,17 @@
 package net.nuggetmc.tplus.command.commands;
 
-import net.minecraft.world.entity.EquipmentSlot;
 import net.nuggetmc.tplus.TerminatorPlus;
-import net.nuggetmc.tplus.bot.Bot;
-import net.nuggetmc.tplus.bot.BotManager;
-import net.nuggetmc.tplus.bot.agent.legacyagent.EnumTargetGoal;
-import net.nuggetmc.tplus.bot.agent.legacyagent.LegacyAgent;
+import net.nuggetmc.tplus.api.Terminator;
+import net.nuggetmc.tplus.api.agent.legacyagent.EnumTargetGoal;
+import net.nuggetmc.tplus.api.agent.legacyagent.LegacyAgent;
+import net.nuggetmc.tplus.api.utils.ChatUtils;
+import net.nuggetmc.tplus.bot.BotManagerImpl;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
 import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.Autofill;
 import net.nuggetmc.tplus.command.annotation.Command;
 import net.nuggetmc.tplus.command.annotation.OptArg;
-import net.nuggetmc.tplus.utils.ChatUtils;
 import net.nuggetmc.tplus.utils.Debugger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,6 +19,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
@@ -31,11 +31,11 @@ public class BotCommand extends CommandInstance {
 
     private final TerminatorPlus plugin;
     private final CommandHandler handler;
-    private final BotManager manager;
+    private final BotManagerImpl manager;
     private final LegacyAgent agent;
     private final BukkitScheduler scheduler;
     private final DecimalFormat formatter;
-
+    private final Map<String, ItemStack[]> armorTiers;
     private AICommand aiManager;
 
     public BotCommand(CommandHandler handler, String name, String description, String... aliases) {
@@ -58,24 +58,24 @@ public class BotCommand extends CommandInstance {
     }
 
     @Command(
-        name = "create",
-        desc = "Create a bot."
+            name = "create",
+            desc = "Create a bot."
     )
     public void create(Player sender, @Arg("name") String name, @OptArg("skin") String skin) {
         manager.createBots(sender, name, skin, 1);
     }
 
     @Command(
-        name = "multi",
-        desc = "Create multiple bots at once."
+            name = "multi",
+            desc = "Create multiple bots at once."
     )
     public void multi(Player sender, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin) {
         manager.createBots(sender, name, skin, amount);
     }
 
     @Command(
-        name = "give",
-        desc = "Gives a specified item to all bots."
+            name = "give",
+            desc = "Gives a specified item to all bots."
     )
     public void give(CommandSender sender, @Arg("item-name") String itemName) {
         Material type = Material.matchMaterial(itemName);
@@ -92,56 +92,54 @@ public class BotCommand extends CommandInstance {
         sender.sendMessage("Successfully set the default item to " + ChatColor.YELLOW + item.getType() + ChatColor.RESET + " for all current bots.");
     }
 
-    private final Map<String, ItemStack[]> armorTiers;
-
     private void armorTierSetup() {
-        armorTiers.put("leather", new ItemStack[] {
-            new ItemStack(Material.LEATHER_BOOTS),
-            new ItemStack(Material.LEATHER_LEGGINGS),
-            new ItemStack(Material.LEATHER_CHESTPLATE),
-            new ItemStack(Material.LEATHER_HELMET),
+        armorTiers.put("leather", new ItemStack[]{
+                new ItemStack(Material.LEATHER_BOOTS),
+                new ItemStack(Material.LEATHER_LEGGINGS),
+                new ItemStack(Material.LEATHER_CHESTPLATE),
+                new ItemStack(Material.LEATHER_HELMET),
         });
 
-        armorTiers.put("chain", new ItemStack[] {
-            new ItemStack(Material.CHAINMAIL_BOOTS),
-            new ItemStack(Material.CHAINMAIL_LEGGINGS),
-            new ItemStack(Material.CHAINMAIL_CHESTPLATE),
-            new ItemStack(Material.CHAINMAIL_HELMET),
+        armorTiers.put("chain", new ItemStack[]{
+                new ItemStack(Material.CHAINMAIL_BOOTS),
+                new ItemStack(Material.CHAINMAIL_LEGGINGS),
+                new ItemStack(Material.CHAINMAIL_CHESTPLATE),
+                new ItemStack(Material.CHAINMAIL_HELMET),
         });
 
-        armorTiers.put("gold", new ItemStack[] {
-            new ItemStack(Material.GOLDEN_BOOTS),
-            new ItemStack(Material.GOLDEN_LEGGINGS),
-            new ItemStack(Material.GOLDEN_CHESTPLATE),
-            new ItemStack(Material.GOLDEN_HELMET),
+        armorTiers.put("gold", new ItemStack[]{
+                new ItemStack(Material.GOLDEN_BOOTS),
+                new ItemStack(Material.GOLDEN_LEGGINGS),
+                new ItemStack(Material.GOLDEN_CHESTPLATE),
+                new ItemStack(Material.GOLDEN_HELMET),
         });
 
-        armorTiers.put("iron", new ItemStack[] {
-            new ItemStack(Material.IRON_BOOTS),
-            new ItemStack(Material.IRON_LEGGINGS),
-            new ItemStack(Material.IRON_CHESTPLATE),
-            new ItemStack(Material.IRON_HELMET),
+        armorTiers.put("iron", new ItemStack[]{
+                new ItemStack(Material.IRON_BOOTS),
+                new ItemStack(Material.IRON_LEGGINGS),
+                new ItemStack(Material.IRON_CHESTPLATE),
+                new ItemStack(Material.IRON_HELMET),
         });
 
-        armorTiers.put("diamond", new ItemStack[] {
-            new ItemStack(Material.DIAMOND_BOOTS),
-            new ItemStack(Material.DIAMOND_LEGGINGS),
-            new ItemStack(Material.DIAMOND_CHESTPLATE),
-            new ItemStack(Material.DIAMOND_HELMET),
+        armorTiers.put("diamond", new ItemStack[]{
+                new ItemStack(Material.DIAMOND_BOOTS),
+                new ItemStack(Material.DIAMOND_LEGGINGS),
+                new ItemStack(Material.DIAMOND_CHESTPLATE),
+                new ItemStack(Material.DIAMOND_HELMET),
         });
 
-        armorTiers.put("netherite", new ItemStack[] {
-            new ItemStack(Material.NETHERITE_BOOTS),
-            new ItemStack(Material.NETHERITE_LEGGINGS),
-            new ItemStack(Material.NETHERITE_CHESTPLATE),
-            new ItemStack(Material.NETHERITE_HELMET),
+        armorTiers.put("netherite", new ItemStack[]{
+                new ItemStack(Material.NETHERITE_BOOTS),
+                new ItemStack(Material.NETHERITE_LEGGINGS),
+                new ItemStack(Material.NETHERITE_CHESTPLATE),
+                new ItemStack(Material.NETHERITE_HELMET),
         });
     }
 
     @Command(
-        name = "armor",
-        desc = "Gives all bots an armor set.",
-        autofill = "armorAutofill"
+            name = "armor",
+            desc = "Gives all bots an armor set.",
+            autofill = "armorAutofill"
     )
     @SuppressWarnings("deprecation")
     public void armor(CommandSender sender, @Arg("armor-tier") String armorTier) {
@@ -156,14 +154,17 @@ public class BotCommand extends CommandInstance {
         ItemStack[] armor = armorTiers.get(tier);
 
         manager.fetch().forEach(bot -> {
-            bot.getBukkitEntity().getInventory().setArmorContents(armor);
-            bot.getBukkitEntity().updateInventory();
+            if (bot.getBukkitEntity() instanceof Player) {
+                Player botPlayer = (Player) bot.getBukkitEntity();
+                botPlayer.getInventory().setArmorContents(armor);
+                botPlayer.updateInventory();
 
-            // packet sending to ensure
-            bot.setItem(armor[0], EquipmentSlot.FEET);
-            bot.setItem(armor[1], EquipmentSlot.LEGS);
-            bot.setItem(armor[2], EquipmentSlot.CHEST);
-            bot.setItem(armor[3], EquipmentSlot.HEAD);
+                // packet sending to ensure
+                bot.setItem(armor[0], EquipmentSlot.FEET);
+                bot.setItem(armor[1], EquipmentSlot.LEGS);
+                bot.setItem(armor[2], EquipmentSlot.CHEST);
+                bot.setItem(armor[3], EquipmentSlot.HEAD);
+            }
         });
 
         sender.sendMessage("Successfully set the armor tier to " + ChatColor.YELLOW + tier + ChatColor.RESET + " for all current bots.");
@@ -175,9 +176,9 @@ public class BotCommand extends CommandInstance {
     }
 
     @Command(
-        name = "info",
-        desc = "Information about loaded bots.",
-        autofill = "infoAutofill"
+            name = "info",
+            desc = "Information about loaded bots.",
+            autofill = "infoAutofill"
     )
     public void info(CommandSender sender, @Arg("bot-name") String name) {
         if (name == null) {
@@ -189,7 +190,7 @@ public class BotCommand extends CommandInstance {
 
         scheduler.runTaskAsynchronously(plugin, () -> {
             try {
-                Bot bot = manager.getFirst(name);
+                Terminator bot = manager.getFirst(name);
 
                 if (bot == null) {
                     sender.sendMessage("Could not find bot " + ChatColor.GREEN + name + ChatColor.RESET + "!");
@@ -207,7 +208,7 @@ public class BotCommand extends CommandInstance {
                  * neural network values (network name if loaded, otherwise RANDOM)
                  */
 
-                String botName = bot.getName().getString();
+                String botName = bot.getBotName();
                 String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
                 Location loc = bot.getLocation();
                 String strLoc = ChatColor.YELLOW + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
@@ -220,9 +221,7 @@ public class BotCommand extends CommandInstance {
                 sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Position: " + strLoc);
                 sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + strVel);
                 sender.sendMessage(ChatUtils.LINE);
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 sender.sendMessage(ChatUtils.EXCEPTION_MESSAGE);
             }
         });
@@ -234,8 +233,8 @@ public class BotCommand extends CommandInstance {
     }
 
     @Command(
-        name = "reset",
-        desc = "Remove all loaded bots."
+            name = "reset",
+            desc = "Remove all loaded bots."
     )
     public void reset(CommandSender sender) {
         sender.sendMessage("Removing every bot...");
@@ -257,10 +256,10 @@ public class BotCommand extends CommandInstance {
      * basically, in the @Command annotation, you can include a "parent" for the command, so it will be a subcommand under the specified parent
      */
     @Command(
-        name = "settings",
-        desc = "Make changes to the global configuration file and bot-specific settings.",
-        aliases = "options",
-        autofill = "settingsAutofill"
+            name = "settings",
+            desc = "Make changes to the global configuration file and bot-specific settings.",
+            aliases = "options",
+            autofill = "settingsAutofill"
     )
     public void settings(CommandSender sender, List<String> args) {
         String arg1 = args.isEmpty() ? null : args.get(0);
@@ -307,9 +306,7 @@ public class BotCommand extends CommandInstance {
 
         if (args.length == 2) {
             output.add("setgoal");
-        }
-
-        else if (args.length == 3) {
+        } else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("setgoal")) {
                 Arrays.stream(EnumTargetGoal.values()).forEach(goal -> output.add(goal.name().replace("_", "").toLowerCase()));
             }
@@ -319,9 +316,9 @@ public class BotCommand extends CommandInstance {
     }
 
     @Command(
-        name = "debug",
-        desc = "Debug plugin code.",
-        visible = false
+            name = "debug",
+            desc = "Debug plugin code.",
+            visible = false
     )
     public void debug(CommandSender sender, @Arg("expression") String expression) {
         new Debugger(sender).execute(expression);

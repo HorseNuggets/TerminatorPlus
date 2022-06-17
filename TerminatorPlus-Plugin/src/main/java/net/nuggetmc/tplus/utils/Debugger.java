@@ -1,12 +1,16 @@
 package net.nuggetmc.tplus.utils;
 
-import net.minecraft.world.entity.LivingEntity;
 import net.nuggetmc.tplus.TerminatorPlus;
-import net.nuggetmc.tplus.bot.Bot;
-import net.nuggetmc.tplus.bot.agent.Agent;
-import net.nuggetmc.tplus.bot.agent.legacyagent.LegacyAgent;
-import net.nuggetmc.tplus.bot.agent.legacyagent.ai.IntelligenceAgent;
+import net.nuggetmc.tplus.api.Terminator;
+import net.nuggetmc.tplus.api.agent.Agent;
+import net.nuggetmc.tplus.api.agent.legacyagent.LegacyAgent;
+import net.nuggetmc.tplus.api.agent.legacyagent.ai.IntelligenceAgent;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
+import net.nuggetmc.tplus.api.utils.DebugLogUtils;
+import net.nuggetmc.tplus.api.utils.MathUtils;
+import net.nuggetmc.tplus.api.utils.MojangAPI;
+import net.nuggetmc.tplus.api.utils.PlayerUtils;
+import net.nuggetmc.tplus.bot.Bot;
 import net.nuggetmc.tplus.command.commands.AICommand;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
@@ -23,28 +27,15 @@ import java.util.stream.Collectors;
 
 public class Debugger {
 
-    private static final String PREFIX = ChatColor.YELLOW + "[DEBUG] " + ChatColor.RESET;
-
     private final CommandSender sender;
 
     public Debugger(CommandSender sender) {
         this.sender = sender;
     }
 
-    public static void log(Object... objects) {
-        String[] values = formStringArray(objects);
-        String message = PREFIX + String.join(" ", values);
-
-        Bukkit.getConsoleSender().sendMessage(message);
-        Bukkit.getOnlinePlayers().stream().filter(ServerOperator::isOp).forEach(p -> p.sendMessage(message));
-    }
-
-    private static String[] formStringArray(Object[] objects) {
-        return Arrays.stream(objects).map(String::valueOf).toArray(String[]::new);
-    }
 
     private void print(Object... objects) {
-        sender.sendMessage(PREFIX + String.join(" ", formStringArray(objects)));
+        sender.sendMessage(DebugLogUtils.PREFIX + String.join(" ", DebugLogUtils.fromStringArray(objects)));
     }
 
     public void execute(String cmd) {
@@ -60,9 +51,7 @@ public class Debugger {
             Statement statement = new Statement(this, name, args);
             print("Running the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\"...");
             statement.execute();
-        }
-
-        catch (Exception e) {
+        } catch (Exception e) {
             print("Error: the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\" failed to execute.");
             print(e.toString());
         }
@@ -80,11 +69,13 @@ public class Debugger {
 
                 try {
                     obj = Double.parseDouble(value);
-                } catch (NumberFormatException ignored) { }
+                } catch (NumberFormatException ignored) {
+                }
 
                 try {
                     obj = Integer.parseInt(value);
-                } catch (NumberFormatException ignored) { }
+                } catch (NumberFormatException ignored) {
+                }
 
                 if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
                     obj = Boolean.parseBoolean(value);
@@ -222,7 +213,7 @@ public class Debugger {
 
     public void tpall() {
         Player player = (Player) sender;
-        TerminatorPlus.getInstance().getManager().fetch().stream().filter(LivingEntity::isAlive).forEach(bot -> bot.getBukkitEntity().teleport(player));
+        TerminatorPlus.getInstance().getManager().fetch().stream().filter(Terminator::isAlive).forEach(bot -> bot.getBukkitEntity().teleport(player));
     }
 
     public void viewsession() {
@@ -244,9 +235,7 @@ public class Debugger {
         LegacyAgent legacyAgent = (LegacyAgent) agent;
         legacyAgent.offsets = b;
 
-        print("Bot target offsets are now "
-                + (legacyAgent.offsets ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED")
-                + ChatColor.RESET + ".");
+        print("Bot target offsets are now " + (legacyAgent.offsets ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED") + ChatColor.RESET + ".");
     }
 
     public void confuse(int n) {
@@ -269,12 +258,7 @@ public class Debugger {
     }
 
     public void dreamsmp() {
-        spawnBots(Arrays.asList(
-            "Dream", "GeorgeNotFound", "Callahan", "Sapnap", "awesamdude", "Ponk", "BadBoyHalo", "TommyInnit", "Tubbo_", "ItsFundy", "Punz",
-            "Purpled", "WilburSoot", "Jschlatt", "Skeppy", "The_Eret", "JackManifoldTV", "Nihachu", "Quackity", "KarlJacobs", "HBomb94",
-            "Technoblade", "Antfrost", "Ph1LzA", "ConnorEatsPants", "CaptainPuffy", "Vikkstar123", "LazarCodeLazar", "Ranboo", "FoolishG",
-            "hannahxxrose", "Slimecicle", "Michaelmcchill"
-        ));
+        spawnBots(Arrays.asList("Dream", "GeorgeNotFound", "Callahan", "Sapnap", "awesamdude", "Ponk", "BadBoyHalo", "TommyInnit", "Tubbo_", "ItsFundy", "Punz", "Purpled", "WilburSoot", "Jschlatt", "Skeppy", "The_Eret", "JackManifoldTV", "Nihachu", "Quackity", "KarlJacobs", "HBomb94", "Technoblade", "Antfrost", "Ph1LzA", "ConnorEatsPants", "CaptainPuffy", "Vikkstar123", "LazarCodeLazar", "Ranboo", "FoolishG", "hannahxxrose", "Slimecicle", "Michaelmcchill"));
     }
 
     private void spawnBots(List<String> players) {
@@ -319,9 +303,7 @@ public class Debugger {
 
                     print("Done.");
                 });
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 print(e);
             }
         });
@@ -352,14 +334,14 @@ public class Debugger {
     }
 
     public void tp() {
-        Bot bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch().stream().filter(LivingEntity::isAlive).collect(Collectors.toSet()));
+        Terminator bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch().stream().filter(Terminator::isAlive).collect(Collectors.toSet()));
 
         if (bot == null) {
             print("Failed to locate a bot.");
             return;
         }
 
-        print("Located bot", (ChatColor.GREEN.toString() + bot.getName() + ChatColor.RESET.toString() + "."));
+        print("Located bot", (ChatColor.GREEN + bot.getBotName() + ChatColor.RESET + "."));
 
         if (sender instanceof Player) {
             print("Teleporting...");
@@ -386,9 +368,9 @@ public class Debugger {
     }
 
     public void hideNametags() { // this works for some reason
-        Set<Bot> bots = TerminatorPlus.getInstance().getManager().fetch();
+        Set<Terminator> bots = TerminatorPlus.getInstance().getManager().fetch();
 
-        for (Bot bot : bots) {
+        for (Terminator bot : bots) {
             Location loc = bot.getLocation();
             World world = loc.getWorld();
 
@@ -409,9 +391,9 @@ public class Debugger {
     }
 
     public void sit() {
-        Set<Bot> bots = TerminatorPlus.getInstance().getManager().fetch();
+        Set<Terminator> bots = TerminatorPlus.getInstance().getManager().fetch();
 
-        for (Bot bot : bots) {
+        for (Terminator bot : bots) {
             Location loc = bot.getLocation();
             World world = loc.getWorld();
 
@@ -440,7 +422,7 @@ public class Debugger {
 
         Player player = (Player) sender;
 
-        for (Bot bot : TerminatorPlus.getInstance().getManager().fetch()) {
+        for (Terminator bot : TerminatorPlus.getInstance().getManager().fetch()) {
             bot.faceLocation(player.getEyeLocation());
         }
     }
@@ -451,8 +433,6 @@ public class Debugger {
         boolean b = agent.isEnabled();
         agent.setEnabled(!b);
 
-        print("The Bot Agent is now "
-                + (b ? ChatColor.RED + "DISABLED" : ChatColor.GREEN + "ENABLED")
-                + ChatColor.RESET + ".");
+        print("The Bot Agent is now " + (b ? ChatColor.RED + "DISABLED" : ChatColor.GREEN + "ENABLED") + ChatColor.RESET + ".");
     }
 }

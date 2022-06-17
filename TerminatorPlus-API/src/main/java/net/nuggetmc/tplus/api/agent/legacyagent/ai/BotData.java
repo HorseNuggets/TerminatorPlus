@@ -1,7 +1,7 @@
 package net.nuggetmc.tplus.api.agent.legacyagent.ai;
 
 import net.nuggetmc.tplus.api.Terminator;
-import net.nuggetmc.tplus.utils.MathUtils;
+import net.nuggetmc.tplus.api.utils.MathUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;

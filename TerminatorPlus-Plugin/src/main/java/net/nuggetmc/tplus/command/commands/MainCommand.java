@@ -6,10 +6,10 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import net.nuggetmc.tplus.TerminatorPlus;
+import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
 import net.nuggetmc.tplus.command.annotation.Command;
-import net.nuggetmc.tplus.utils.ChatUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 

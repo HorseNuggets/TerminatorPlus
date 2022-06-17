@@ -1,8 +1,8 @@
 package net.nuggetmc.tplus.api.agent.legacyagent.ai;
 
 import net.md_5.bungee.api.ChatColor;
-import net.nuggetmc.tplus.utils.MathUtils;
-import net.nuggetmc.tplus.utils.ChatUtils;
+import net.nuggetmc.tplus.api.utils.ChatUtils;
+import net.nuggetmc.tplus.api.utils.MathUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;

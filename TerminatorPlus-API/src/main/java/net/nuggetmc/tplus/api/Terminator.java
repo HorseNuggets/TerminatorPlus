@@ -1,12 +1,12 @@
 package net.nuggetmc.tplus.api;
 
 import com.mojang.authlib.GameProfile;
-import net.kyori.adventure.text.Component;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -15,7 +15,11 @@ public interface Terminator {
 
     String getBotName();
 
+    int getId();
+
     GameProfile getGameProfile();
+
+    LivingEntity getBukkitEntity();
 
     NeuralNetwork getNeuralNetwork();
 
@@ -24,6 +28,8 @@ public interface Terminator {
     boolean hasNeuralNetwork();
 
     Location getLocation();
+
+    boolean isAlive();
 
     float getHealth();
 
@@ -41,6 +47,10 @@ public interface Terminator {
 
     boolean isInWater();
 
+    boolean isOnGround();
+
+    void setXRot(float pitch);
+
     void jump(Vector velocity);
 
     void jump();
@@ -48,6 +58,8 @@ public interface Terminator {
     void walk(Vector velocity);
 
     void look(BlockFace face);
+
+    void faceLocation(Location location);
 
     void attack(Entity target);
 
@@ -88,4 +100,8 @@ public interface Terminator {
     int getAliveTicks();
 
     boolean tickDelay(int ticks);
+
+    void renderBot(Object packetListener, boolean login);
+
+    void setOnFirePackets(boolean onFire);
 }
