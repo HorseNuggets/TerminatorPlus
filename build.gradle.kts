@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "net.nuggetmc"
-version = "3.1-BETA"
+version = "3.2-BETA"
 
 val jarName = "TerminatorPlus-" + version;
 
