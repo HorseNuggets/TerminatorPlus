@@ -7,8 +7,8 @@ import java.util.Locale;
 
 public class ChatUtils {
     public static final String LINE = ChatColor.GRAY + "------------------------------------------------";
-    public static final String BULLET = "▪";
-    public static final String BULLET_FORMATTED = ChatColor.GRAY + " ▪ " + ChatColor.RESET;
+    public static final String BULLET = "\u25AA";
+    public static final String BULLET_FORMATTED = ChatColor.GRAY + " \u25AA " + ChatColor.RESET;
     public static final String EXCEPTION_MESSAGE = ChatColor.RED + "An exception has occured. Please try again.";
 
     public static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance(Locale.US);
