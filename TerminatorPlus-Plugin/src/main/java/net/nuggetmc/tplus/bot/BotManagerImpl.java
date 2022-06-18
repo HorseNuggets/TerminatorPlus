@@ -186,7 +186,7 @@ public class BotManagerImpl implements BotManager, Listener {
     @Override
     public Terminator getBot(int entityId) {
         for (Terminator bot : bots) {
-            if (bot.getId() == entityId) {
+            if (bot.getEntityId() == entityId) {
                 return bot;
             }
         }

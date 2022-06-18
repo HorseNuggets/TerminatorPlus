@@ -244,7 +244,7 @@ public class IntelligenceAgent {
     }
 
     private int aliveCount() {
-        return (int) bots.values().stream().filter(Terminator::isAlive).count();
+        return (int) bots.values().stream().filter(Terminator::isBotAlive).count();
     }
 
     private void close() {

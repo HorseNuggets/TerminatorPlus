@@ -36,7 +36,7 @@ public class BotAgent extends Agent {
 
     // This is where the code starts to get spicy
     private void tickBot(Terminator bot) {
-        if (!bot.isAlive()) return;
+        if (!bot.isBotAlive()) return;
 
         Location loc = bot.getLocation();
 

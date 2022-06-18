@@ -213,7 +213,7 @@ public class Debugger {
 
     public void tpall() {
         Player player = (Player) sender;
-        TerminatorPlus.getInstance().getManager().fetch().stream().filter(Terminator::isAlive).forEach(bot -> bot.getBukkitEntity().teleport(player));
+        TerminatorPlus.getInstance().getManager().fetch().stream().filter(Terminator::isBotAlive).forEach(bot -> bot.getBukkitEntity().teleport(player));
     }
 
     public void viewsession() {
@@ -334,7 +334,7 @@ public class Debugger {
     }
 
     public void tp() {
-        Terminator bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch().stream().filter(Terminator::isAlive).collect(Collectors.toSet()));
+        Terminator bot = MathUtils.getRandomSetElement(TerminatorPlus.getInstance().getManager().fetch().stream().filter(Terminator::isBotAlive).collect(Collectors.toSet()));
 
         if (bot == null) {
             print("Failed to locate a bot.");

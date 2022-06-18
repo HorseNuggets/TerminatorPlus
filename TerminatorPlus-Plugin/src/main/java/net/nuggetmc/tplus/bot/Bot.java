@@ -67,7 +67,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private boolean removeOnDeath;
     private int aliveTicks;
     private int kills;
-    private byte fireTicks;
+    private byte fireTicks; // Fire animation isn't played? Bot still takes damage.
     private byte groundTicks;
     private byte jumpTicks;
     private byte noFallTicks;
@@ -127,6 +127,11 @@ public class Bot extends ServerPlayer implements Terminator {
     @Override
     public String getBotName() {
         return displayName;
+    }
+
+    @Override
+    public int getEntityId() {
+        return getId();
     }
 
     @Override
@@ -246,6 +251,11 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     @Override
+    public boolean isBotAlive() {
+        return isAlive();
+    }
+
+    @Override
     public void tick() {
         loadChunks();
 
@@ -352,7 +362,7 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     @Override
-    public boolean isOnFire() {
+    public boolean isBotOnFire() {
         return fireTicks != 0;
     }
 
@@ -395,8 +405,8 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     @Override
-    public boolean isBlocking() {
-        return blocking;
+    public boolean isBotBlocking() {
+        return isBlocking();
     }
 
     public void setShield(boolean enabled) {

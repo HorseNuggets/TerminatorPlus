@@ -64,7 +64,7 @@ public class LegacyAgent extends Agent {
     }
 
     private void center(Terminator bot) {
-        if (bot == null || !bot.isAlive()) {
+        if (bot == null || !bot.isBotAlive()) {
             return;
         }
 
@@ -89,7 +89,7 @@ public class LegacyAgent extends Agent {
     }
 
     private void tickBot(Terminator bot) {
-        if (!bot.isAlive()) {
+        if (!bot.isBotAlive()) {
             return;
         }
 
@@ -227,7 +227,7 @@ public class LegacyAgent extends Agent {
             NeuralNetwork network = bot.getNeuralNetwork();
 
             if (network.dynamicLR()) {
-                if (bot.isBlocking()) {
+                if (bot.isBotBlocking()) {
                     vel.multiply(0.6);
                 }
 
@@ -253,7 +253,7 @@ public class LegacyAgent extends Agent {
                 boolean left = network.check(BotNode.LEFT);
                 boolean right = network.check(BotNode.RIGHT);
 
-                if (bot.isBlocking()) {
+                if (bot.isBotBlocking()) {
                     vel.multiply(0.6);
                 }
 
@@ -313,7 +313,7 @@ public class LegacyAgent extends Agent {
 
         double dot = loc.toVector().subtract(player.getLocation().toVector()).normalize().dot(loc.getDirection());
 
-        if (bot.isBlocking() && dot >= -0.1) {
+        if (bot.isBotBlocking() && dot >= -0.1) {
             player.getWorld().playSound(bot.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1, 1);
             event.setCancelled(true);
         }
@@ -903,7 +903,7 @@ public class LegacyAgent extends Agent {
         String worldName = world.getName();
         Location loc = bot.getLocation();
 
-        if (bot.isOnFire()) {
+        if (bot.isBotOnFire()) {
             if (bot.getBukkitEntity().getWorld().getEnvironment() != World.Environment.NETHER) {
                 placeWaterDown(bot, world, loc);
             }
@@ -1035,7 +1035,7 @@ public class LegacyAgent extends Agent {
 
                 scheduler.runTaskLater(plugin, () -> {
                     boatCooldown.remove(bot);
-                    if (bot.isAlive()) {
+                    if (bot.isBotAlive()) {
                         bot.faceLocation(target.getLocation());
                     }
                 }, 5);

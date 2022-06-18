@@ -15,7 +15,7 @@ public interface Terminator {
 
     String getBotName();
 
-    int getId();
+    int getEntityId();
 
     GameProfile getGameProfile();
 
@@ -29,7 +29,7 @@ public interface Terminator {
 
     Location getLocation();
 
-    boolean isAlive();
+    boolean isBotAlive(); //Has to be named like this because paper re-obfuscates it
 
     float getHealth();
 
@@ -37,11 +37,11 @@ public interface Terminator {
 
     void ignite();
 
-    boolean isOnFire();
+    boolean isBotOnFire();
 
     boolean isFalling();
 
-    boolean isBlocking();
+    boolean isBotBlocking();
 
     void block(int length, int cooldown);
 
