@@ -31,9 +31,9 @@ public interface Terminator {
 
     boolean isBotAlive(); //Has to be named like this because paper re-obfuscates it
 
-    float getHealth();
+    float getBotHealth();
 
-    float getMaxHealth();
+    float getBotMaxHealth();
 
     void ignite();
 
@@ -45,11 +45,15 @@ public interface Terminator {
 
     void block(int length, int cooldown);
 
-    boolean isInWater();
+    boolean isBotInWater();
 
-    boolean isOnGround();
+    boolean isBotOnGround();
 
-    void setXRot(float pitch);
+    void setBotPitch(float pitch);
+
+    default void setBotXRot(float pitch) {
+        setBotPitch(pitch);
+    }
 
     void jump(Vector velocity);
 
@@ -76,6 +80,8 @@ public interface Terminator {
     void addFriction(double factor);
 
     void removeVisually();
+
+    void removeBot();
 
     int getKills();
 

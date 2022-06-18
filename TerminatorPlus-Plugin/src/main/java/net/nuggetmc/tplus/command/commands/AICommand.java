@@ -63,6 +63,10 @@ public class AICommand extends CommandInstance implements AIManager {
         desc = "Begin an AI training session."
     )
     public void reinforcement(Player sender, @Arg("population-size") int populationSize, @Arg("name") String name, @OptArg("skin") String skin) {
+        //FIXME: Sometimes, bots will become invisible, or just stop working if they're the last one alive, this has been partially fixed (invis part) see Terminator#removeBot, which removes the bot.
+        //This seems to fix it for the most part, but its still buggy, as the bot will sometimes still freeze
+        //see https://cdn.carbonhost.cloud/6201479d7b237373ab269385/screenshots/javaw_DluMN4m0FR.png
+        //Blocks are also not placeable where bots have died
         if (agent != null) {
             sender.sendMessage("A session is already active.");
             return;

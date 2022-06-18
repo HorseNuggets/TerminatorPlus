@@ -20,7 +20,7 @@ public class BotData {
         Location a = bot.getLocation();
         Location b = target.getLocation();
 
-        float health = bot.getHealth();
+        float health = bot.getBotHealth();
 
         values.put(BotDataType.CRITICAL_HEALTH, health >= 5 ? 0 : 5D - health);
         values.put(BotDataType.DISTANCE_XZ, Math.sqrt(MathUtils.square(a.getX() - b.getX()) + MathUtils.square(a.getZ() - b.getZ())));

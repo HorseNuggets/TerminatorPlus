@@ -256,6 +256,16 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     @Override
+    public float getBotHealth() {
+        return getHealth();
+    }
+
+    @Override
+    public float getBotMaxHealth() {
+        return getMaxHealth();
+    }
+
+    @Override
     public void tick() {
         loadChunks();
 
@@ -412,7 +422,6 @@ public class Bot extends ServerPlayer implements Terminator {
     public void setShield(boolean enabled) {
         this.shield = enabled;
 
-        System.out.println("set shield");
         setItemOffhand(new org.bukkit.inventory.ItemStack(enabled ? Material.SHIELD : Material.AIR));
     }
 
@@ -421,7 +430,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
         MathUtils.clean(velocity); // TODO lag????
 
-        if (isInWater()) {
+        if (isBotInWater()) {
             y = Math.min(velocity.getY() + 0.1, 0.1);
             addFriction(0.8);
             velocity.setY(y);
@@ -440,7 +449,7 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     @Override
-    public boolean isInWater() {
+    public boolean isBotInWater() {
         Location loc = getLocation();
 
         for (int i = 0; i <= 2; i++) {
@@ -531,7 +540,7 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     @Override
-    public boolean isOnGround() {
+    public boolean isBotOnGround() {
         return groundTicks != 0;
     }
 
@@ -550,6 +559,16 @@ public class Bot extends ServerPlayer implements Terminator {
     public void removeVisually() {
         this.removeTab();
         this.setDead();
+    }
+
+    @Override
+    public void removeBot() {
+        if (Bukkit.isPrimaryThread()) {
+            this.remove(RemovalReason.DISCARDED);
+        } else {
+            scheduler.runTask(plugin, () -> this.remove(RemovalReason.DISCARDED));
+        }
+        this.removeVisually();
     }
 
     private void removeTab() {
@@ -667,7 +686,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private void kb(Location loc1, Location loc2) {
         Vector vel = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(0.3);
 
-        if (isOnGround()) vel.multiply(0.8).setY(0.4);
+        if (isBotOnGround()) vel.multiply(0.8).setY(0.4);
 
         velocity = vel;
     }
@@ -685,6 +704,11 @@ public class Bot extends ServerPlayer implements Terminator {
     @Override
     public Location getLocation() {
         return getBukkitEntity().getLocation();
+    }
+
+    @Override
+    public void setBotPitch(float pitch) {
+        super.setXRot(pitch);
     }
 
     @Override
@@ -742,7 +766,6 @@ public class Bot extends ServerPlayer implements Terminator {
     @Override
     public void setItemOffhand(org.bukkit.inventory.ItemStack item) {
         setItem(item, EquipmentSlot.OFFHAND);
-        System.out.println("set offhand");
     }
 
     @Override
@@ -754,15 +777,15 @@ public class Bot extends ServerPlayer implements Terminator {
     public void setItem(org.bukkit.inventory.ItemStack item, EquipmentSlot slot) {
         if (item == null) item = defaultItem;
 
-        System.out.println("set");
+        //System.out.println("set");
         if (slot == EquipmentSlot.MAINHAND) {
             getBukkitEntity().getInventory().setItemInMainHand(item);
         } else if (slot == EquipmentSlot.OFFHAND) {
             getBukkitEntity().getInventory().setItemInOffHand(item);
         }
 
-        System.out.println("slot = " + slot);
-        System.out.println("item = " + item);
+        //System.out.println("slot = " + slot);
+        //System.out.println("item = " + item);
         sendPacket(new ClientboundSetEquipmentPacket(getId(), new ArrayList<>(Collections.singletonList(
                 new Pair<>(slot, CraftItemStack.asNMSCopy(item))
         ))));

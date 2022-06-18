@@ -144,7 +144,7 @@ public class LegacyAgent extends Agent {
 
         if (btCheck.containsKey(botPlayer)) sameXZ = btCheck.get(botPlayer);
 
-        if (waterGround || bot.isOnGround() || onBoat(botPlayer)) {
+        if (waterGround || bot.isBotOnGround() || onBoat(botPlayer)) {
             byte sideResult = 1;
 
             if (towerList.containsKey(botPlayer)) {
@@ -192,7 +192,7 @@ public class LegacyAgent extends Agent {
         Vector vel = target.toVector().subtract(position).normalize();
 
         if (bot.tickDelay(5)) bot.faceLocation(livingTarget.getLocation());
-        if (!bot.isOnGround()) return; // calling this a second time later on
+        if (!bot.isBotOnGround()) return; // calling this a second time later on
 
         bot.stand(); // eventually create a memory system so packets do not have to be sent every tick
         bot.setItem(null); // method to check item in main hand, bot.getItemInHand()
@@ -572,7 +572,7 @@ public class LegacyAgent extends Agent {
                     }
                 }, 5);
 
-                if (npc.isOnGround()) {
+                if (npc.isBotOnGround()) {
                     if (target.getLocation().distance(playerNPC.getLocation()) < 16) {
                         if (noJump.contains(playerNPC)) {
 
@@ -593,7 +593,7 @@ public class LegacyAgent extends Agent {
                             return true;
                         }
                     } else {
-                        if (npc.isOnGround()) {
+                        if (npc.isBotOnGround()) {
                             Location locBlock = playerNPC.getLocation();
                             locBlock.setX(locBlock.getBlockX() + 0.5);
                             locBlock.setZ(locBlock.getBlockZ() + 0.5);
@@ -616,7 +616,7 @@ public class LegacyAgent extends Agent {
                 npc.look(BlockFace.UP);
                 preBreak(npc, playerNPC, block, LegacyLevel.ABOVE);
 
-                if (npc.isOnGround()) {
+                if (npc.isBotOnGround()) {
                     Location locBlock = playerNPC.getLocation();
                     locBlock.setX(locBlock.getBlockX() + 0.5);
                     locBlock.setZ(locBlock.getBlockZ() + 0.5);
@@ -682,7 +682,7 @@ public class LegacyAgent extends Agent {
             npc.setVelocity(vector);
         }
 
-        if (npc.isInWater()) {
+        if (npc.isBotInWater()) {
             Location locBlock = player.getLocation();
             locBlock.setX(locBlock.getBlockX() + 0.5);
             locBlock.setZ(locBlock.getBlockZ() + 0.5);
@@ -737,7 +737,7 @@ public class LegacyAgent extends Agent {
         bot.setItem(new ItemStack(item));
 
         if (level == LegacyLevel.EAST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D || level == LegacyLevel.WEST_D) {
-            bot.setXRot(69);
+            bot.setBotPitch(69);
 
             scheduler.runTaskLater(plugin, () -> {
                 btCheck.put(player, true);

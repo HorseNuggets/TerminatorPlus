@@ -102,7 +102,7 @@ public class BotAgent extends Agent {
         Vector vel = target.toVector().subtract(loc.toVector()).normalize();
 
         if (bot.tickDelay(5)) bot.faceLocation(player.getLocation());
-        if (!bot.isOnGround()) return; // calling this a second time later on
+        if (!bot.isBotOnGround()) return; // calling this a second time later on
 
         bot.stand(); // eventually create a memory system so packets do not have to be sent every tick
         bot.setItem(null); // method to check item in main hand, bot.getItemInHand()

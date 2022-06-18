@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.utils;
 
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.agent.Agent;
@@ -176,6 +177,17 @@ public class Debugger {
 
             hideNametags();
         }
+    }
+
+    public void renderBots() {
+        int rendered = 0;
+        for (Terminator fetch : TerminatorPlus.getInstance().getManager().fetch()) {
+            rendered++;
+            Bot bot = (Bot) fetch;
+            ServerGamePacketListenerImpl connection = bot.getBukkitEntity().getHandle().connection;
+            fetch.renderBot(connection, true);
+        }
+        print("Rendered " + rendered + " bots.");
     }
 
     public void lol(String name, String skinName) {

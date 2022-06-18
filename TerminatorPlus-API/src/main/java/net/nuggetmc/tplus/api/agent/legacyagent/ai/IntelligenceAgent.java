@@ -326,7 +326,7 @@ public class IntelligenceAgent {
         if (!bots.isEmpty()) {
             print("Removing all cached bots...");
 
-            bots.values().forEach(Terminator::removeVisually);
+            bots.values().forEach(Terminator::removeBot);
             bots.clear();
         }
 
