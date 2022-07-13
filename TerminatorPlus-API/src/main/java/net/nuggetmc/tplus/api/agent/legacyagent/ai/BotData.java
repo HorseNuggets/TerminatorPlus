@@ -2,7 +2,6 @@ package net.nuggetmc.tplus.api.agent.legacyagent.ai;
 
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.utils.MathUtils;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -48,6 +47,6 @@ public class BotData {
 
         Collections.sort(strings);
 
-        return "BotData{" + StringUtils.join(strings, ",") + "}";
+        return "BotData{" + NeuralNetwork.join(strings) + "}";
     }
 }

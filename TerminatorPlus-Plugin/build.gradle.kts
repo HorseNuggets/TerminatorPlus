@@ -13,7 +13,7 @@ java {
 }
 
 dependencies {
-    paperDevBundle("1.18.2-R0.1-SNAPSHOT")
+    paperDevBundle("1.19-R0.1-SNAPSHOT")
 
     //add the TerminatorPlus-API module
     implementation(project(":TerminatorPlus-API"))
