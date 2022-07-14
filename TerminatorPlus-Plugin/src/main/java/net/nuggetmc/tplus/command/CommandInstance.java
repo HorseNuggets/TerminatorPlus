@@ -237,6 +237,7 @@ public abstract class CommandInstance extends BukkitCommand {
 
         if (args.length > 1) {
             CommandMethod commandMethod = methods.get(args[0]);
+            if (commandMethod == null) return new ArrayList<>();
             Method autofiller = commandMethod.getAutofiller();
 
             if (autofiller != null) {

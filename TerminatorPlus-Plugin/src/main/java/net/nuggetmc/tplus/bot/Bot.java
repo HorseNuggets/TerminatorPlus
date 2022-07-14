@@ -34,11 +34,11 @@ import net.nuggetmc.tplus.api.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_18_R1.CraftEquipmentSlot;
-import org.bukkit.craftbukkit.v1_18_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_18_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R1.CraftEquipmentSlot;
+import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
@@ -74,7 +74,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private byte noFallTicks;
 
     private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
-        super(minecraftServer, worldServer, profile);
+        super(minecraftServer, worldServer, profile, null);
 
         this.plugin = TerminatorPlus.getInstance();
         this.scheduler = Bukkit.getScheduler();

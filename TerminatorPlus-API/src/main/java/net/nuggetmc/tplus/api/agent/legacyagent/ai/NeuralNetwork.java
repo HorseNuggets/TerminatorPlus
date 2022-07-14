@@ -3,7 +3,6 @@ package net.nuggetmc.tplus.api.agent.legacyagent.ai;
 import net.md_5.bungee.api.ChatColor;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.api.utils.MathUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
 
@@ -71,11 +70,19 @@ public class NeuralNetwork {
         return output;
     }
 
+    public static String join(Collection<String> collection) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : collection) {
+            sb.append(s).append(", ");
+        }
+        return sb.substring(0, sb.length() - 2);
+    }
+
     public String output() {
         List<String> strings = new ArrayList<>();
         nodes.forEach((type, node) -> strings.add(type.name().toLowerCase() + "=" + (node.check() ? ChatUtils.ON + "1" : ChatUtils.OFF + "0") + ChatColor.RESET));
         Collections.sort(strings);
-        return "[" + StringUtils.join(strings, ", ") + "]";
+        return "[" + join(strings) + "]";
     }
 
     @Override
@@ -86,9 +93,9 @@ public class NeuralNetwork {
             List<String> values = new ArrayList<>();
             values.add("name=\"" + nodeType.name().toLowerCase() + "\"");
             node.getValues().forEach((dataType, value) -> values.add(dataType.getShorthand() + "=" + MathUtils.round2Dec(value)));
-            strings.add("{" + StringUtils.join(values, ",") + "}");
+            strings.add("{" + join(values) + "}");
         });
 
-        return "NeuralNetwork{nodes:[" + StringUtils.join(strings, ",") + "]}";
+        return "NeuralNetwork{nodes:[" + join(strings) + "]}";
     }
 }

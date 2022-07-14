@@ -21,10 +21,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 // Yes, this code is very unoptimized, I know.
@@ -45,6 +42,23 @@ public class LegacyAgent extends Agent {
     private final Map<BukkitRunnable, Byte> mining = new HashMap<>();
     private final Set<Terminator> fallDamageCooldown = new HashSet<>();
     public boolean offsets = true;
+    private List<Material> instantBreakBlocks = Arrays.asList(
+            Material.TALL_GRASS,
+            Material.GRASS,
+            Material.KELP_PLANT,
+            Material.WHEAT,
+            Material.POTATOES,
+            Material.CARROT,
+            Material.BEETROOT,
+            Material.SUGAR_CANE,
+            Material.SWEET_BERRY_BUSH,
+            Material.LILY_PAD,
+            Material.DANDELION,
+            Material.POPPY,
+            Material.ROSE_BUSH,
+            Material.PUMPKIN_STEM,
+            Material.MELON_STEM
+    );
     private EnumTargetGoal goal;
 
     public LegacyAgent(BotManager manager, Plugin plugin) {
@@ -862,6 +876,11 @@ public class LegacyAgent extends Agent {
 
                     if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME)
                         return;
+
+                    if (instantBreakBlocks.contains(block.getType())) { // instant break blocks
+                        block.breakNaturally();
+                        return;
+                    }
 
                     TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), i);
 

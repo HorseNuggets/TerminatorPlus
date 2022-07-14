@@ -10,7 +10,7 @@ import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.api.event.BotDeathEvent;
 import net.nuggetmc.tplus.api.utils.MojangAPI;
 import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
