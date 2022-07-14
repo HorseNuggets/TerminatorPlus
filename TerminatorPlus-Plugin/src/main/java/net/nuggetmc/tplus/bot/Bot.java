@@ -39,6 +39,7 @@ import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -675,19 +676,29 @@ public class Bot extends ServerPlayer implements Terminator {
         if (damaged && attacker != null) {
             if (playerInstance && !isAlive()) {
                 agent.onBotKilledByPlayer(new BotKilledByPlayerEvent(this, killer));
-            }
 
-            kb(getLocation(), attacker.getBukkitEntity().getLocation());
+            }else {
+                kb(getLocation(), attacker.getBukkitEntity().getLocation(), attacker);
+            }
         }
 
         return damaged;
     }
 
-    private void kb(Location loc1, Location loc2) {
+    private void kb(Location loc1, Location loc2,Entity attacker) {
         Vector vel = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(0.3);
 
         if (isBotOnGround()) vel.multiply(0.8).setY(0.4);
-
+        if(((Player)attacker.getBukkitEntity()).getInventory().getItemInMainHand().getItemMeta()!=null) {
+            if (((Player) attacker.getBukkitEntity()).getInventory().getItemInMainHand().getItemMeta().hasEnchant(Enchantment.KNOCKBACK) && attacker.getBukkitEntity() instanceof Player) {
+                int kbLevel = ((Player) attacker.getBukkitEntity()).getInventory().getItemInMainHand().getItemMeta().getEnchants().get(Enchantment.KNOCKBACK);
+                if (kbLevel == 1) {
+                    vel.multiply(1.05).setY(.4);
+                } else {
+                    vel.multiply(1.9).setY(.4);
+                }
+            }
+        }
         velocity = vel;
     }
 
