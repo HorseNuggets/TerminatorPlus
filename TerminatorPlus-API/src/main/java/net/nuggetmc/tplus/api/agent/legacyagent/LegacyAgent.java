@@ -1115,10 +1115,12 @@ public class LegacyAgent extends Agent {
         this.goal = goal;
     }
 
-    public LivingEntity locateTarget(Terminator bot, Location loc) {
+    public LivingEntity locateTarget(Terminator bot, Location loc, EnumTargetGoal... targetGoal) {
         LivingEntity result = null;
 
-        switch (goal) {
+        EnumTargetGoal g = goal;
+        if (targetGoal.length > 0) g = targetGoal[0];
+        switch (g) {
             default:
                 return null;
 
@@ -1204,6 +1206,15 @@ public class LegacyAgent extends Agent {
                         }
                     }
                 }
+            }
+            case PLAYER: { //Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found.
+                if (bot.getTargetPlayer() != null) {
+                    Player player = Bukkit.getPlayer(bot.getTargetPlayer());
+                    if (player != null) {
+                        return player;
+                    }
+                }
+                return locateTarget(bot, loc, EnumTargetGoal.NEAREST_VULNERABLE_PLAYER);
             }
         }
 
