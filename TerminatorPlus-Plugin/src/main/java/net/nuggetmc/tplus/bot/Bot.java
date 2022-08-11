@@ -72,6 +72,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private byte groundTicks;
     private byte jumpTicks;
     private byte noFallTicks;
+    private boolean ignoredByMobs = true;
 
     private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
         super(minecraftServer, worldServer, profile, null);
@@ -677,7 +678,7 @@ public class Bot extends ServerPlayer implements Terminator {
             if (playerInstance && !isAlive()) {
                 agent.onBotKilledByPlayer(new BotKilledByPlayerEvent(this, killer));
 
-            }else {
+            } else {
                 kb(getLocation(), attacker.getBukkitEntity().getLocation(), attacker);
             }
         }
@@ -685,11 +686,11 @@ public class Bot extends ServerPlayer implements Terminator {
         return damaged;
     }
 
-    private void kb(Location loc1, Location loc2,Entity attacker) {
+    private void kb(Location loc1, Location loc2, Entity attacker) {
         Vector vel = loc1.toVector().subtract(loc2.toVector()).setY(0).normalize().multiply(0.3);
 
         if (isBotOnGround()) vel.multiply(0.8).setY(0.4);
-        if(((Player)attacker.getBukkitEntity()).getInventory().getItemInMainHand().getItemMeta()!=null) {
+        if (attacker.getBukkitEntity() instanceof Player && ((Player) attacker.getBukkitEntity()).getInventory().getItemInMainHand().getItemMeta() != null) {
             if (((Player) attacker.getBukkitEntity()).getInventory().getItemInMainHand().getItemMeta().hasEnchant(Enchantment.KNOCKBACK) && attacker.getBukkitEntity() instanceof Player) {
                 int kbLevel = ((Player) attacker.getBukkitEntity()).getInventory().getItemInMainHand().getItemMeta().getEnchants().get(Enchantment.KNOCKBACK);
                 if (kbLevel == 1) {
@@ -842,5 +843,13 @@ public class Bot extends ServerPlayer implements Terminator {
         this.yHeadRotO = this.yHeadRot;
         this.yRotO = this.getYRot();
         this.xRotO = this.getXRot();
+    }
+
+    public boolean isIgnoredByMobs() {
+        return ignoredByMobs;
+    }
+
+    public void setIgnoredByMobs(boolean ignoredByMobs) {
+        this.ignoredByMobs = ignoredByMobs;
     }
 }
