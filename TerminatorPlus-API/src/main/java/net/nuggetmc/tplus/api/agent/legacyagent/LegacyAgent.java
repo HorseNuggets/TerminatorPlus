@@ -10,6 +10,7 @@ import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.api.event.BotDeathEvent;
 import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
+import net.nuggetmc.tplus.api.event.TerminatorLocateTargetEvent;
 import net.nuggetmc.tplus.api.utils.MathUtils;
 import net.nuggetmc.tplus.api.utils.PlayerUtils;
 import org.bukkit.*;
@@ -1217,8 +1218,10 @@ public class LegacyAgent extends Agent {
                 return locateTarget(bot, loc, EnumTargetGoal.NEAREST_VULNERABLE_PLAYER);
             }
         }
-
-        return result;
+        TerminatorLocateTargetEvent event = new TerminatorLocateTargetEvent(bot, result);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return null;
+        return event.getTarget();
     }
 
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
