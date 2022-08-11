@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -205,6 +206,14 @@ public class BotManagerImpl implements BotManager, Listener {
         Terminator bot = getBot(bukkitEntity.getEntityId());
         if (bot != null) {
             agent.onBotDeath(new BotDeathEvent(event, bot));
+        }
+    }
+
+    @EventHandler
+    public void onMobTarget(EntityTargetLivingEntityEvent event) {
+        Bot bot = (Bot) getBot(event.getEntity().getUniqueId());
+        if (bot != null && bot.isIgnoredByMobs()) {
+            event.setCancelled(true);
         }
     }
 }
