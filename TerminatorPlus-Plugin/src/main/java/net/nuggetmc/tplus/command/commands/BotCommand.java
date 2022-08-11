@@ -267,29 +267,33 @@ public class BotCommand extends CommandInstance {
 
         String extra = ChatColor.GRAY + " [" + ChatColor.YELLOW + "/bot settings" + ChatColor.GRAY + "]";
 
-        if (arg1 == null || (!arg1.equals("setgoal"))) {
+        if (arg1 == null || ((!arg1.equals("setgoal")) && !arg1.equals("mobtarget"))) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage(ChatColor.GOLD + "Bot Settings" + extra);
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all future bots spawned to be targetted by hostile mobs.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all future bots spawned to be targeted by hostile mobs.");
             sender.sendMessage(ChatUtils.LINE);
             return;
         }
 
-        EnumTargetGoal goal = EnumTargetGoal.from(arg2 == null ? "" : arg2);
+        if (arg1.equalsIgnoreCase("setgoal")) {
+            EnumTargetGoal goal = EnumTargetGoal.from(arg2 == null ? "" : arg2);
 
-        if (goal == null) {
-            sender.sendMessage(ChatUtils.LINE);
-            sender.sendMessage(ChatColor.GOLD + "Goal Selection Types" + extra);
-            Arrays.stream(EnumTargetGoal.values()).forEach(g -> sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + g.name().replace("_", "").toLowerCase()
-                    + ChatUtils.BULLET_FORMATTED + g.description()));
-            sender.sendMessage(ChatUtils.LINE);
-            return;
+            if (goal == null) {
+                sender.sendMessage(ChatUtils.LINE);
+                sender.sendMessage(ChatColor.GOLD + "Goal Selection Types" + extra);
+                Arrays.stream(EnumTargetGoal.values()).forEach(g -> sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + g.name().replace("_", "").toLowerCase()
+                        + ChatUtils.BULLET_FORMATTED + g.description()));
+                sender.sendMessage(ChatUtils.LINE);
+                return;
+            }
+            agent.setTargetType(goal);
+            sender.sendMessage("The global bot goal has been set to " + ChatColor.BLUE + goal.name() + ChatColor.RESET + ".");
+        } else if (arg1.equalsIgnoreCase("mobtarget")) {
+            manager.setMobTarget(!manager.isMobTarget());
+            sender.sendMessage("Mob targeting is now " + (manager.isMobTarget() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ". (for all future bots)");
         }
 
-        agent.setTargetType(goal);
-
-        sender.sendMessage("The global bot goal has been set to " + ChatColor.BLUE + goal.name() + ChatColor.RESET + ".");
     }
 
     @Autofill

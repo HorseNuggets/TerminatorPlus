@@ -46,5 +46,8 @@ public interface BotManager {
 
     Terminator getBot(int entityId);
 
+    boolean isMobTarget();
+
+    void setMobTarget(boolean mobTarget);
 
 }
