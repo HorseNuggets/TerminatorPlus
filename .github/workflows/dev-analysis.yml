@@ -48,4 +48,4 @@ jobs:
       if: success()
       with:
         name: TerminatorPlus
-        path: target/
+        path: build/libs/
