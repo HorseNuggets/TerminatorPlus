@@ -73,7 +73,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private byte jumpTicks;
     private byte noFallTicks;
     private boolean ignoredByMobs = true;
-
+    private UUID targetPlayer = null;
     private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
         super(minecraftServer, worldServer, profile, null);
 
@@ -371,6 +371,16 @@ public class Bot extends ServerPlayer implements Terminator {
     public void setOnFirePackets(boolean onFire) {
         //entityData.set(new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), onFire ? (byte) 1 : (byte) 0);
         //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
+    }
+
+    @Override
+    public UUID getTargetPlayer() {
+        return targetPlayer;
+    }
+
+    @Override
+    public void setTargetPlayer(UUID target) {
+        this.targetPlayer = target;
     }
 
     @Override

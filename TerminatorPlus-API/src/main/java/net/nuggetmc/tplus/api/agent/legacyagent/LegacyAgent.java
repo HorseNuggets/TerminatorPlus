@@ -10,6 +10,7 @@ import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.api.event.BotDeathEvent;
 import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
+import net.nuggetmc.tplus.api.event.TerminatorLocateTargetEvent;
 import net.nuggetmc.tplus.api.utils.MathUtils;
 import net.nuggetmc.tplus.api.utils.PlayerUtils;
 import org.bukkit.*;
@@ -1115,10 +1116,12 @@ public class LegacyAgent extends Agent {
         this.goal = goal;
     }
 
-    public LivingEntity locateTarget(Terminator bot, Location loc) {
+    public LivingEntity locateTarget(Terminator bot, Location loc, EnumTargetGoal... targetGoal) {
         LivingEntity result = null;
 
-        switch (goal) {
+        EnumTargetGoal g = goal;
+        if (targetGoal.length > 0) g = targetGoal[0];
+        switch (g) {
             default:
                 return null;
 
@@ -1205,9 +1208,20 @@ public class LegacyAgent extends Agent {
                     }
                 }
             }
+            case PLAYER: { //Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found.
+                if (bot.getTargetPlayer() != null) {
+                    Player player = Bukkit.getPlayer(bot.getTargetPlayer());
+                    if (player != null) {
+                        return player;
+                    }
+                }
+                return locateTarget(bot, loc, EnumTargetGoal.NEAREST_VULNERABLE_PLAYER);
+            }
         }
-
-        return result;
+        TerminatorLocateTargetEvent event = new TerminatorLocateTargetEvent(bot, result);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return null;
+        return event.getTarget();
     }
 
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
