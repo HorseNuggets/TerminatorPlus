@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "net.nuggetmc"
-version = "3.2-BETA"
+version = "3.3-BETA"
 
 repositories {
     mavenCentral()
