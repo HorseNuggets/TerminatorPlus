@@ -9,7 +9,7 @@
 
 ### Download
 
-Releases are currently available on our Discord server, which can be found [here](https://discord.gg/horsenuggets).
+Releases are currently available on our Discord server, which can be found [here](https://discord.gg/htRwXjJVuc).
 
 ### Machine Learning
 
