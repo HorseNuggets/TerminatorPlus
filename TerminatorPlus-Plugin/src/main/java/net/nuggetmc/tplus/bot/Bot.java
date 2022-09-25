@@ -609,7 +609,7 @@ public class Bot extends ServerPlayer implements Terminator {
             // this should fix the concurrentmodificationexception mentioned above, I used the ConcurrentHashMap.newKeySet to make a "ConcurrentHashSet"
             plugin.getManager().remove(this);
 
-            scheduler.runTaskLater(plugin, this::setDead, 30);
+            scheduler.runTaskLater(plugin, this::removeBot, 30);
 
             this.removeTab();
         }

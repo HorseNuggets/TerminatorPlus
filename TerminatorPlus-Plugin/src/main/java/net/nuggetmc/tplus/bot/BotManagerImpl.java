@@ -164,7 +164,7 @@ public class BotManagerImpl implements BotManager, Listener {
     @Override
     public void reset() {
         if (!bots.isEmpty()) {
-            bots.forEach(Terminator::removeVisually);
+            bots.forEach(Terminator::removeBot);
             bots.clear(); // Not always necessary, but a good security measure
         }
 
