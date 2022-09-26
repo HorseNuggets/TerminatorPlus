@@ -23,6 +23,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 // Yes, this code is very unoptimized, I know.
@@ -875,7 +876,10 @@ public class LegacyAgent extends Agent {
                             all.playSound(block.getLocation(), sound, SoundCategory.BLOCKS, (float) 0.3, 1);
                     }
 
-                    if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME)
+                    if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME
+                    		|| block.getType() == Material.STRUCTURE_BLOCK || block.getType() == Material.STRUCTURE_BLOCK
+                    		|| block.getType() == Material.COMMAND_BLOCK || block.getType() == Material.REPEATING_COMMAND_BLOCK
+                    		|| block.getType() == Material.CHAIN_COMMAND_BLOCK)
                         return;
 
                     if (instantBreakBlocks.contains(block.getType())) { // instant break blocks
@@ -1226,5 +1230,18 @@ public class LegacyAgent extends Agent {
 
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
         return loc.getWorld() == entity.getWorld() && !entity.isDead() && (result == null || loc.distance(entity.getLocation()) < loc.distance(result.getLocation()));
+    }
+    
+    @Override
+    public void stopAllTasks() {
+    	super.stopAllTasks();
+    	
+    	Iterator<Entry<Block, Short>> itr = crackList.entrySet().iterator();
+    	while(itr.hasNext()) {
+    		Block block = itr.next().getKey();
+    		TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), -1);
+            itr.remove();
+    	}
+    	mining.clear();
     }
 }
