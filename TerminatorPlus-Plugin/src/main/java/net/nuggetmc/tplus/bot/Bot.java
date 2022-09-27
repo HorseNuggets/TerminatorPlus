@@ -2,8 +2,6 @@ package net.nuggetmc.tplus.bot;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
@@ -27,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.agent.Agent;
+import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
@@ -35,6 +34,7 @@ import net.nuggetmc.tplus.api.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.type.Candle;
 import org.bukkit.craftbukkit.v1_19_R1.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
@@ -45,6 +45,7 @@ import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
@@ -537,19 +538,59 @@ public class Bot extends ServerPlayer implements Terminator {
                 box.minZ,
                 box.maxZ
         };
+        BoundingBox playerBox = new BoundingBox(box.minX, position().y - 0.01, box.minZ,
+        	box.maxX, position().y + getBbHeight(), box.maxZ);
 
         for (double x : xVals) {
             for (double z : zVals) {
                 Location loc = new Location(world, x, position().y - 0.01, z);
                 Block block = world.getBlockAt(loc);
 
-                if (block.getType().isSolid() && BotUtils.solidAt(loc)) {
+                if ((block.getType().isSolid() || canStandOn(block.getType())) && BotUtils.solidAt(playerBox, block.getBoundingBox())) {
                     return true;
+                }
+            }
+        }
+        
+        //Fence/wall check
+        for (double x : xVals) {
+            for (double z : zVals) {
+                Location loc = new Location(world, x, position().y - 0.51, z);
+                Block block = world.getBlockAt(loc);
+                BoundingBox blockBox = loc.getBlock().getBoundingBox();
+                BoundingBox modifiedBox = new BoundingBox(blockBox.getMinX(), blockBox.getMinY(), blockBox.getMinZ(), blockBox.getMaxX(),
+                		blockBox.getMinY() + 1.5, blockBox.getMaxZ());
+                		
+                if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
+                		&& block.getType().isSolid() && BotUtils.solidAt(playerBox, modifiedBox)) {
+                   return true;
                 }
             }
         }
 
         return false;
+    }
+
+    /**
+     * Checks for non-solid blocks that can hold an entity up.
+     */
+    private boolean canStandOn(Material mat)
+    {
+    	if(mat == Material.END_ROD || mat == Material.FLOWER_POT || mat == Material.REPEATER || mat == Material.COMPARATOR
+    		|| mat == Material.SNOW || mat == Material.LADDER || mat == Material.VINE)
+    		return true;
+    	
+    	if(mat == Material.BLACK_CARPET || mat == Material.BLUE_CARPET || mat == Material.BROWN_CARPET || mat == Material.CYAN_CARPET
+    		|| mat == Material.GRAY_CARPET || mat == Material.GREEN_CARPET || mat == Material.LIGHT_BLUE_CARPET
+    		|| mat == Material.LIGHT_GRAY_CARPET || mat == Material.LIME_CARPET || mat == Material.MAGENTA_CARPET
+    		|| mat == Material.MOSS_CARPET || mat == Material.ORANGE_CARPET || mat == Material.PINK_CARPET
+    		|| mat == Material.PURPLE_CARPET || mat == Material.RED_CARPET || mat == Material.WHITE_CARPET
+    		|| mat == Material.YELLOW_CARPET)
+    		return true;
+    	
+    	if(mat.data == Candle.class)
+    		return true;
+    	return false;
     }
 
     @Override
