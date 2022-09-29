@@ -1,10 +1,17 @@
 package net.nuggetmc.tplus.api.agent.legacyagent;
 
 import org.bukkit.Material;
+import org.bukkit.block.data.type.*;
 
+import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class LegacyMats {
 
@@ -40,7 +47,7 @@ public class LegacyMats {
         Material.SOUL_FIRE
     ));
 
-    public static final Set<Material> SHOVEL = new HashSet<>(Arrays.asList(
+    public static final Set<Material> SHOVEL = new HashSet<>(concatTypes(Lists.newArrayList(
     	Material.CLAY,
         Material.DIRT,
         Material.GRASS_BLOCK,
@@ -55,23 +62,8 @@ public class LegacyMats {
         Material.SOUL_SAND,
         Material.SOUL_SOIL,
         Material.SNOW,
-        Material.SNOW_BLOCK,
-        Material.BLACK_CONCRETE_POWDER,
-        Material.BLUE_CONCRETE_POWDER,
-        Material.CYAN_CONCRETE_POWDER,
-        Material.GRAY_CONCRETE_POWDER,
-        Material.GREEN_CONCRETE_POWDER,
-        Material.LIGHT_BLUE_CONCRETE_POWDER,
-        Material.LIGHT_GRAY_CONCRETE_POWDER,
-        Material.LIME_CONCRETE_POWDER,
-        Material.MAGENTA_CONCRETE_POWDER,
-        Material.ORANGE_CONCRETE_POWDER,
-        Material.PINK_CONCRETE_POWDER,
-        Material.PURPLE_CONCRETE_POWDER,
-        Material.RED_CONCRETE_POWDER,
-        Material.WHITE_CONCRETE_POWDER,
-        Material.YELLOW_CONCRETE_POWDER
-    ));
+        Material.SNOW_BLOCK
+    ), Arrays.asList(), Arrays.asList(), m -> m.name().endsWith("_CONCRETE_POWDER")));
 
     public static final Set<Material> AXE = new HashSet<>(Arrays.asList(
         Material.OAK_PLANKS, Material.OAK_DOOR, Material.OAK_FENCE, Material.OAK_FENCE_GATE, Material.OAK_LOG,
@@ -101,13 +93,13 @@ public class LegacyMats {
         Material.LAVA,
         Material.TALL_GRASS,
         Material.SNOW,
-        Material.DIRT_PATH,
         Material.CAVE_AIR,
         Material.VINE,
         Material.FERN,
         Material.LARGE_FERN,
         Material.SUGAR_CANE,
         Material.TWISTING_VINES,
+        Material.TWISTING_VINES_PLANT,
         Material.WEEPING_VINES,
         Material.SEAGRASS,
         Material.TALL_SEAGRASS,
@@ -165,85 +157,133 @@ public class LegacyMats {
         Material.WATER
     ));
 
-    public static final Set<Material> FENCE = new HashSet<>(Arrays.asList(
-        Material.OAK_FENCE,
-        Material.ACACIA_FENCE,
-        Material.BIRCH_FENCE,
-        Material.CRIMSON_FENCE,
-        Material.DARK_OAK_FENCE,
-        Material.JUNGLE_FENCE,
-        Material.NETHER_BRICK_FENCE,
-        Material.SPRUCE_FENCE,
-        Material.WARPED_FENCE,
-        Material.MANGROVE_FENCE,
-        Material.COBBLESTONE_WALL,
-        Material.MOSSY_COBBLESTONE_WALL,
-        Material.MOSSY_STONE_BRICK_WALL,
-        Material.STONE_BRICK_WALL,
-        Material.PRISMARINE_WALL,
-        Material.ANDESITE_WALL,
-        Material.BLACKSTONE_WALL,
-        Material.POLISHED_BLACKSTONE_BRICK_WALL,
-        Material.POLISHED_BLACKSTONE_WALL,
-        Material.BRICK_WALL,
-        Material.GRANITE_WALL,
-        Material.DIORITE_WALL,
-        Material.SANDSTONE_WALL,
-        Material.RED_SANDSTONE_WALL,
-        Material.RED_NETHER_BRICK_WALL,
-        Material.NETHER_BRICK_WALL,
-        Material.END_STONE_BRICK_WALL,
-        Material.POLISHED_DEEPSLATE_WALL,
-        Material.COBBLED_DEEPSLATE_WALL,
-        Material.DEEPSLATE_BRICK_WALL,
-        Material.DEEPSLATE_TILE_WALL,
-        Material.MUD_BRICK_WALL
-    ));
+    public static final Set<Material> FENCE = new HashSet<>(concatTypes(new ArrayList<>(),
+    	Arrays.asList(Material.GLASS_PANE, Material.IRON_BARS), Arrays.asList(Fence.class, Wall.class)));
     
-    public static final Set<Material> GATES = new HashSet<>(Arrays.asList(
-    	Material.ACACIA_FENCE_GATE,
-    	Material.BIRCH_FENCE_GATE,
-    	Material.DARK_OAK_FENCE_GATE,
-    	Material.JUNGLE_FENCE_GATE,
-    	Material.OAK_FENCE_GATE,
-    	Material.SPRUCE_FENCE_GATE,
-    	Material.MANGROVE_FENCE_GATE,
-    	Material.CRIMSON_FENCE_GATE,
-        Material.WARPED_FENCE_GATE
-    ));
+    public static final Set<Material> GATES = new HashSet<>(concatTypes(Gate.class));
     
-    public static final Set<Material> OBSTACLES = new HashSet<>(Arrays.asList(
+    public static final Set<Material> OBSTACLES = new HashSet<>(concatTypes(Lists.newArrayList(
     	Material.IRON_BARS,
     	Material.CHAIN,
     	Material.END_ROD,
+    	Material.LIGHTNING_ROD,
     	Material.COBWEB,
+    	Material.SWEET_BERRY_BUSH,
     	Material.FLOWER_POT,
     	Material.GLASS_PANE
-    ));
+    ), Arrays.asList(), Arrays.asList(GlassPane.class), m -> m.name().startsWith("POTTED_")));
 
-    public static final Set<Material> IGNORED = new HashSet<>(Arrays.asList(
-    	Material.ACACIA_BUTTON,
-    	Material.BIRCH_BUTTON,
-    	Material.CRIMSON_BUTTON,
-    	Material.DARK_OAK_BUTTON,
-    	Material.JUNGLE_BUTTON,
-    	Material.MANGROVE_BUTTON,
-    	Material.OAK_BUTTON,
-    	Material.POLISHED_BLACKSTONE_BUTTON,
-    	Material.SPRUCE_BUTTON,
-    	Material.STONE_BUTTON,
-    	Material.WARPED_BUTTON,
-    	Material.TWISTING_VINES,
-    	Material.TWISTING_VINES_PLANT
-    ));
+    //Notice: We exclude blocks that cannot exist without a solid block below (such as rails or crops)
+    public static final Set<Material> NONSOLID = new HashSet<>(concatTypes(Lists.newArrayList(
+    	Material.COBWEB,
+    	Material.END_GATEWAY,
+    	Material.END_PORTAL,
+    	Material.NETHER_PORTAL,
+    	Material.CAVE_VINES_PLANT,
+    	Material.GLOW_LICHEN,
+    	Material.HANGING_ROOTS,
+    	Material.POWDER_SNOW,
+    	Material.SCULK_VEIN,
+    	Material.STRING,
+    	Material.TRIPWIRE_HOOK,
+    	Material.LADDER,
+    	Material.VINE,
+    	Material.SOUL_WALL_TORCH,
+    	Material.REDSTONE_WALL_TORCH,
+    	Material.WALL_TORCH,
+    	Material.WEEPING_VINES_PLANT,
+    	Material.WEEPING_VINES,
+    	Material.CAVE_VINES_PLANT,
+    	Material.CAVE_VINES
+    ), Arrays.asList(), Arrays.asList(Switch.class, CoralWallFan.class, WallSign.class), m -> m.name().endsWith("_WALL_BANNER")));
     
-    public static final Set<Material> LEAVES = new HashSet<>(Arrays.asList(
-        Material.BIRCH_LEAVES,
-        Material.DARK_OAK_LEAVES,
-        Material.JUNGLE_LEAVES,
-        Material.OAK_LEAVES,
-        Material.SPRUCE_LEAVES,
-        Material.FLOWERING_AZALEA_LEAVES,
-        Material.MANGROVE_LEAVES
-    ));
+    public static final Set<Material> LEAVES = new HashSet<>(concatTypes(Leaves.class));
+    
+    public static final Set<Material> INSTANT_BREAK = new HashSet<>(concatTypes(Lists.newArrayList(
+        Material.TALL_GRASS,
+        Material.GRASS,
+        Material.FERN,
+        Material.LARGE_FERN,
+        Material.KELP_PLANT,
+        Material.DEAD_BUSH,
+        Material.WHEAT_SEEDS,
+        Material.POTATOES,
+        Material.CARROTS,
+        Material.BEETROOT_SEEDS,
+        Material.PUMPKIN_STEM,
+        Material.MELON_STEM,
+        Material.SUGAR_CANE,
+        Material.SWEET_BERRY_BUSH,
+        Material.LILY_PAD,
+        Material.DANDELION,
+        Material.POPPY,
+        Material.BLUE_ORCHID,
+        Material.ALLIUM,
+        Material.AZURE_BLUET,
+        Material.RED_TULIP,
+        Material.ORANGE_TULIP,
+        Material.WHITE_TULIP,
+        Material.PINK_TULIP,
+        Material.OXEYE_DAISY,
+        Material.CORNFLOWER,
+        Material.LILY_OF_THE_VALLEY,
+        Material.WITHER_ROSE,
+        Material.SUNFLOWER,
+        Material.LILAC,
+        Material.ROSE_BUSH,
+        Material.PEONY,
+        Material.NETHER_WART,
+        Material.FLOWER_POT,
+        Material.AZALEA,
+        Material.FLOWERING_AZALEA,
+        Material.REPEATER,
+        Material.COMPARATOR,
+        Material.REDSTONE_WIRE,
+        Material.REDSTONE_TORCH,
+        Material.REDSTONE_WALL_TORCH,
+        Material.TORCH,
+        Material.WALL_TORCH,
+        Material.SOUL_TORCH,
+        Material.SOUL_WALL_TORCH,
+        Material.SCAFFOLDING,
+        Material.SLIME_BLOCK,
+        Material.HONEY_BLOCK,
+        Material.TNT,
+        Material.TRIPWIRE,
+        Material.TRIPWIRE_HOOK,
+        Material.SPORE_BLOSSOM,
+        Material.RED_MUSHROOM,
+        Material.BROWN_MUSHROOM,
+        Material.CRIMSON_FUNGUS,
+        Material.WARPED_FUNGUS,
+        Material.CRIMSON_ROOTS,
+        Material.WARPED_ROOTS,
+        Material.HANGING_ROOTS,
+        Material.WEEPING_VINES,
+        Material.WEEPING_VINES_PLANT,
+        Material.TWISTING_VINES,
+        Material.TWISTING_VINES_PLANT,
+        Material.CAVE_VINES,
+        Material.CAVE_VINES_PLANT,
+        Material.SEA_PICKLE
+    ), Arrays.asList(), Arrays.asList(Sapling.class, CoralWallFan.class), m -> m.name().endsWith("_CORAL_FAN") || m.name().endsWith("_CORAL")
+    	|| m.name().startsWith("POTTED_")));
+    
+    private static List<Material> concatTypes(Class<?>... types) {
+    	return concatTypes(new ArrayList<>(), Arrays.asList(types));
+    }
+    
+    private static List<Material> concatTypes(List<Material> materials, List<Class<?>> types) {
+    	return concatTypes(materials, Arrays.asList(), types);
+    }
+    
+    private static List<Material> concatTypes(List<Material> materials, List<Material> exclusions, List<Class<?>> types) {
+    	return concatTypes(materials, exclusions, types, m -> false);
+    }
+    
+    private static List<Material> concatTypes(List<Material> materials, List<Material> exclusions, List<Class<?>> types, Predicate<Material> otherFilter) {
+    	materials.addAll(Stream.of(Material.values()).filter(m -> (types.contains(m.data) || otherFilter.test(m))
+    		&& !exclusions.contains(m) && !m.isLegacy()).toList());
+    	return materials;
+    }
 }

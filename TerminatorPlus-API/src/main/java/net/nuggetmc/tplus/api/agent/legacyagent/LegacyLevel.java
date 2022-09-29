@@ -9,6 +9,10 @@ public enum LegacyLevel {
     BELOW,
     AT,
     AT_D,
+    NORTH_U,
+    SOUTH_U,
+    EAST_U,
+    WEST_U,
     NORTH,
     SOUTH,
     EAST,
@@ -16,20 +20,20 @@ public enum LegacyLevel {
     NORTH_D,
     SOUTH_D,
     EAST_D,
-    WEST_D;
+    WEST_D,
+    NORTH_D_2,
+    SOUTH_D_2,
+    EAST_D_2,
+    WEST_D_2;
 
-    private static final Set<LegacyLevel> SIDE = new HashSet<>(Arrays.asList(
-        NORTH,
-        SOUTH,
-        EAST,
-        WEST,
-        NORTH_D,
-        SOUTH_D,
-        EAST_D,
-        WEST_D
+    private static final Set<LegacyLevel> NON_SIDE = new HashSet<>(Arrays.asList(
+        ABOVE,
+        BELOW,
+        AT,
+        AT_D
     ));
 
     public boolean isSide() {
-        return SIDE.contains(this);
+        return !NON_SIDE.contains(this);
     }
 }

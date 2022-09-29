@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -50,6 +51,8 @@ public interface Terminator {
     boolean isBotInWater();
 
     boolean isBotOnGround();
+    
+    Block getStandingOn();
 
     void setBotPitch(float pitch);
 

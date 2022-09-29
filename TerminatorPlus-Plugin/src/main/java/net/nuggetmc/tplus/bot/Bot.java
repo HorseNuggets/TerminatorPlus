@@ -526,7 +526,12 @@ public class Bot extends ServerPlayer implements Terminator {
             return false;
         }
 
-        World world = getBukkitEntity().getWorld();
+        return getStandingOn() != null;
+    }
+    
+    @Override
+    public Block getStandingOn() {
+    	World world = getBukkitEntity().getWorld();
         AABB box = getBoundingBox();
 
         double[] xVals = new double[]{
@@ -547,7 +552,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 Block block = world.getBlockAt(loc);
 
                 if ((block.getType().isSolid() || canStandOn(block.getType())) && BotUtils.solidAt(playerBox, block.getBoundingBox())) {
-                    return true;
+                    return block;
                 }
             }
         }
@@ -563,29 +568,29 @@ public class Bot extends ServerPlayer implements Terminator {
                 		
                 if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
                 		&& block.getType().isSolid() && BotUtils.solidAt(playerBox, modifiedBox)) {
-                   return true;
+                   return block;
                 }
             }
         }
 
-        return false;
+        return null;
     }
 
     /**
      * Checks for non-solid blocks that can hold an entity up.
      */
-    private boolean canStandOn(Material mat)
-    {
+    private boolean canStandOn(Material mat) {
     	if(mat == Material.END_ROD || mat == Material.FLOWER_POT || mat == Material.REPEATER || mat == Material.COMPARATOR
     		|| mat == Material.SNOW || mat == Material.LADDER || mat == Material.VINE)
     		return true;
     	
-    	if(mat == Material.BLACK_CARPET || mat == Material.BLUE_CARPET || mat == Material.BROWN_CARPET || mat == Material.CYAN_CARPET
-    		|| mat == Material.GRAY_CARPET || mat == Material.GREEN_CARPET || mat == Material.LIGHT_BLUE_CARPET
-    		|| mat == Material.LIGHT_GRAY_CARPET || mat == Material.LIME_CARPET || mat == Material.MAGENTA_CARPET
-    		|| mat == Material.MOSS_CARPET || mat == Material.ORANGE_CARPET || mat == Material.PINK_CARPET
-    		|| mat == Material.PURPLE_CARPET || mat == Material.RED_CARPET || mat == Material.WHITE_CARPET
-    		|| mat == Material.YELLOW_CARPET)
+    	if(mat.name().endsWith("_CARPET"))
+    		return true;
+    	
+    	if(mat.name().startsWith("POTTED_"))
+    		return true;
+    	
+    	if((mat.name().endsWith("_HEAD") || mat.name().endsWith("_SKULL")) && !mat.name().equals("PISTON_HEAD"))
     		return true;
     	
     	if(mat.data == Candle.class)
