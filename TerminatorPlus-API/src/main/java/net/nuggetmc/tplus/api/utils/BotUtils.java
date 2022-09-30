@@ -1,7 +1,10 @@
 package net.nuggetmc.tplus.api.utils;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.NumberConversions;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,7 +16,9 @@ public class BotUtils {
         Material.WATER,
         Material.LAVA,
         Material.TWISTING_VINES,
-        Material.VINE
+        Material.VINE,
+        Material.LADDER,
+        Material.COBWEB
     ));
 
     public static UUID randomSteveUUID() {
@@ -28,5 +33,9 @@ public class BotUtils {
     
     public static boolean solidAt(BoundingBox playerBox, BoundingBox blockBox) {
     	return playerBox.overlaps(blockBox);
+    }
+    
+    public static double getHorizSqDist(Location blockLoc, Location pLoc) {
+    	return NumberConversions.square(blockLoc.getX() + 0.5 - pLoc.getX()) + NumberConversions.square(blockLoc.getZ() + 0.5 - pLoc.getZ());
     }
 }

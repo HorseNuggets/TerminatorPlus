@@ -51,6 +51,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -74,6 +75,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private byte groundTicks;
     private byte jumpTicks;
     private byte noFallTicks;
+    private List<Block> standingOn = new ArrayList<>();
     private boolean ignoredByMobs = true;
     private UUID targetPlayer = null;
     private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
@@ -392,7 +394,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
     private void fallDamageCheck() { // TODO create a better bot event system in the future, also have bot.getAgent()
         if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) {
-            BotFallDamageEvent event = new BotFallDamageEvent(this);
+            BotFallDamageEvent event = new BotFallDamageEvent(this, new ArrayList<>(getStandingOn()));
 
             plugin.getManager().getAgent().onFallDamage(event);
 
@@ -526,11 +528,10 @@ public class Bot extends ServerPlayer implements Terminator {
             return false;
         }
 
-        return getStandingOn() != null;
+        return checkStandingOn();
     }
     
-    @Override
-    public Block getStandingOn() {
+    public boolean checkStandingOn() {
     	World world = getBukkitEntity().getWorld();
         AABB box = getBoundingBox();
 
@@ -545,6 +546,8 @@ public class Bot extends ServerPlayer implements Terminator {
         };
         BoundingBox playerBox = new BoundingBox(box.minX, position().y - 0.01, box.minZ,
         	box.maxX, position().y + getBbHeight(), box.maxZ);
+        List<Block> standingOn = new ArrayList<>();
+        List<Location> locations = new ArrayList<>();
 
         for (double x : xVals) {
             for (double z : zVals) {
@@ -552,7 +555,10 @@ public class Bot extends ServerPlayer implements Terminator {
                 Block block = world.getBlockAt(loc);
 
                 if ((block.getType().isSolid() || canStandOn(block.getType())) && BotUtils.solidAt(playerBox, block.getBoundingBox())) {
-                    return block;
+                	if (!locations.contains(block.getLocation())) {
+                		standingOn.add(block);
+                		locations.add(block.getLocation());
+                	}
                 }
             }
         }
@@ -568,12 +574,25 @@ public class Bot extends ServerPlayer implements Terminator {
                 		
                 if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
                 		&& block.getType().isSolid() && BotUtils.solidAt(playerBox, modifiedBox)) {
-                   return block;
+                	if (!locations.contains(block.getLocation())) {
+                		standingOn.add(block);
+                		locations.add(block.getLocation());
+                	}
                 }
             }
         }
 
-        return null;
+        //Closest block comes first
+        Collections.sort(standingOn, (a, b) ->
+        	Double.compare(BotUtils.getHorizSqDist(a.getLocation(), getLocation()), BotUtils.getHorizSqDist(b.getLocation(), getLocation())));
+        
+        this.standingOn = standingOn;
+        return !standingOn.isEmpty();
+    }
+    
+    @Override
+    public List<Block> getStandingOn() {
+    	return standingOn;
     }
 
     /**

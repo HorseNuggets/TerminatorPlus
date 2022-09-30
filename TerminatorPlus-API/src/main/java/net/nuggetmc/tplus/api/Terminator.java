@@ -12,6 +12,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface Terminator {
@@ -52,7 +53,7 @@ public interface Terminator {
 
     boolean isBotOnGround();
     
-    Block getStandingOn();
+    List<Block> getStandingOn();
 
     void setBotPitch(float pitch);
 

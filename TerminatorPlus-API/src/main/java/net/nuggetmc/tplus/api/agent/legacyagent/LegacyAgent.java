@@ -11,6 +11,7 @@ import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.api.event.BotDeathEvent;
 import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
 import net.nuggetmc.tplus.api.event.TerminatorLocateTargetEvent;
+import net.nuggetmc.tplus.api.utils.BotUtils;
 import net.nuggetmc.tplus.api.utils.MathUtils;
 import net.nuggetmc.tplus.api.utils.PlayerUtils;
 import org.bukkit.*;
@@ -444,6 +445,71 @@ public class LegacyAgent extends Agent {
         BlockFace dir = player.getFacing();
         LegacyLevel level = null;
         Block get = null;
+        
+        BoundingBox box = player.getBoundingBox();
+        double[] xVals = new double[]{
+                box.getMinX(),
+                box.getMaxX() - 0.01
+        };
+
+        double[] zVals = new double[]{
+                box.getMinZ(),
+                box.getMaxZ() - 0.01
+        };
+        List<Location> locStanding = new ArrayList<>();
+    	for (double x : xVals) {
+            for (double z : zVals) {
+            	Location loc = new Location(player.getWorld(), Math.floor(x), npc.getLocation().getBlockY(), Math.floor(z));
+            	if (!locStanding.contains(loc))
+            		locStanding.add(loc);
+            }
+    	}
+    	Collections.sort(locStanding, (a, b) ->
+    		Double.compare(BotUtils.getHorizSqDist(a, player.getLocation()), BotUtils.getHorizSqDist(b, player.getLocation())));
+    	
+        //Break potential obstructing walls
+    	for (Location loc : locStanding) {
+    		boolean up = false;
+    		get = loc.getBlock();
+    		if (!LegacyMats.FENCE.contains(get.getType())) {
+    			up = true;
+    			get = loc.add(0, 1, 0).getBlock();
+    			if (!LegacyMats.FENCE.contains(get.getType())) {
+    				get = null;
+    			}
+    		}
+    		
+    		if (get != null) {
+    			int distanceX = get.getLocation().getBlockX() - player.getLocation().getBlockX();
+    			int distanceZ = get.getLocation().getBlockZ() - player.getLocation().getBlockZ();
+    			if (distanceX == 1 && distanceZ == 0) {
+    				if (dir == BlockFace.NORTH || dir == BlockFace.SOUTH) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.EAST : LegacyLevel.EAST_D;
+    				}
+    			} else if (distanceX == -1 && distanceZ == 0) {
+    				if (dir == BlockFace.NORTH || dir == BlockFace.SOUTH) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.WEST : LegacyLevel.WEST_D;
+    				}
+    			} else if (distanceX == 0 && distanceZ == 1) {
+    				if (dir == BlockFace.EAST || dir == BlockFace.WEST) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.SOUTH : LegacyLevel.SOUTH_D;
+    				}
+    			} else if (distanceX == 0 && distanceZ == -1) {
+    				if (dir == BlockFace.EAST || dir == BlockFace.WEST) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.NORTH : LegacyLevel.NORTH_D;
+    				}
+    			}
+    			
+    	        if (level != null) {
+    	            preBreak(npc, player, get, level);
+        	        return level;
+    	        }
+    		}
+    	}
 
         switch (dir) {
             case NORTH:
@@ -457,7 +523,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.NORTH_D_2;
                 } else {
-                	Block standing = npc.getStandingOn();
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -500,7 +566,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.SOUTH_D_2;
                 } else {
-                	Block standing = npc.getStandingOn();
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -543,7 +609,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.EAST_D_2;
                 } else {
-                	Block standing = npc.getStandingOn();
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -586,7 +652,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.WEST_D_2;
                 } else {
-                	Block standing = npc.getStandingOn();
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -782,7 +848,7 @@ public class LegacyAgent extends Agent {
             return false;
 
         if (c && npc.getLocation().getBlockY() > loc.getBlockY() + 1) {
-            Block block = npc.getStandingOn();
+            Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
             if (block == null)
             	return false;
             npc.look(BlockFace.DOWN);
@@ -798,7 +864,7 @@ public class LegacyAgent extends Agent {
             b.setY(0);
 
             if (npc.getLocation().getBlockY() > loc.getBlockY() + 10 && a.distance(b) < 10) {
-                Block block = npc.getStandingOn();
+                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
                 if (block == null)
                 	return false;
                 npc.look(BlockFace.DOWN);
@@ -938,7 +1004,7 @@ public class LegacyAgent extends Agent {
                             cur = player.getLocation().add(0, 2, 0).getBlock();
                             break;
                         case BELOW:
-                            cur = bot.getStandingOn();
+                            cur = bot.getStandingOn().isEmpty() ? null : bot.getStandingOn().get(0);
                             break;
                         case NORTH_U:
                             cur = player.getLocation().add(0, 2, -1).getBlock();
