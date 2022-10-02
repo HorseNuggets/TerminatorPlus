@@ -48,6 +48,10 @@ public class LegacyAgent extends Agent {
     private final Set<Terminator> fallDamageCooldown = new HashSet<>();
     public boolean offsets = true;
     private EnumTargetGoal goal;
+    private BoundingBox region;
+    private double regionWeightX;
+    private double regionWeightY;
+    private double regionWeightZ;
 
     public LegacyAgent(BotManager manager, Plugin plugin) {
         super(manager, plugin);
@@ -1346,6 +1350,33 @@ public class LegacyAgent extends Agent {
 
         bot.attack(target);
     }
+    
+    public void setRegion(BoundingBox region, double regionWeightX, double regionWeightY, double regionWeightZ) {
+        this.region = region;
+        this.regionWeightX = regionWeightX;
+        this.regionWeightY = regionWeightY;
+        this.regionWeightZ = regionWeightZ;
+    }
+    
+    public BoundingBox getRegion() {
+    	return region;
+    }
+    
+    public double getRegionWeightX() {
+    	return regionWeightX;
+    }
+    
+    public double getRegionWeightY() {
+    	return regionWeightY;
+    }
+    
+    public double getRegionWeightZ() {
+    	return regionWeightZ;
+    }
+    
+    public EnumTargetGoal getTargetType() {
+        return goal;
+    }
 
     public void setTargetType(EnumTargetGoal goal) {
         this.goal = goal;
@@ -1446,7 +1477,7 @@ public class LegacyAgent extends Agent {
             case PLAYER: { //Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found.
                 if (bot.getTargetPlayer() != null) {
                     Player player = Bukkit.getPlayer(bot.getTargetPlayer());
-                    if (player != null) {
+                    if (player != null && validateCloserEntity(player, loc, null)) {
                         return player;
                     }
                 }
@@ -1460,7 +1491,29 @@ public class LegacyAgent extends Agent {
     }
 
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
-        return loc.getWorld() == entity.getWorld() && !entity.isDead() && (result == null || loc.distance(entity.getLocation()) < loc.distance(result.getLocation()));
+    	double regionDistEntity = getWeightedRegionDist(entity.getLocation());
+    	if (regionDistEntity == Double.MAX_VALUE)
+    		return false;
+    	double regionDistResult = result == null ? 0 : getWeightedRegionDist(result.getLocation());
+    	return loc.getWorld() == entity.getWorld() && !entity.isDead()
+    		&& (result == null || (loc.distance(entity.getLocation()) + regionDistEntity) < (loc.distance(result.getLocation())) + regionDistResult);
+    }
+    
+    private double getWeightedRegionDist(Location loc) {
+    	if (region == null)
+    		return 0;
+    	double diffX = Math.min(0, Math.abs(region.getCenterX() - loc.getX()) - region.getWidthX() * 0.5);
+		double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
+		double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
+		if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0) {
+			if (diffX > 0 || diffY > 0 || diffZ > 0)
+				return Double.MAX_VALUE;
+		} else {
+			diffX *= regionWeightX;
+			diffY *= regionWeightY;
+			diffZ *= regionWeightZ;
+		}
+		return diffX * diffX + diffY * diffY + diffZ * diffZ;
     }
     
     @Override

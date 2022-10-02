@@ -600,7 +600,8 @@ public class Bot extends ServerPlayer implements Terminator {
      */
     private boolean canStandOn(Material mat) {
     	if(mat == Material.END_ROD || mat == Material.FLOWER_POT || mat == Material.REPEATER || mat == Material.COMPARATOR
-    		|| mat == Material.SNOW || mat == Material.LADDER || mat == Material.VINE)
+    		|| mat == Material.SNOW || mat == Material.LADDER || mat == Material.VINE || mat == Material.SCAFFOLDING
+    		|| mat == Material.AZALEA || mat == Material.FLOWERING_AZALEA)
     		return true;
     	
     	if(mat.name().endsWith("_CARPET"))
