@@ -27,6 +27,8 @@ import org.bukkit.util.Vector;
 
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class BotCommand extends CommandInstance {
 
@@ -190,7 +192,7 @@ public class BotCommand extends CommandInstance {
 
         scheduler.runTaskAsynchronously(plugin, () -> {
             try {
-                Terminator bot = manager.getFirst(name);
+                Terminator bot = manager.getFirst(name, (sender instanceof Player pl) ? pl.getLocation() : null);
 
                 if (bot == null) {
                     sender.sendMessage("Could not find bot " + ChatColor.GREEN + name + ChatColor.RESET + "!");
@@ -230,6 +232,23 @@ public class BotCommand extends CommandInstance {
     @Autofill
     public List<String> infoAutofill(CommandSender sender, String[] args) {
         return args.length == 2 ? manager.fetchNames() : null;
+    }
+    
+    @Command(
+    		name = "count",
+    		desc = "Counts the amount of bots on screen by name."
+    )
+    public void count(CommandSender sender) {
+    	List<String> names = manager.fetchNames();
+    	Map<String, Integer> freqMap = names.stream().collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
+    	List<Entry<String, Integer>> entries = freqMap.entrySet().stream()
+    		.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).collect(Collectors.toList());
+    	
+    	sender.sendMessage(ChatUtils.LINE);
+    	entries.forEach(en -> sender.sendMessage(ChatColor.GREEN + en.getKey()
+    		+ ChatColor.RESET + " - " + ChatColor.BLUE + en.getValue().toString() + ChatColor.RESET));
+    	sender.sendMessage("Total bots: " + ChatColor.BLUE + freqMap.values().stream().reduce(0, Integer::sum) + ChatColor.RESET);
+    	sender.sendMessage(ChatUtils.LINE);
     }
 
     @Command(

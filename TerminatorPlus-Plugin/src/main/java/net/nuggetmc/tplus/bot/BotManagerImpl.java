@@ -56,7 +56,17 @@ public class BotManagerImpl implements BotManager, Listener {
     }
 
     @Override
-    public Terminator getFirst(String name) {
+    public Terminator getFirst(String name, Location target) {
+    	if (target != null) {
+    		Terminator closest = null;
+    		for (Terminator bot : bots) {
+                if (name.equals(bot.getBotName()) && (closest == null
+                	|| target.distanceSquared(bot.getLocation()) < target.distanceSquared(closest.getLocation()))) {
+                	closest = bot;
+                }
+    		}
+    		return closest;
+    	}
         for (Terminator bot : bots) {
             if (name.equals(bot.getBotName())) {
                 return bot;

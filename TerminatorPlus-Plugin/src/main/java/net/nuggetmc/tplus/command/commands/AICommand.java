@@ -121,7 +121,7 @@ public class AICommand extends CommandInstance implements AIManager {
 
         scheduler.runTaskAsynchronously(plugin, () -> {
             try {
-                Terminator bot = manager.getFirst(name);
+                Terminator bot = manager.getFirst(name, (sender instanceof Player pl) ? pl.getLocation() : null);
 
                 if (bot == null) {
                     sender.sendMessage("Could not find bot " + ChatColor.GREEN + name + ChatColor.RESET + "!");

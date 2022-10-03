@@ -24,6 +24,7 @@ public enum EnumTargetGoal {
             this.put("nearestbot", NEAREST_BOT);
             this.put("nearestbotdiffer", NEAREST_BOT_DIFFER);
             this.put("nearestbotdifferalpha", NEAREST_BOT_DIFFER_ALPHA);
+            this.put("player", PLAYER);
         }
     };
 

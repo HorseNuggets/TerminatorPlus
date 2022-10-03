@@ -16,7 +16,7 @@ public interface BotManager {
 
     void add(Terminator bot);
 
-    Terminator getFirst(String name);
+    Terminator getFirst(String name, Location target);
 
     List<String> fetchNames();
 
