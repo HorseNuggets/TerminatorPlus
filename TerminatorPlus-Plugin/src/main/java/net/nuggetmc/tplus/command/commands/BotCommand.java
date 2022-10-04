@@ -291,8 +291,8 @@ public class BotCommand extends CommandInstance {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage(ChatColor.GOLD + "Bot Settings" + extra);
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all future bots spawned to be targeted by hostile mobs.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for the bots to focus on if the goal is PLAYER.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "region" + ChatUtils.BULLET_FORMATTED + "Sets a region for the bots to prioritize entities inside.");
             sender.sendMessage(ChatUtils.LINE);
             return;
@@ -325,7 +325,7 @@ public class BotCommand extends CommandInstance {
         		return;
         	}
         	manager.setMobTarget(Boolean.parseBoolean(arg2));
-        	sender.sendMessage("Mob targeting is now " + (manager.isMobTarget() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ". (for all future bots)");
+        	sender.sendMessage("Mob targeting is now " + (manager.isMobTarget() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ".");
         } else if (arg1.equalsIgnoreCase("playertarget")) {
         	if (args.size() < 2) {
                 sender.sendMessage(ChatColor.RED + "You must specify a player name!");

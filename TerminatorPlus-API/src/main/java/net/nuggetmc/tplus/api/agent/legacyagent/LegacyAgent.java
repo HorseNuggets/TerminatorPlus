@@ -929,12 +929,20 @@ public class LegacyAgent extends Agent {
     }
     
     private boolean checkObstacles(Terminator bot, Block block, LivingEntity player) {
-        if (LegacyMats.OBSTACLES.contains(block.getType())) {
+        if (LegacyMats.OBSTACLES.contains(block.getType()) || isDoorObstacle(block)) {
             preBreak(bot, player, block, LegacyLevel.AT_D);
             return true;
         }
 
         return false;
+    }
+    
+    private boolean isDoorObstacle(Block block) {
+    	if (block.getType().data == Door.class)
+    		return true;
+    	if (block.getType().data == TrapDoor.class && ((TrapDoor)block.getBlockData()).isOpen())
+    		return true;
+    	return false;
     }
 
     private boolean checkAt(Terminator bot, Block block, LivingEntity player) {
@@ -1503,12 +1511,12 @@ public class LegacyAgent extends Agent {
     	if (region == null)
     		return 0;
     	double diffX = Math.max(0, Math.abs(region.getCenterX() - loc.getX()) - region.getWidthX() * 0.5);
-		double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
-		double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
-		if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0)
-			if (diffX > 0 || diffY > 0 || diffZ > 0)
-				return Double.MAX_VALUE;
-		return diffX * diffX * regionWeightX + diffY * diffY * regionWeightY + diffZ * diffZ * regionWeightZ;
+    	double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
+    	double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
+    	if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0)
+    		if (diffX > 0 || diffY > 0 || diffZ > 0)
+    			return Double.MAX_VALUE;
+    	return diffX * diffX * regionWeightX + diffY * diffY * regionWeightY + diffZ * diffZ * regionWeightZ;
     }
     
     @Override

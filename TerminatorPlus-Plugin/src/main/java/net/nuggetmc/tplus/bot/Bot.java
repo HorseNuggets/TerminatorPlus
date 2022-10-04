@@ -921,12 +921,4 @@ public class Bot extends ServerPlayer implements Terminator {
         this.yRotO = this.getYRot();
         this.xRotO = this.getXRot();
     }
-
-    public boolean isIgnoredByMobs() {
-        return ignoredByMobs;
-    }
-
-    public void setIgnoredByMobs(boolean ignoredByMobs) {
-        this.ignoredByMobs = ignoredByMobs;
-    }
 }

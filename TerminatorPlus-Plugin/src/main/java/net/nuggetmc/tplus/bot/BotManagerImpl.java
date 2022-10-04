@@ -60,10 +60,10 @@ public class BotManagerImpl implements BotManager, Listener {
     	if (target != null) {
     		Terminator closest = null;
     		for (Terminator bot : bots) {
-                if (name.equals(bot.getBotName()) && (closest == null
-                	|| target.distanceSquared(bot.getLocation()) < target.distanceSquared(closest.getLocation()))) {
-                	closest = bot;
-                }
+    			if (name.equals(bot.getBotName()) && (closest == null
+    				|| target.distanceSquared(bot.getLocation()) < target.distanceSquared(closest.getLocation()))) {
+    				closest = bot;
+    			}
     		}
     		return closest;
     	}
@@ -149,7 +149,6 @@ public class BotManagerImpl implements BotManager, Listener {
             } else if (i > 1) {
                 bot.setVelocity(randomVelocity().multiply(f));
             }
-            bot.setIgnoredByMobs(!mobTarget);
 
             bots.add(bot);
             i++;
@@ -232,8 +231,10 @@ public class BotManagerImpl implements BotManager, Listener {
 
     @EventHandler
     public void onMobTarget(EntityTargetLivingEntityEvent event) {
-        Bot bot = (Bot) getBot(event.getEntity().getUniqueId());
-        if (bot != null && bot.isIgnoredByMobs()) {
+    	if (mobTarget || event.getTarget() == null)
+    		return;
+        Bot bot = (Bot) getBot(event.getTarget().getUniqueId());
+        if (bot != null) {
             event.setCancelled(true);
         }
     }
