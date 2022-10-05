@@ -16,8 +16,8 @@ public class BotUtils {
         Material.WATER,
         Material.LAVA,
         Material.TWISTING_VINES,
-        Material.VINE,
-        Material.LADDER,
+        Material.SWEET_BERRY_BUSH,
+        Material.POWDER_SNOW,
         Material.COBWEB
     ));
 
@@ -31,7 +31,7 @@ public class BotUtils {
         return randomSteveUUID();
     }
     
-    public static boolean solidAt(BoundingBox playerBox, BoundingBox blockBox) {
+    public static boolean overlaps(BoundingBox playerBox, BoundingBox blockBox) {
     	return playerBox.overlaps(blockBox);
     }
     

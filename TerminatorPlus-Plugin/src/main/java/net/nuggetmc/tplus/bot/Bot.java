@@ -34,6 +34,7 @@ import net.nuggetmc.tplus.api.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.Candle;
 import org.bukkit.craftbukkit.v1_19_R1.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
@@ -76,7 +77,6 @@ public class Bot extends ServerPlayer implements Terminator {
     private byte jumpTicks;
     private byte noFallTicks;
     private List<Block> standingOn = new ArrayList<>();
-    private boolean ignoredByMobs = true;
     private UUID targetPlayer = null;
     private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
         super(minecraftServer, worldServer, profile, null);
@@ -393,7 +393,7 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     private void fallDamageCheck() { // TODO create a better bot event system in the future, also have bot.getAgent()
-        if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) {
+        if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !isFallBlocked()) {
             BotFallDamageEvent event = new BotFallDamageEvent(this, new ArrayList<>(getStandingOn()));
 
             plugin.getManager().getAgent().onFallDamage(event);
@@ -402,6 +402,33 @@ public class Bot extends ServerPlayer implements Terminator {
                 hurt(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
             }
         }
+    }
+    
+    private boolean isFallBlocked() {
+        AABB box = getBoundingBox();
+        double[] xVals = new double[]{
+                box.minX,
+                box.maxX - 0.01
+        };
+
+        double[] zVals = new double[]{
+                box.minZ,
+                box.maxZ - 0.01
+        };
+        BoundingBox playerBox = new BoundingBox(box.minX, position().y - 0.01, box.minZ,
+        	box.maxX, position().y + getBbHeight(), box.maxZ);
+    	for (double x : xVals) {
+            for (double z : zVals) {
+            	Location loc = new Location(getBukkitEntity().getWorld(), Math.floor(x), getLocation().getY(), Math.floor(z));
+            	Block block = loc.getBlock();
+            	if (block.getBlockData() instanceof Waterlogged wl && wl.isWaterlogged())
+            		return true;
+            	if (BotUtils.NO_FALL.contains(loc.getBlock().getType()) && (BotUtils.overlaps(playerBox, loc.getBlock().getBoundingBox())
+            		|| loc.getBlock().getType() == Material.WATER || loc.getBlock().getType() == Material.LAVA))
+            		return true;
+            }
+    	}
+    	return false;
     }
 
     @Override
@@ -554,7 +581,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 Location loc = new Location(world, x, position().y - 0.01, z);
                 Block block = world.getBlockAt(loc);
 
-                if ((block.getType().isSolid() || canStandOn(block.getType())) && BotUtils.solidAt(playerBox, block.getBoundingBox())) {
+                if ((block.getType().isSolid() || canStandOn(block.getType())) && BotUtils.overlaps(playerBox, block.getBoundingBox())) {
                 	if (!locations.contains(block.getLocation())) {
                 		standingOn.add(block);
                 		locations.add(block.getLocation());
@@ -573,7 +600,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 		blockBox.getMinY() + 1.5, blockBox.getMaxZ());
                 		
                 if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
-                		&& block.getType().isSolid() && BotUtils.solidAt(playerBox, modifiedBox)) {
+                		&& block.getType().isSolid() && BotUtils.overlaps(playerBox, modifiedBox)) {
                 	if (!locations.contains(block.getLocation())) {
                 		standingOn.add(block);
                 		locations.add(block.getLocation());
@@ -601,7 +628,7 @@ public class Bot extends ServerPlayer implements Terminator {
     private boolean canStandOn(Material mat) {
     	if(mat == Material.END_ROD || mat == Material.FLOWER_POT || mat == Material.REPEATER || mat == Material.COMPARATOR
     		|| mat == Material.SNOW || mat == Material.LADDER || mat == Material.VINE || mat == Material.SCAFFOLDING
-    		|| mat == Material.AZALEA || mat == Material.FLOWERING_AZALEA)
+    		|| mat == Material.AZALEA || mat == Material.FLOWERING_AZALEA || mat == Material.BIG_DRIPLEAF)
     		return true;
     	
     	if(mat.name().endsWith("_CARPET"))
