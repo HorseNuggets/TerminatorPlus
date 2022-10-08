@@ -16,9 +16,13 @@ public class BotUtils {
         Material.WATER,
         Material.LAVA,
         Material.TWISTING_VINES,
+        Material.TWISTING_VINES_PLANT,
+        Material.WEEPING_VINES,
+        Material.WEEPING_VINES_PLANT,
         Material.SWEET_BERRY_BUSH,
         Material.POWDER_SNOW,
-        Material.COBWEB
+        Material.COBWEB,
+        Material.VINE
     ));
 
     public static UUID randomSteveUUID() {

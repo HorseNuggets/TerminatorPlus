@@ -17,6 +17,7 @@ import net.nuggetmc.tplus.api.utils.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
@@ -337,26 +338,50 @@ public class LegacyAgent extends Agent {
         Material itemType;
         Material placeType;
         Sound sound;
+        Location groundLoc = null;
+        boolean nether = bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER;
+        double yPos = bot.getBukkitEntity().getLocation().getY();
 
-        if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+        if (nether) {
             itemType = Material.TWISTING_VINES;
             sound = Sound.BLOCK_WEEPING_VINES_PLACE;
             placeType = itemType;
+            
+            for (Block block : event.getStandingOn()) {
+            	if (LegacyMats.canPlaceTwistingVines(block)) {
+            		groundLoc = block.getLocation();
+            		break;
+            	}
+            }
         } else {
             itemType = Material.WATER_BUCKET;
             sound = Sound.ITEM_BUCKET_EMPTY;
             placeType = Material.WATER;
+            
+            for (Block block : event.getStandingOn()) {
+            	if (LegacyMats.canPlaceWater(block, yPos)) {
+            		groundLoc = block.getLocation();
+            		break;
+            	}
+            }
         }
-
-        Location loc = bot.getLocation();
-
-        if (!loc.clone().add(0, -1, 0).getBlock().getType().isSolid()) return;
+        
+        if (groundLoc == null) return;
+        
+        Location loc = !LegacyMats.shouldReplace(groundLoc.getBlock(), yPos, nether) ? groundLoc.add(0, 1, 0) : groundLoc;
+        boolean waterloggable = loc.getBlock().getBlockData() instanceof Waterlogged;
+        boolean waterlogged = waterloggable && ((Waterlogged)loc.getBlock().getBlockData()).isWaterlogged();
 
         event.setCancelled(true);
 
-        if (loc.getBlock().getType() != placeType) {
+        if (loc.getBlock().getType() != placeType && !waterlogged) {
             bot.punch();
-            loc.getBlock().setType(placeType);
+            if (waterloggable) {
+            	Waterlogged data = (Waterlogged)loc.getBlock().getBlockData();
+            	data.setWaterlogged(true);
+            	loc.getBlock().setBlockData(data);
+            } else
+            	loc.getBlock().setType(placeType);
             world.playSound(loc, sound, 1, 1);
 
             if (itemType == Material.WATER_BUCKET) {
@@ -365,11 +390,18 @@ public class LegacyAgent extends Agent {
                 scheduler.runTaskLater(plugin, () -> {
                     Block block = loc.getBlock();
 
-                    if (block.getType() == Material.WATER) {
+                    boolean waterloggedNow = block.getBlockData() instanceof Waterlogged
+                    	&& ((Waterlogged)block.getBlockData()).isWaterlogged();
+                    if (block.getType() == Material.WATER || waterloggedNow) {
                         bot.look(BlockFace.DOWN);
                         bot.setItem(new ItemStack(Material.WATER_BUCKET));
                         world.playSound(loc, Sound.ITEM_BUCKET_FILL, 1, 1);
-                        block.setType(Material.AIR);
+                        if (waterloggedNow) {
+                        	Waterlogged data = (Waterlogged)loc.getBlock().getBlockData();
+                        	data.setWaterlogged(false);
+                        	loc.getBlock().setBlockData(data);
+                        } else
+                        	block.setType(Material.AIR);
                     }
                 }, 5);
             }

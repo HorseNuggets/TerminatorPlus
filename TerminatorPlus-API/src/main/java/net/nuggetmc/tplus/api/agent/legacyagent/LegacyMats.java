@@ -1,8 +1,12 @@
 package net.nuggetmc.tplus.api.agent.legacyagent;
 
+import org.bukkit.Axis;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Bisected;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.*;
-
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -286,4 +290,179 @@ public class LegacyMats {
     		&& !exclusions.contains(m) && !m.isLegacy()).toList());
     	return materials;
     }
+    
+    public static boolean canPlaceWater(Block block, double entityYPos) {
+    	if (block.getType().isSolid()) {
+    		if (block.getType() == Material.CHAIN && ((Chain)block.getBlockData()).getAxis() == Axis.Y
+    			&& !((Chain)block.getBlockData()).isWaterlogged())
+    			return false;
+    		if ((block.getType().data == Leaves.class || block.getType() == Material.MANGROVE_ROOTS
+    			|| block.getType() == Material.IRON_BARS || block.getType().name().endsWith("GLASS_PANE"))
+    			&& !((Waterlogged)block.getBlockData()).isWaterlogged())
+    			return false;
+    		if (block.getType().data == Slab.class && ((Slab)block.getBlockData()).getType() == Slab.Type.TOP
+    			&& !((Slab)block.getBlockData()).isWaterlogged())
+    			return false;
+    		if (block.getType().data == Stairs.class && ((Stairs)block.getBlockData()).getHalf() == Bisected.Half.TOP
+    			&& !((Stairs)block.getBlockData()).isWaterlogged())
+    			return false;
+    		if (block.getType().data == Stairs.class && ((Stairs)block.getBlockData()).getHalf() == Bisected.Half.BOTTOM
+    			&& !((Stairs)block.getBlockData()).isWaterlogged() && (int)entityYPos != block.getLocation().getBlockY())
+    			return false;
+    		if ((block.getType().data == Fence.class || block.getType().data == Wall.class)
+    			&& !((Waterlogged)block.getBlockData()).isWaterlogged())
+    			return false;
+    		if (block.getType() == Material.LIGHTNING_ROD && !((LightningRod)block.getBlockData()).isWaterlogged()
+    			&& (((LightningRod)block.getBlockData()).getFacing() == BlockFace.UP || ((LightningRod)block.getBlockData()).getFacing() == BlockFace.DOWN))
+    			return false;
+    		return true;
+    	} else {
+    		if (block.getType().name().endsWith("_CARPET"))
+        		return true;
+    		if (block.getType().data == Candle.class)
+    			return true;
+    		if (block.getType().name().startsWith("POTTED_"))
+    			return true;
+        	if ((block.getType().name().endsWith("_HEAD") || block.getType().name().endsWith("_SKULL"))
+        		&& !block.getType().name().equals("PISTON_HEAD"))
+        		return true;
+    		switch (block.getType()) {
+    			case SNOW:
+    			case AZALEA:
+    			case FLOWERING_AZALEA:
+    			case CHORUS_FLOWER:
+    			case CHORUS_PLANT:
+    			case COCOA:
+    			case LILY_PAD:
+    			case SEA_PICKLE:
+    			case END_ROD:
+    			case FLOWER_POT:
+    			case SCAFFOLDING:
+    				return true;
+				default:
+					break;
+    		}
+    	}
+    	return false;
+    }
+    
+    public static boolean canPlaceTwistingVines(Block block) {
+    	if (block.getType().isSolid()) {
+    		if (block.getType().data == Leaves.class)
+    			return false;
+    		if (block.getType().name().endsWith("_CORAL_FAN") || block.getType().name().endsWith("_CORAL")
+    			|| block.getType().name().endsWith("_CORAL_WALL_FAN"))
+    			return false;
+    		if (block.getType().name().endsWith("GLASS_PANE"))
+    			return false;
+    		if (block.getType().data == Slab.class && ((Slab)block.getBlockData()).getType() == Slab.Type.BOTTOM)
+    			return false;
+    		if (block.getType().data == Stairs.class && ((Stairs)block.getBlockData()).getHalf() == Bisected.Half.BOTTOM)
+    			return false;
+    		if (block.getType().data == Fence.class || block.getType().data == Wall.class)
+    			return false;
+    		if (block.getType().name().endsWith("_BANNER"))
+    			return false;
+    		if (block.getType().name().endsWith("_WALL_BANNER"))
+    			return false;
+    		if (block.getType().data == Bed.class)
+    			return false;
+    		if (block.getType().name().endsWith("CANDLE_CAKE"))
+    			return false;
+    		if (block.getType().data == Door.class)
+    			return false;
+    		if (block.getType().data == Gate.class)
+    			return false;
+    		switch (block.getType()) {
+    			case POINTED_DRIPSTONE:
+    			case SMALL_AMETHYST_BUD:
+    			case MEDIUM_AMETHYST_BUD:
+    			case LARGE_AMETHYST_BUD:
+    			case AMETHYST_CLUSTER:
+    			case BAMBOO:
+    			case CACTUS:
+    			case DRAGON_EGG:
+    			case TURTLE_EGG:
+    			case CHAIN:
+    			case IRON_BARS:
+    			case LANTERN:
+    			case SOUL_LANTERN:
+    			case ANVIL:
+    			case BREWING_STAND:
+    			case CHEST:
+    			case ENDER_CHEST:
+    			case TRAPPED_CHEST:
+    			case ENCHANTING_TABLE:
+    			case GRINDSTONE:
+    			case LECTERN:
+    			case STONECUTTER:
+    			case BELL:
+    			case CAKE:
+    			case CAMPFIRE:
+    			case SOUL_CAMPFIRE:
+    			case CAULDRON:
+    			case COMPOSTER:
+    			case CONDUIT:
+    			case END_PORTAL_FRAME:
+    			case FARMLAND:
+    			case LADDER:
+    			case DAYLIGHT_DETECTOR:
+    			case HOPPER:
+    			case LIGHTNING_ROD:
+    				return false;
+				default:
+    		}
+    		return true;
+    	} else {
+    		switch (block.getType()) {
+    			case CHORUS_FLOWER:
+    			case SCAFFOLDING:
+    			case AZALEA:
+    			case FLOWERING_AZALEA:
+    				return true;
+    			case SNOW:
+    				return ((Snow)block.getBlockData()).getLayers() == 1 || ((Snow)block.getBlockData()).getLayers() == 8;
+				default:
+    		}
+    	}
+    	return false;
+    }
+
+	public static boolean shouldReplace(Block block, double entityYPos, boolean nether) {
+		if ((int)entityYPos != block.getLocation().getBlockY())
+			return false;
+		if (nether) {
+			return false;
+		} else {
+			if (block.getType().name().endsWith("_CORAL_FAN") || block.getType().name().endsWith("_CORAL")
+    			|| block.getType().name().endsWith("_CORAL_WALL_FAN"))
+    			return true;
+			if (block.getType().data == Slab.class && ((Slab)block.getBlockData()).getType() == Slab.Type.BOTTOM)
+				return true;
+			if (block.getType().data == Stairs.class && !((Stairs)block.getBlockData()).isWaterlogged())
+				return true;
+			if (block.getType().data == Candle.class)
+				return true;
+			switch (block.getType()) {
+				case POINTED_DRIPSTONE:
+    			case SMALL_AMETHYST_BUD:
+    			case MEDIUM_AMETHYST_BUD:
+    			case LARGE_AMETHYST_BUD:
+    			case AMETHYST_CLUSTER:
+    			case SEA_PICKLE:
+    			case LANTERN:
+    			case SOUL_LANTERN:
+    			case CHEST:
+    			case ENDER_CHEST:
+    			case TRAPPED_CHEST:
+    			case CAMPFIRE:
+    			case SOUL_CAMPFIRE:
+    			case CONDUIT:
+    			case LIGHTNING_ROD:
+    				return true;
+				default:
+			}
+			return false;
+		}
+	}
 }
