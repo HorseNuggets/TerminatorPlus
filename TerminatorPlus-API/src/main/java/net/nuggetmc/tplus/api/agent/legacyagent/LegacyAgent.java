@@ -369,7 +369,7 @@ public class LegacyAgent extends Agent {
         if (groundLoc == null) return;
         
         Location loc = !LegacyMats.shouldReplace(groundLoc.getBlock(), yPos, nether) ? groundLoc.add(0, 1, 0) : groundLoc;
-        boolean waterloggable = loc.getBlock().getBlockData() instanceof Waterlogged;
+        boolean waterloggable = !nether && loc.getBlock().getBlockData() instanceof Waterlogged;
         boolean waterlogged = waterloggable && ((Waterlogged)loc.getBlock().getBlockData()).isWaterlogged();
 
         event.setCancelled(true);
@@ -390,7 +390,7 @@ public class LegacyAgent extends Agent {
                 scheduler.runTaskLater(plugin, () -> {
                     Block block = loc.getBlock();
 
-                    boolean waterloggedNow = block.getBlockData() instanceof Waterlogged
+                    boolean waterloggedNow = !nether && block.getBlockData() instanceof Waterlogged
                     	&& ((Waterlogged)block.getBlockData()).isWaterlogged();
                     if (block.getType() == Material.WATER || waterloggedNow) {
                         bot.look(BlockFace.DOWN);

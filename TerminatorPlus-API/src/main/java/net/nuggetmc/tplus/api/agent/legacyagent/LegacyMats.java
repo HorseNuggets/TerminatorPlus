@@ -6,6 +6,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.Bisected.Half;
 import org.bukkit.block.data.type.*;
 import com.google.common.collect.Lists;
 
@@ -315,6 +316,10 @@ public class LegacyMats {
     		if (block.getType() == Material.LIGHTNING_ROD && !((LightningRod)block.getBlockData()).isWaterlogged()
     			&& (((LightningRod)block.getBlockData()).getFacing() == BlockFace.UP || ((LightningRod)block.getBlockData()).getFacing() == BlockFace.DOWN))
     			return false;
+    		if (block.getType().data == TrapDoor.class && (((TrapDoor)block.getBlockData()).getHalf() == Half.TOP
+    			|| (((TrapDoor)block.getBlockData()).getHalf() == Half.BOTTOM && ((TrapDoor)block.getBlockData()).isOpen()))
+    			&& !((TrapDoor)block.getBlockData()).isWaterlogged())
+    			return false;
     		return true;
     	} else {
     		if (block.getType().name().endsWith("_CARPET"))
@@ -338,6 +343,8 @@ public class LegacyMats {
     			case END_ROD:
     			case FLOWER_POT:
     			case SCAFFOLDING:
+    			case COMPARATOR:
+    			case REPEATER:
     				return true;
 				default:
 					break;
@@ -373,6 +380,14 @@ public class LegacyMats {
     			return false;
     		if (block.getType().data == Gate.class)
     			return false;
+    		if (block.getType() == Material.PISTON_HEAD && ((PistonHead)block.getBlockData()).getFacing() != BlockFace.UP)
+    			return false;
+    		if (block.getType().data == Piston.class && ((Piston)block.getBlockData()).getFacing() != BlockFace.DOWN
+    			&& ((Piston)block.getBlockData()).isExtended())
+    			return false;
+    		if (block.getType().data == TrapDoor.class && (((TrapDoor)block.getBlockData()).getHalf() == Half.BOTTOM
+    			|| ((TrapDoor)block.getBlockData()).isOpen()))
+    			return false;
     		switch (block.getType()) {
     			case POINTED_DRIPSTONE:
     			case SMALL_AMETHYST_BUD:
@@ -405,10 +420,12 @@ public class LegacyMats {
     			case CONDUIT:
     			case END_PORTAL_FRAME:
     			case FARMLAND:
-    			case LADDER:
     			case DAYLIGHT_DETECTOR:
+    			case HONEY_BLOCK:
     			case HOPPER:
     			case LIGHTNING_ROD:
+    			case SCULK_SENSOR:
+    			case SCULK_SHRIEKER:
     				return false;
 				default:
     		}
@@ -441,8 +458,12 @@ public class LegacyMats {
 				return true;
 			if (block.getType().data == Stairs.class && !((Stairs)block.getBlockData()).isWaterlogged())
 				return true;
+			if (block.getType().data == Chain.class && !((Chain)block.getBlockData()).isWaterlogged())
+				return true;
 			if (block.getType().data == Candle.class)
 				return true;
+    		if (block.getType().data == TrapDoor.class && !((TrapDoor)block.getBlockData()).isWaterlogged())
+    			return true;
 			switch (block.getType()) {
 				case POINTED_DRIPSTONE:
     			case SMALL_AMETHYST_BUD:
@@ -459,6 +480,8 @@ public class LegacyMats {
     			case SOUL_CAMPFIRE:
     			case CONDUIT:
     			case LIGHTNING_ROD:
+    			case SCULK_SENSOR:
+    			case SCULK_SHRIEKER:
     				return true;
 				default:
 			}
