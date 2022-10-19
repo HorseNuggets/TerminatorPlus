@@ -293,6 +293,8 @@ public class Bot extends ServerPlayer implements Terminator {
         }
 
         updateLocation();
+        
+        if (!isAlive()) return;
 
         float health = getHealth();
         float maxHealth = getMaxHealth();
@@ -704,7 +706,7 @@ public class Bot extends ServerPlayer implements Terminator {
             // this should fix the concurrentmodificationexception mentioned above, I used the ConcurrentHashMap.newKeySet to make a "ConcurrentHashSet"
             plugin.getManager().remove(this);
 
-            scheduler.runTaskLater(plugin, this::removeBot, 30);
+            scheduler.runTaskLater(plugin, this::removeBot, 20);
 
             this.removeTab();
         }
