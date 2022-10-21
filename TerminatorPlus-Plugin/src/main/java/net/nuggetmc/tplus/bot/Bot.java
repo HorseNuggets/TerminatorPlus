@@ -282,7 +282,6 @@ public class Bot extends ServerPlayer implements Terminator {
         aliveTicks++;
 
         if (fireTicks > 0) --fireTicks;
-        if (invulnerableTime > 0) --invulnerableTime;
         if (jumpTicks > 0) --jumpTicks;
         if (noFallTicks > 0) --noFallTicks;
 
@@ -355,10 +354,10 @@ public class Bot extends ServerPlayer implements Terminator {
         if (invulnerableTime == 0) {
             if (lava) {
                 hurt(DamageSource.LAVA, 4);
-                invulnerableTime = 20;//this used to be 12 ticks but that would cause the bot to take damage too quickly
+                invulnerableTime = 10;
             } else if (fireTicks > 1) {
                 hurt(DamageSource.IN_FIRE, 1);
-                invulnerableTime = 20;
+                invulnerableTime = 10;
             }
         }
 
@@ -939,17 +938,6 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public void doTick() {
-        if (this.hurtTime > 0) {
-            this.hurtTime -= 1;
-        }
-
         baseTick();
-        tickEffects();
-
-        this.animStepO = (int) this.animStep;
-        this.yBodyRotO = this.yBodyRot;
-        this.yHeadRotO = this.yHeadRot;
-        this.yRotO = this.getYRot();
-        this.xRotO = this.getXRot();
     }
 }
