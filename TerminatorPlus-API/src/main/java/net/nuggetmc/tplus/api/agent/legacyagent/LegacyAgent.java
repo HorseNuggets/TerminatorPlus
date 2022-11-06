@@ -26,6 +26,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import com.google.common.base.Optional;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -107,6 +109,8 @@ public class LegacyAgent extends Agent {
         Location loc = bot.getLocation();
         LivingEntity livingTarget = locateTarget(bot, loc);
 
+        blockCheck.tryPreMLG(bot, loc);
+        
         if (livingTarget == null) {
             stopMining(bot);
             return;
@@ -297,7 +301,7 @@ public class LegacyAgent extends Agent {
 
             Material itemType;
 
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 itemType = Material.TWISTING_VINES;
             } else {
                 itemType = Material.WATER_BUCKET;
@@ -339,7 +343,7 @@ public class LegacyAgent extends Agent {
         Material placeType;
         Sound sound;
         Location groundLoc = null;
-        boolean nether = bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER;
+        boolean nether = bot.getDimension() == World.Environment.NETHER;
         double yPos = bot.getBukkitEntity().getLocation().getY();
 
         if (nether) {
@@ -359,7 +363,7 @@ public class LegacyAgent extends Agent {
             placeType = Material.WATER;
             
             for (Block block : event.getStandingOn()) {
-            	if (LegacyMats.canPlaceWater(block, yPos)) {
+            	if (LegacyMats.canPlaceWater(block, Optional.of(yPos))) {
             		groundLoc = block.getLocation();
             		break;
             	}
@@ -1203,7 +1207,7 @@ public class LegacyAgent extends Agent {
         Location loc = bot.getLocation();
 
         if (bot.isBotOnFire()) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() != World.Environment.NETHER) {
+            if (bot.getDimension() != World.Environment.NETHER) {
                 placeWaterDown(bot, world, loc);
             }
         }
@@ -1211,7 +1215,7 @@ public class LegacyAgent extends Agent {
         Material atType = loc.getBlock().getType();
 
         if (atType == Material.FIRE || atType == Material.SOUL_FIRE) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() != World.Environment.NETHER) {
+            if (bot.getDimension() != World.Environment.NETHER) {
                 placeWaterDown(bot, world, loc);
                 world.playSound(loc, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
             } else {
@@ -1223,7 +1227,7 @@ public class LegacyAgent extends Agent {
         }
 
         if (atType == Material.LAVA) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 bot.attemptBlockPlace(loc, Material.COBBLESTONE, false);
             } else {
                 placeWaterDown(bot, world, loc);
@@ -1234,7 +1238,7 @@ public class LegacyAgent extends Agent {
         Material headType = head.getBlock().getType();
 
         if (headType == Material.LAVA) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 bot.attemptBlockPlace(head, Material.COBBLESTONE, false);
             } else {
                 placeWaterDown(bot, world, head);
@@ -1242,7 +1246,7 @@ public class LegacyAgent extends Agent {
         }
 
         if (headType == Material.FIRE || headType == Material.SOUL_FIRE) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 bot.look(BlockFace.DOWN);
                 bot.punch();
                 world.playSound(head, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);

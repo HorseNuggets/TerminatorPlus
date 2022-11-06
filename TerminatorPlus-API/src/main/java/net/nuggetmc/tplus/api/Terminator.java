@@ -4,12 +4,14 @@ import com.mojang.authlib.GameProfile;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -32,6 +34,8 @@ public interface Terminator {
     boolean hasNeuralNetwork();
 
     Location getLocation();
+    
+    BoundingBox getBotBoundingBox();
 
     boolean isBotAlive(); //Has to be named like this because paper re-obfuscates it
 
@@ -120,4 +124,6 @@ public interface Terminator {
     UUID getTargetPlayer();
 
     void setTargetPlayer(UUID target);
+    
+    World.Environment getDimension();
 }

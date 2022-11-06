@@ -582,7 +582,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 Location loc = new Location(world, x, position().y - 0.01, z);
                 Block block = world.getBlockAt(loc);
 
-                if ((block.getType().isSolid() || canStandOn(block.getType())) && BotUtils.overlaps(playerBox, block.getBoundingBox())) {
+                if ((block.getType().isSolid() || LegacyMats.canStandOn(block.getType())) && BotUtils.overlaps(playerBox, block.getBoundingBox())) {
                 	if (!locations.contains(block.getLocation())) {
                 		standingOn.add(block);
                 		locations.add(block.getLocation());
@@ -621,31 +621,6 @@ public class Bot extends ServerPlayer implements Terminator {
     @Override
     public List<Block> getStandingOn() {
     	return standingOn;
-    }
-
-    /**
-     * Checks for non-solid blocks that can hold an entity up.
-     */
-    private boolean canStandOn(Material mat) {
-    	if(mat == Material.END_ROD || mat == Material.FLOWER_POT || mat == Material.REPEATER || mat == Material.COMPARATOR
-    		|| mat == Material.SNOW || mat == Material.LADDER || mat == Material.VINE || mat == Material.SCAFFOLDING
-    		|| mat == Material.AZALEA || mat == Material.FLOWERING_AZALEA || mat == Material.BIG_DRIPLEAF
-    		|| mat == Material.CHORUS_FLOWER || mat == Material.CHORUS_PLANT || mat == Material.COCOA
-    		|| mat == Material.LILY_PAD || mat == Material.SEA_PICKLE)
-    		return true;
-    	
-    	if(mat.name().endsWith("_CARPET"))
-    		return true;
-    	
-    	if(mat.name().startsWith("POTTED_"))
-    		return true;
-    	
-    	if((mat.name().endsWith("_HEAD") || mat.name().endsWith("_SKULL")) && !mat.name().equals("PISTON_HEAD"))
-    		return true;
-    	
-    	if(mat.data == Candle.class)
-    		return true;
-    	return false;
     }
 
     @Override
@@ -824,6 +799,11 @@ public class Bot extends ServerPlayer implements Terminator {
     public Location getLocation() {
         return getBukkitEntity().getLocation();
     }
+    
+    @Override
+    public BoundingBox getBotBoundingBox() {
+        return getBukkitEntity().getBoundingBox();
+    }
 
     @Override
     public void setBotPitch(float pitch) {
@@ -939,5 +919,10 @@ public class Bot extends ServerPlayer implements Terminator {
     @Override
     public void doTick() {
         baseTick();
+    }
+    
+    @Override
+    public World.Environment getDimension() {
+    	return getBukkitEntity().getWorld().getEnvironment();
     }
 }

@@ -8,6 +8,8 @@ import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.Bisected.Half;
 import org.bukkit.block.data.type.*;
+
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -292,7 +294,32 @@ public class LegacyMats {
     	return materials;
     }
     
-    public static boolean canPlaceWater(Block block, double entityYPos) {
+    /**
+     * Checks for non-solid blocks that can hold an entity up.
+     */
+    public static boolean canStandOn(Material mat) {
+    	if(mat == Material.END_ROD || mat == Material.FLOWER_POT || mat == Material.REPEATER || mat == Material.COMPARATOR
+    		|| mat == Material.SNOW || mat == Material.LADDER || mat == Material.VINE || mat == Material.SCAFFOLDING
+    		|| mat == Material.AZALEA || mat == Material.FLOWERING_AZALEA || mat == Material.BIG_DRIPLEAF
+    		|| mat == Material.CHORUS_FLOWER || mat == Material.CHORUS_PLANT || mat == Material.COCOA
+    		|| mat == Material.LILY_PAD || mat == Material.SEA_PICKLE)
+    		return true;
+    	
+    	if(mat.name().endsWith("_CARPET"))
+    		return true;
+    	
+    	if(mat.name().startsWith("POTTED_"))
+    		return true;
+    	
+    	if((mat.name().endsWith("_HEAD") || mat.name().endsWith("_SKULL")) && !mat.name().equals("PISTON_HEAD"))
+    		return true;
+    	
+    	if(mat.data == Candle.class)
+    		return true;
+    	return false;
+    }
+    
+    public static boolean canPlaceWater(Block block, Optional<Double> entityYPos) {
     	if (block.getType().isSolid()) {
     		if (block.getType() == Material.CHAIN && ((Chain)block.getBlockData()).getAxis() == Axis.Y
     			&& !((Chain)block.getBlockData()).isWaterlogged())
@@ -308,7 +335,8 @@ public class LegacyMats {
     			&& !((Stairs)block.getBlockData()).isWaterlogged())
     			return false;
     		if (block.getType().data == Stairs.class && ((Stairs)block.getBlockData()).getHalf() == Bisected.Half.BOTTOM
-    			&& !((Stairs)block.getBlockData()).isWaterlogged() && (int)entityYPos != block.getLocation().getBlockY())
+    			&& !((Stairs)block.getBlockData()).isWaterlogged()
+    			&& (!entityYPos.isPresent() || (int)entityYPos.get().doubleValue() != block.getLocation().getBlockY()))
     			return false;
     		if ((block.getType().data == Fence.class || block.getType().data == Wall.class)
     			&& !((Waterlogged)block.getBlockData()).isWaterlogged())
