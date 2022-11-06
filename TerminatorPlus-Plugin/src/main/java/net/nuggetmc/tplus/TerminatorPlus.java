@@ -16,6 +16,7 @@ public class TerminatorPlus extends JavaPlugin {
 
     private static TerminatorPlus instance;
     private static String version;
+    private static String mcVersion;
 
     private static boolean correctVersion;
 
@@ -48,6 +49,7 @@ public class TerminatorPlus extends JavaPlugin {
         if (version.contains("MC:")) { // git-ABX-123 (MC: ABCD)
             version = version.substring(version.indexOf("MC:") + 3, version.indexOf(")")).trim();
         }
+        mcVersion = version;
         getLogger().info("Running on version: " + version + ", required version: " + REQUIRED_VERSION + ", correct version: " + correctVersion);
 
         // Create Instances
@@ -82,5 +84,9 @@ public class TerminatorPlus extends JavaPlugin {
 
     public static boolean isCorrectVersion() {
         return correctVersion;
+    }
+
+    public static String getMcVersion() {
+        return mcVersion;
     }
 }
