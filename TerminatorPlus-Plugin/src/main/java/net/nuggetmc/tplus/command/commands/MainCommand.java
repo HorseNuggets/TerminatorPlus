@@ -46,7 +46,7 @@ public class MainCommand extends CommandInstance {
         message.event((ClickEvent) null);
         message.event((HoverEvent) null);
         message.append(ChatColor.BLUE + "Discord");
-        message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/horsenuggets"));
+        message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/vZVSf2D6mz"));
         message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to visit HorseNuggets' " + ChatColor.BLUE + "Discord" + ChatColor.RESET + "!")));
         message.append("\n");
         message.event((ClickEvent) null);

@@ -47,6 +47,7 @@ public abstract class CommandInstance extends BukkitCommand {
     @Override
     public boolean execute(@Nonnull CommandSender sender, @Nonnull String label, @Nonnull String[] args) {
         if (!sender.hasPermission(MANAGE_PERMISSION)) {
+            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command. (Check if you are OP.)");
             return false;
         }
 
