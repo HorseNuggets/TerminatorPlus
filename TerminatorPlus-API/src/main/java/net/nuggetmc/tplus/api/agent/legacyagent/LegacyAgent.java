@@ -50,7 +50,7 @@ public class LegacyAgent extends Agent {
     private final Map<BukkitRunnable, Byte> mining = new HashMap<>();
     private final Set<Terminator> fallDamageCooldown = new HashSet<>();
     public boolean offsets = true;
-    private List<LivingEntity> botEntityCache;
+    private List<LivingEntity> botsInPlayerList;
     private EnumTargetGoal goal;
     private BoundingBox region;
     private double regionWeightX;
@@ -70,7 +70,7 @@ public class LegacyAgent extends Agent {
 
     @Override
     protected void tick() {
-    	botEntityCache = manager.fetch().stream().filter(t -> t.isInPlayerList()).map(b -> b.getBukkitEntity()).toList();
+    	botsInPlayerList = manager.fetch().stream().filter(t -> t.isInPlayerList()).map(b -> b.getBukkitEntity()).toList();
     	manager.fetch().forEach(this::tickBot);
     }
 
@@ -1439,7 +1439,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!botEntityCache.contains(player) && validateCloserEntity(player, loc, result)) {
+                    if (!botsInPlayerList.contains(player) && validateCloserEntity(player, loc, result)) {
                         result = player;
                     }
                 }
@@ -1449,7 +1449,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_VULNERABLE_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!botEntityCache.contains(player) && !PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
+                    if (!botsInPlayerList.contains(player) && !PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
                         result = player;
                     }
                 }
@@ -1523,7 +1523,7 @@ public class LegacyAgent extends Agent {
             case PLAYER: { //Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found.
                 if (bot.getTargetPlayer() != null) {
                     Player player = Bukkit.getPlayer(bot.getTargetPlayer());
-                    if (player != null && !botEntityCache.contains(player) && validateCloserEntity(player, loc, null)) {
+                    if (player != null && !botsInPlayerList.contains(player) && validateCloserEntity(player, loc, null)) {
                         return player;
                     }
                 }
