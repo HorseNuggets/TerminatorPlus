@@ -10,8 +10,11 @@ import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
 import net.nuggetmc.tplus.command.annotation.Command;
+import net.nuggetmc.tplus.utils.MCLogs;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+
+import java.io.IOException;
 
 public class MainCommand extends CommandInstance {
 
@@ -29,6 +32,23 @@ public class MainCommand extends CommandInstance {
 
         sender.spigot().sendMessage(rootInfo);
     }
+    @Command(
+            name = "debuginfo",
+            desc = "Upload debug info to mclo.gs"
+    )
+    public void debugInfo(CommandSender sender) {
+        sender.sendMessage(ChatColor.GREEN + "Uploading debug info to mclogs...");
+        String url = null;
+        try {
+            url = MCLogs.postInfo();
+        } catch (IOException e) {
+            String error = e.getMessage();
+            sender.sendMessage(ChatColor.RED + "Failed to upload debug info to mclogs: " + error);
+            return;
+        }
+        sender.sendMessage(ChatColor.GREEN + "Debug info uploaded to " + url);
+    }
+
 
     private void rootInfoSetup() {
         ComponentBuilder message = new ComponentBuilder();
@@ -46,7 +66,7 @@ public class MainCommand extends CommandInstance {
         message.event((ClickEvent) null);
         message.event((HoverEvent) null);
         message.append(ChatColor.BLUE + "Discord");
-        message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/horsenuggets"));
+        message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/vZVSf2D6mz"));
         message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to visit HorseNuggets' " + ChatColor.BLUE + "Discord" + ChatColor.RESET + "!")));
         message.append("\n");
         message.event((ClickEvent) null);
