@@ -50,4 +50,7 @@ public interface BotManager {
 
     void setMobTarget(boolean mobTarget);
 
+    boolean addToPlayerList();
+
+    void setAddToPlayerList(boolean addPlayerList);
 }

@@ -50,6 +50,7 @@ public class LegacyAgent extends Agent {
     private final Map<BukkitRunnable, Byte> mining = new HashMap<>();
     private final Set<Terminator> fallDamageCooldown = new HashSet<>();
     public boolean offsets = true;
+    private List<LivingEntity> botEntityCache;
     private EnumTargetGoal goal;
     private BoundingBox region;
     private double regionWeightX;
@@ -69,7 +70,8 @@ public class LegacyAgent extends Agent {
 
     @Override
     protected void tick() {
-        manager.fetch().forEach(this::tickBot);
+    	botEntityCache = manager.fetch().stream().filter(t -> t.isInPlayerList()).map(b -> b.getBukkitEntity()).toList();
+    	manager.fetch().forEach(this::tickBot);
     }
 
     private void center(Terminator bot) {
@@ -1426,7 +1428,7 @@ public class LegacyAgent extends Agent {
         this.goal = goal;
     }
 
-    public LivingEntity locateTarget(Terminator bot, Location loc, EnumTargetGoal... targetGoal) {
+    private LivingEntity locateTarget(Terminator bot, Location loc, EnumTargetGoal... targetGoal) {
         LivingEntity result = null;
 
         EnumTargetGoal g = goal;
@@ -1437,7 +1439,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (validateCloserEntity(player, loc, result)) {
+                    if (!botEntityCache.contains(player) && validateCloserEntity(player, loc, result)) {
                         result = player;
                     }
                 }
@@ -1447,7 +1449,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_VULNERABLE_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
+                    if (!botEntityCache.contains(player) && !PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
                         result = player;
                     }
                 }
@@ -1521,7 +1523,7 @@ public class LegacyAgent extends Agent {
             case PLAYER: { //Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found.
                 if (bot.getTargetPlayer() != null) {
                     Player player = Bukkit.getPlayer(bot.getTargetPlayer());
-                    if (player != null && validateCloserEntity(player, loc, null)) {
+                    if (player != null && !botEntityCache.contains(player) && validateCloserEntity(player, loc, null)) {
                         return player;
                     }
                 }

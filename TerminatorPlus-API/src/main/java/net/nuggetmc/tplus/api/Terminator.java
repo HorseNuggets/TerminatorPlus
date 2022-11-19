@@ -125,5 +125,7 @@ public interface Terminator {
 
     void setTargetPlayer(UUID target);
     
+    boolean isInPlayerList();
+    
     World.Environment getDimension();
 }

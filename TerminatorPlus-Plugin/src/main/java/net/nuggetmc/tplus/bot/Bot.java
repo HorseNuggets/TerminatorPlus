@@ -35,7 +35,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.block.data.type.Candle;
 import org.bukkit.craftbukkit.v1_19_R1.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
@@ -78,7 +77,9 @@ public class Bot extends ServerPlayer implements Terminator {
     private byte noFallTicks;
     private List<Block> standingOn = new ArrayList<>();
     private UUID targetPlayer = null;
-    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
+    private boolean inPlayerList;
+    
+    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile, boolean addToPlayerList) {
         super(minecraftServer, worldServer, profile, null);
 
         this.plugin = TerminatorPlus.getInstance();
@@ -91,6 +92,10 @@ public class Bot extends ServerPlayer implements Terminator {
         this.fireTicks = 0;
         this.removeOnDeath = true;
         this.offset = MathUtils.circleOffset(3);
+        if (addToPlayerList) {
+            minecraftServer.getPlayerList().getPlayers().add(this);
+            inPlayerList = true;
+        }
 
         //this.entityData.set(new EntityDataAccessor<>(16, EntityDataSerializers.BYTE), (byte) 0xFF);
     }
@@ -106,8 +111,10 @@ public class Bot extends ServerPlayer implements Terminator {
         UUID uuid = BotUtils.randomSteveUUID();
 
         CustomGameProfile profile = new CustomGameProfile(uuid, ChatUtils.trim16(name), skin);
+        
+        boolean addPlayerList = TerminatorPlus.getInstance().getManager().addToPlayerList();
 
-        Bot bot = new Bot(nmsServer, nmsWorld, profile);
+        Bot bot = new Bot(nmsServer, nmsWorld, profile, addPlayerList);
 
         bot.connection = new ServerGamePacketListenerImpl(nmsServer, new Connection(PacketFlow.CLIENTBOUND) {
 
@@ -122,7 +129,10 @@ public class Bot extends ServerPlayer implements Terminator {
         bot.getBukkitEntity().setNoDamageTicks(0);
         Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
                 new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, bot)));
-        nmsWorld.addFreshEntity(bot);
+        if (addPlayerList)
+        	nmsWorld.addNewPlayer(bot);
+        else
+        	nmsWorld.addFreshEntity(bot);
         bot.renderAll();
 
         TerminatorPlus.getInstance().getManager().add(bot);
@@ -653,6 +663,8 @@ public class Bot extends ServerPlayer implements Terminator {
             scheduler.runTask(plugin, () -> this.remove(RemovalReason.DISCARDED));
         }
         this.removeVisually();
+        if (inPlayerList)
+        	this.server.getPlayerList().getPlayers().remove(this);
     }
 
     private void removeTab() {
@@ -919,6 +931,11 @@ public class Bot extends ServerPlayer implements Terminator {
     @Override
     public void doTick() {
         baseTick();
+    }
+    
+    @Override
+    public boolean isInPlayerList() {
+    	return inPlayerList;
     }
     
     @Override

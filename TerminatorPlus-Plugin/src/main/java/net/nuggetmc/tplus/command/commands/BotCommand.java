@@ -287,12 +287,13 @@ public class BotCommand extends CommandInstance {
         String extra = ChatColor.GRAY + " [" + ChatColor.YELLOW + "/bot settings" + ChatColor.GRAY + "]";
 
         if (arg1 == null || ((!arg1.equalsIgnoreCase("setgoal")) && !arg1.equalsIgnoreCase("mobtarget") && !arg1.equalsIgnoreCase("playertarget")
-        		&& !arg1.equalsIgnoreCase("region"))) {
+        		&& !arg1.equalsIgnoreCase("addplayerlist") && !arg1.equalsIgnoreCase("region"))) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage(ChatColor.GOLD + "Bot Settings" + extra);
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "addplayerlist" + ChatUtils.BULLET_FORMATTED + "Adds newly spawned bots to the player list. This allows the bots to be affected by player selectors like @a and @p.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "region" + ChatUtils.BULLET_FORMATTED + "Sets a region for the bots to prioritize entities inside.");
             sender.sendMessage(ChatUtils.LINE);
             return;
@@ -341,6 +342,17 @@ public class BotCommand extends CommandInstance {
                 fetch.setTargetPlayer(player.getUniqueId());
             }
             sender.sendMessage("All spawned bots are now set to target " + ChatColor.BLUE + player.getName() + ChatColor.RESET + ". They will target the closest player if they can't be found.\nYou may need to set the goal to PLAYER.");
+        } else if (arg1.equalsIgnoreCase("addplayerlist")) {
+        	if (arg2 == null) {
+        		sender.sendMessage("Adding bots to the player list is currently " + (manager.addToPlayerList() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ".");
+        		return;
+        	}
+        	if (!arg2.equals("true") && !arg2.equals("false")) {
+        		sender.sendMessage(ChatColor.RED + "You must specify true or false!");
+        		return;
+        	}
+        	manager.setAddToPlayerList(Boolean.parseBoolean(arg2));
+        	sender.sendMessage("Adding bots to the player list is now " + (manager.addToPlayerList() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ".");
         } else if (arg1.equalsIgnoreCase("region")) {
             if (arg2 == null) {
             	if (agent.getRegion() == null) {
@@ -430,6 +442,7 @@ public class BotCommand extends CommandInstance {
             output.add("setgoal");
             output.add("mobtarget");
             output.add("playertarget");
+            output.add("addplayerlist");
             output.add("region");
         } else if (args.length == 3) {
             if (args[1].equalsIgnoreCase("setgoal")) {
@@ -443,6 +456,10 @@ public class BotCommand extends CommandInstance {
             	for (Player player : Bukkit.getOnlinePlayers()) {
             		output.add(player.getName());
             	}
+            }
+            if (args[1].equalsIgnoreCase("addplayerlist")) {
+                output.add("true");
+                output.add("false");
             }
         }
 

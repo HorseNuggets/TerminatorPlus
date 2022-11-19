@@ -35,6 +35,8 @@ public class BotManagerImpl implements BotManager, Listener {
 
     public boolean joinMessages = false;
     private boolean mobTarget = false;
+    private boolean addPlayerList = false;
+    
     public BotManagerImpl() {
         this.agent = new LegacyAgent(this, TerminatorPlus.getInstance());
         this.bots = ConcurrentHashMap.newKeySet(); //should fix concurrentmodificationexception
@@ -212,6 +214,16 @@ public class BotManagerImpl implements BotManager, Listener {
     @Override
     public void setMobTarget(boolean mobTarget) {
         this.mobTarget = mobTarget;
+    }
+    
+    @Override
+    public boolean addToPlayerList() {
+        return addPlayerList;
+    }
+
+    @Override
+    public void setAddToPlayerList(boolean addPlayerList) {
+        this.addPlayerList = addPlayerList;
     }
 
     @EventHandler
