@@ -71,7 +71,6 @@ public class Bot extends ServerPlayer implements Terminator {
     private boolean removeOnDeath;
     private int aliveTicks;
     private int kills;
-    private byte fireTicks; // Fire animation isn't played? Bot still takes damage.
     private byte groundTicks;
     private byte jumpTicks;
     private byte noFallTicks;
@@ -89,7 +88,6 @@ public class Bot extends ServerPlayer implements Terminator {
         this.velocity = new Vector(0, 0, 0);
         this.oldVelocity = velocity.clone();
         this.noFallTicks = 60;
-        this.fireTicks = 0;
         this.removeOnDeath = true;
         this.offset = MathUtils.circleOffset(3);
         if (addToPlayerList) {
@@ -291,7 +289,6 @@ public class Bot extends ServerPlayer implements Terminator {
 
         aliveTicks++;
 
-        if (fireTicks > 0) --fireTicks;
         if (jumpTicks > 0) --jumpTicks;
         if (noFallTicks > 0) --noFallTicks;
 
@@ -318,14 +315,11 @@ public class Bot extends ServerPlayer implements Terminator {
 
         setHealth(amount);
 
-        fireDamageCheck();
         fallDamageCheck();
 
-        if (position().y < -64) {
-            die(DamageSource.OUT_OF_WORLD);
-        }
-
         oldVelocity = velocity.clone();
+        
+        doTick();
     }
 
     private void loadChunks() {
@@ -342,52 +336,6 @@ public class Bot extends ServerPlayer implements Terminator {
         }
     }
 
-    private void fireDamageCheck() {
-        if (!isAlive()) {
-            return; // maybe also have packet reset thing
-        }
-
-        Material type = getLocation().getBlock().getType();
-
-        if (type == Material.WATER) {
-            setOnFirePackets(false); // maybe also play extinguish noise?
-            fireTicks = 0;
-            return;
-        }
-
-        boolean lava = type == org.bukkit.Material.LAVA;
-
-        if (lava || type == org.bukkit.Material.FIRE || type == Material.SOUL_FIRE) {
-            ignite();
-        }
-
-        if (invulnerableTime == 0) {
-            if (lava) {
-                hurt(DamageSource.LAVA, 4);
-                invulnerableTime = 10;
-            } else if (fireTicks > 1) {
-                hurt(DamageSource.IN_FIRE, 1);
-                invulnerableTime = 10;
-            }
-        }
-
-        if (fireTicks == 1) {
-            setOnFirePackets(false);
-        }
-    }
-
-    @Override
-    public void ignite() {
-        if (fireTicks <= 1) setOnFirePackets(true);
-        fireTicks = 100;
-    }
-
-    @Override
-    public void setOnFirePackets(boolean onFire) {
-        //entityData.set(new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), onFire ? (byte) 1 : (byte) 0);
-        //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
-    }
-
     @Override
     public UUID getTargetPlayer() {
         return targetPlayer;
@@ -400,7 +348,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public boolean isBotOnFire() {
-        return fireTicks != 0;
+        return this.isOnFire();
     }
 
     private void fallDamageCheck() { // TODO create a better bot event system in the future, also have bot.getAgent()

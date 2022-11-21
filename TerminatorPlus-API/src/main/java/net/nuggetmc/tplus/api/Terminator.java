@@ -43,8 +43,6 @@ public interface Terminator {
 
     float getBotMaxHealth();
 
-    void ignite();
-
     boolean isBotOnFire();
 
     boolean isFalling();
@@ -118,8 +116,6 @@ public interface Terminator {
     boolean tickDelay(int ticks);
 
     void renderBot(Object packetListener, boolean login);
-
-    void setOnFirePackets(boolean onFire);
 
     UUID getTargetPlayer();
 
