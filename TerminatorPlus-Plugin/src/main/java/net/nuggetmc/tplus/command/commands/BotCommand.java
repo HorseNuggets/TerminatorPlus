@@ -286,10 +286,11 @@ public class BotCommand extends CommandInstance {
 
         String extra = ChatColor.GRAY + " [" + ChatColor.YELLOW + "/bot settings" + ChatColor.GRAY + "]";
 
-        if (arg1 == null || ((!arg1.equalsIgnoreCase("setgoal")) && !arg1.equalsIgnoreCase("mobtarget") && !arg1.equalsIgnoreCase("playertarget")
+        if (arg1 == null || (!arg1.equalsIgnoreCase("spawnloc") && !arg1.equalsIgnoreCase("setgoal") && !arg1.equalsIgnoreCase("mobtarget") && !arg1.equalsIgnoreCase("playertarget")
         		&& !arg1.equalsIgnoreCase("addplayerlist") && !arg1.equalsIgnoreCase("region"))) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage(ChatColor.GOLD + "Bot Settings" + extra);
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "spawnloc" + ChatUtils.BULLET_FORMATTED + "Set the location where the bots should spawn. This will be reset after a spawn command is executed.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
@@ -299,7 +300,38 @@ public class BotCommand extends CommandInstance {
             return;
         }
 
-        if (arg1.equalsIgnoreCase("setgoal")) {
+        if (arg1.equalsIgnoreCase("spawnloc")) {
+        	if (arg2 == null) {
+        		if (manager.getSpawnLoc() == null)
+        			sender.sendMessage("No custom spawn location has been set. The bots will spawn at the player location.");
+        		else {
+        			Location loc = manager.getSpawnLoc();
+        			sender.sendMessage("The next spawn location will be at " + ChatColor.BLUE + String.format("(%s, %s, %s)", loc.getX(), loc.getY(), loc.getZ()) + ChatColor.RESET + ".");
+        		}
+        		return;
+        	}
+            if (arg2.equalsIgnoreCase("clear")) {
+            	manager.setSpawnLoc(null);
+            	sender.sendMessage("The spawn location has been reset to the player location.");
+            	return;
+            }
+            if (args.size() != 4) {
+            	sender.sendMessage("Incorrect argument size. Correct syntax: " + ChatColor.YELLOW + "/bot settings spawnloc <x> <y> <z>" + ChatColor.RESET);
+            	return;
+            }
+            double x, y, z;
+            try {
+            	x = Double.parseDouble(args.get(1));
+            	y = Double.parseDouble(args.get(2));
+            	z = Double.parseDouble(args.get(3));
+            } catch (NumberFormatException e) {
+            	sender.sendMessage("The block coordinates must be doubles!");
+            	sender.sendMessage("Correct syntax: " + ChatColor.YELLOW + "/bot settings spawnloc <x> <y> <z>" + ChatColor.RESET);
+            	return;
+            }
+            manager.setSpawnLoc(new Location(null, x, y, z));
+            sender.sendMessage("The next spawn location has been set to " + ChatColor.BLUE + String.format("(%s, %s, %s)", x, y, z) + ChatColor.RESET + ".");
+        } else if (arg1.equalsIgnoreCase("setgoal")) {
         	if (arg2 == null) {
         		sender.sendMessage("The global bot goal is currently " + ChatColor.BLUE + agent.getTargetType() + ChatColor.RESET + ".");
         		return;
@@ -439,6 +471,7 @@ public class BotCommand extends CommandInstance {
         // lookall
 
         if (args.length == 2) {
+            output.add("spawnloc");
             output.add("setgoal");
             output.add("mobtarget");
             output.add("playertarget");

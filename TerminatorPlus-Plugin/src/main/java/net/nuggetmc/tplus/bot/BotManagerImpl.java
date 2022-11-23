@@ -36,11 +36,22 @@ public class BotManagerImpl implements BotManager, Listener {
     public boolean joinMessages = false;
     private boolean mobTarget = false;
     private boolean addPlayerList = false;
+    private Location spawnLoc;
     
     public BotManagerImpl() {
         this.agent = new LegacyAgent(this, TerminatorPlus.getInstance());
         this.bots = ConcurrentHashMap.newKeySet(); //should fix concurrentmodificationexception
         this.numberFormat = NumberFormat.getInstance(Locale.US);
+    }
+    
+    @Override
+    public Location getSpawnLoc() {
+    	return spawnLoc;
+    }
+    
+    @Override
+    public void setSpawnLoc(Location loc) {
+    	spawnLoc = loc;
     }
 
     @Override
@@ -110,7 +121,18 @@ public class BotManagerImpl implements BotManager, Listener {
 
         skinName = skinName == null ? name : skinName;
 
-        createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
+        if (spawnLoc != null) {
+        	sender.sendMessage("The spawn location is "
+				 + ChatColor.BLUE + String.format("(%s, %s, %s)", spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ()) + ChatColor.RESET
+				 + ". This will be reset to the player location next time.");
+        	Location loc = sender.getLocation().clone();
+        	loc.setX(spawnLoc.getX());
+        	loc.setY(spawnLoc.getY());
+        	loc.setZ(spawnLoc.getZ());
+        	createBots(loc, name, MojangAPI.getSkin(skinName), n, network);
+        	spawnLoc = null;
+        } else
+        	createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
 
         sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
     }
