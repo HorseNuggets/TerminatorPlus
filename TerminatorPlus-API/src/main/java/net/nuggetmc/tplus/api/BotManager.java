@@ -10,10 +10,10 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface BotManager {
-	Location getSpawnLoc();
-	
-	void setSpawnLoc(Location loc);
-	
+    Location getSpawnLoc();
+    
+    void setSpawnLoc(Location loc);
+    
     Set<Terminator> fetch();
 
     Agent getAgent();

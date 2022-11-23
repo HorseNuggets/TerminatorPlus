@@ -1006,14 +1006,13 @@ public class LegacyAgent extends Agent {
 
         bot.setItem(new ItemStack(item));
 
-        if (level == LegacyLevel.EAST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D || level == LegacyLevel.WEST_D
-        		|| level == LegacyLevel.EAST_D_2 || level == LegacyLevel.NORTH_D_2 || level == LegacyLevel.SOUTH_D_2 || level == LegacyLevel.WEST_D_2) {
+        if (level.isSideDown() || level.isSideDown2()) {
             bot.setBotPitch(69);
 
             scheduler.runTaskLater(plugin, () -> {
                 btCheck.put(player, true);
             }, 5);
-        } else if (level == LegacyLevel.EAST_U || level == LegacyLevel.NORTH_U || level == LegacyLevel.SOUTH_U || level == LegacyLevel.WEST_U) {
+        } else if (level.isSideUp()) {
             bot.setBotPitch(-53);
         }else if (level == LegacyLevel.AT_D || level == LegacyLevel.AT) {
             Location blockLoc = block.getLocation().add(0.5, -1, 0.5);
@@ -1035,10 +1034,10 @@ public class LegacyAgent extends Agent {
             miningAnim.put(player, task);
         }
 
-        blockBreakEffect(bot, player, block, level);
+        blockBreakEffect(bot, player, block, new LegacyLevel.LevelWrapper(level));
     }
 
-    private void blockBreakEffect(Terminator bot, LivingEntity player, Block block, LegacyLevel level) {
+    private void blockBreakEffect(Terminator bot, LivingEntity player, Block block, LegacyLevel.LevelWrapper wrapper) {
 
         if (LegacyMats.NO_CRACK.contains(block.getType())) return;
 
@@ -1050,7 +1049,7 @@ public class LegacyAgent extends Agent {
                     byte i = mining.get(this);
 
                     Block cur;
-                    switch (level) {
+                    switch (wrapper.getLevel()) {
                         case ABOVE:
                             cur = player.getLocation().add(0, 2, 0).getBlock();
                             break;
@@ -1112,6 +1111,34 @@ public class LegacyAgent extends Agent {
                             cur = player.getLocation().add(0, 1, 0).getBlock();
                     }
 
+                    // Fix boat clutching while breaking block
+                    if ((wrapper.getLevel().isSideAt() || wrapper.getLevel().isSideUp())
+                    	&& bot.getLocation().add(0, -2, 0).getBlock().getType() == Material.LAVA
+                    	&& block.getLocation().clone().add(0, 1, 0).equals(cur.getLocation())) {
+                    	cur = block;
+                    	wrapper.setLevel(wrapper.getLevel().sideDown());
+                    	
+                    	if (wrapper.getLevel().isSideDown() || wrapper.getLevel().isSideDown2())
+                    		bot.setBotPitch(69);
+                    	else if (wrapper.getLevel().isSideUp())
+                    		bot.setBotPitch(-53);
+                    	else if (wrapper.getLevel().isSide())
+                    		bot.setBotPitch(0);
+                    }
+                    if ((wrapper.getLevel().isSideAt() || wrapper.getLevel().isSideDown())
+                    	&& bot.getLocation().add(0, -1, 0).getBlock().getType() == Material.LAVA
+                    	&& block.getLocation().clone().add(0, -1, 0).equals(cur.getLocation())) {
+                    	cur = block;
+                    	wrapper.setLevel(wrapper.getLevel().sideUp());
+                    	
+                    	if (wrapper.getLevel().isSideDown() || wrapper.getLevel().isSideDown2())
+                    		bot.setBotPitch(69);
+                    	else if (wrapper.getLevel().isSideUp())
+                    		bot.setBotPitch(-53);
+                    	else if (wrapper.getLevel().isSide())
+                    		bot.setBotPitch(0);
+                    }
+                    
                     // wow this repeated code is so bad lmao
 
                     if (player.isDead() || cur == null || (!block.equals(cur) || block.getType() != cur.getType())) {
@@ -1139,7 +1166,7 @@ public class LegacyAgent extends Agent {
 
                         block.breakNaturally();
 
-                        if (level == LegacyLevel.ABOVE) {
+                        if (wrapper.getLevel() == LegacyLevel.ABOVE) {
                             noJump.add(player);
 
                             scheduler.runTaskLater(plugin, () -> {
