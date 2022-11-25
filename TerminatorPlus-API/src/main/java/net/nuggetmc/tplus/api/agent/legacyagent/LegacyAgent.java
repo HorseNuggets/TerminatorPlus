@@ -473,7 +473,7 @@ public class LegacyAgent extends Agent {
         if (level == null) {
             resetHand(npc, target, playerNPC);
             return 1;
-        } else if (level.isSide() || level == LegacyLevel.BELOW) {
+        } else if (level.isSide() || level == LegacyLevel.BELOW || level == LegacyLevel.ABOVE) {
             return 0;
         } else {
             return 2;
@@ -739,8 +739,36 @@ public class LegacyAgent extends Agent {
                 return null;
             }
         }
+        if (level == LegacyLevel.ABOVE || level == LegacyLevel.BELOW) {
+            Block check;
+
+            switch (dir) {
+                case NORTH:
+                	check = player.getLocation().add(0, 2, -1).getBlock();
+                    break;
+                case SOUTH:
+                	check = player.getLocation().add(0, 2, 1).getBlock();
+                    break;
+                case EAST:
+                	check = player.getLocation().add(1, 2, 0).getBlock();
+                    break;
+                case WEST:
+                	check = player.getLocation().add(-1, 2, 0).getBlock();
+                    break;
+                default:
+                	check = null;
+            }
+            if (LegacyMats.AIR.contains(player.getLocation().add(0, 2, 0).getBlock().getType())
+                && LegacyMats.AIR.contains(check.getType()))
+                return null;
+        }
 
         if (level != null) {
+        	if (level == LegacyLevel.BELOW) {
+        		npc.look(BlockFace.DOWN);
+        		downMine(npc, player, get);
+        	} else if (level == LegacyLevel.ABOVE)
+        		npc.look(BlockFace.UP);
             preBreak(npc, player, get, level);
         }
 
@@ -1112,6 +1140,7 @@ public class LegacyAgent extends Agent {
                     }
 
                     // Fix boat clutching while breaking block
+                    // As a side effect, the bot is able to break multiple blocks at once while over lava
                     if ((wrapper.getLevel().isSideAt() || wrapper.getLevel().isSideUp())
                     	&& bot.getLocation().add(0, -2, 0).getBlock().getType() == Material.LAVA
                     	&& block.getLocation().clone().add(0, 1, 0).equals(cur.getLocation())) {
