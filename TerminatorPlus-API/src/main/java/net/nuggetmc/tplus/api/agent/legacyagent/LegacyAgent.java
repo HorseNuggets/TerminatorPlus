@@ -510,6 +510,24 @@ public class LegacyAgent extends Agent {
     	Collections.sort(locStanding, (a, b) ->
     		Double.compare(BotUtils.getHorizSqDist(a, player.getLocation()), BotUtils.getHorizSqDist(b, player.getLocation())));
     	
+    	//Break snow in the way
+    	for (Location loc : locStanding) {
+    		if (loc.getBlock().getType() == Material.SNOW) {
+    			get = loc.getBlock();
+    			npc.faceLocation(get.getLocation());
+    			level = LegacyLevel.getOffset(player.getLocation(), loc);
+    			
+    			if (level != null) {
+    				preBreak(npc, player, get, level);
+    				return level;
+    			} else {
+    				//This should not happen
+    				level = null;
+    				get = null;
+    			}
+    		}
+    	}
+    	
         //Break potential obstructing walls
     	for (Location loc : locStanding) {
     		boolean up = false;
@@ -847,7 +865,7 @@ public class LegacyAgent extends Agent {
                             towerList.put(playerNPC, playerNPC.getLocation());
                         }
                     }
-                }, 5);
+                }, 3);
 
                 if (npc.isBotOnGround()) {
                     if (target.getLocation().distance(playerNPC.getLocation()) < 16) {
@@ -1077,67 +1095,12 @@ public class LegacyAgent extends Agent {
                     byte i = mining.get(this);
 
                     Block cur;
-                    switch (wrapper.getLevel()) {
-                        case ABOVE:
-                            cur = player.getLocation().add(0, 2, 0).getBlock();
-                            break;
-                        case BELOW:
-                            cur = bot.getStandingOn().isEmpty() ? null : bot.getStandingOn().get(0);
-                            break;
-                        case NORTH_U:
-                            cur = player.getLocation().add(0, 2, -1).getBlock();
-                            break;
-                        case SOUTH_U:
-                            cur = player.getLocation().add(0, 2, 1).getBlock();
-                            break;
-                        case EAST_U:
-                            cur = player.getLocation().add(1, 2, 0).getBlock();
-                            break;
-                        case WEST_U:
-                            cur = player.getLocation().add(-1, 2, 0).getBlock();
-                            break;
-                        case NORTH:
-                            cur = player.getLocation().add(0, 1, -1).getBlock();
-                            break;
-                        case SOUTH:
-                            cur = player.getLocation().add(0, 1, 1).getBlock();
-                            break;
-                        case EAST:
-                            cur = player.getLocation().add(1, 1, 0).getBlock();
-                            break;
-                        case WEST:
-                            cur = player.getLocation().add(-1, 1, 0).getBlock();
-                            break;
-                        case NORTH_D:
-                            cur = player.getLocation().add(0, 0, -1).getBlock();
-                            break;
-                        case SOUTH_D:
-                            cur = player.getLocation().add(0, 0, 1).getBlock();
-                            break;
-                        case EAST_D:
-                            cur = player.getLocation().add(1, 0, 0).getBlock();
-                            break;
-                        case WEST_D:
-                            cur = player.getLocation().add(-1, 0, 0).getBlock();
-                            break;
-                        case NORTH_D_2:
-                            cur = player.getLocation().add(0, -1, -1).getBlock();
-                            break;
-                        case SOUTH_D_2:
-                            cur = player.getLocation().add(0, -1, 1).getBlock();
-                            break;
-                        case EAST_D_2:
-                            cur = player.getLocation().add(1, -1, 0).getBlock();
-                            break;
-                        case WEST_D_2:
-                            cur = player.getLocation().add(-1, -1, 0).getBlock();
-                            break;
-                        case AT_D:
-                            cur = player.getLocation().getBlock();
-                            break;
-                        default:
-                            cur = player.getLocation().add(0, 1, 0).getBlock();
-                    }
+                    if (wrapper.getLevel() == null)
+                    	 cur = player.getLocation().add(0, 1, 0).getBlock();
+                    else if (wrapper.getLevel() == LegacyLevel.BELOW)
+                    	cur = bot.getStandingOn().isEmpty() ? null : bot.getStandingOn().get(0);
+                    else
+                    	cur = wrapper.getLevel().offset(player.getLocation()).getBlock();
 
                     // Fix boat clutching while breaking block
                     // As a side effect, the bot is able to break multiple blocks at once while over lava

@@ -4,27 +4,43 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bukkit.Location;
+
 public enum LegacyLevel {
-    ABOVE,
-    BELOW,
-    AT,
-    AT_D,
-    NORTH_U,
-    SOUTH_U,
-    EAST_U,
-    WEST_U,
-    NORTH,
-    SOUTH,
-    EAST,
-    WEST,
-    NORTH_D,
-    SOUTH_D,
-    EAST_D,
-    WEST_D,
-    NORTH_D_2,
-    SOUTH_D_2,
-    EAST_D_2,
-    WEST_D_2;
+    ABOVE(0, 2, 0),
+    BELOW(0, -1, 0),
+    AT(0, 1, 0),
+    AT_D(0, 0, 0),
+    NORTH_U(0, 2, -1),
+    SOUTH_U(0, 2, 1),
+    EAST_U(1, 2, 0),
+    WEST_U(-1, 2, 0),
+    NORTH(0, 1, -1),
+    SOUTH(0, 1, 1),
+    EAST(1, 1, 0),
+    WEST(-1, 1, 0),
+    NORTH_D(0, 0, -1),
+    SOUTH_D(0, 0, 1),
+    EAST_D(1, 0, 0),
+    WEST_D(-1, 0, 0),
+    NORTHWEST_D(-1, 0, -1),
+    SOUTHWEST_D(-1, 0, 1),
+    NORTHEAST_D(1, 0, -1),
+    SOUTHEAST_D(1, 0, 1),
+    NORTH_D_2(0, -1, -1),
+    SOUTH_D_2(0, -1, 1),
+    EAST_D_2(1, -1, 0),
+    WEST_D_2(-1, -1, 0);
+	
+	private final int offsetX;
+	private final int offsetY;
+	private final int offsetZ;
+	
+	private LegacyLevel(int offsetX, int offsetY, int offsetZ) {
+		this.offsetX = offsetX;
+		this.offsetY = offsetY;
+		this.offsetZ = offsetZ;
+	}
 
     private static final Set<LegacyLevel> NON_SIDE = new HashSet<>(Arrays.asList(
         ABOVE,
@@ -114,6 +130,22 @@ public enum LegacyLevel {
     			return null;
     	}
     }
+    
+	public static LegacyLevel getOffset(Location start, Location end) {
+		int diffX = end.getBlockX() - start.getBlockX();
+		int diffY = end.getBlockY() - start.getBlockY();
+		int diffZ = end.getBlockZ() - start.getBlockZ();
+		for (LegacyLevel level : LegacyLevel.values()) {
+			if (level.offsetX == diffX && level.offsetY == diffY && level.offsetZ == diffZ) {
+				return level;
+			}
+		}
+		return null;
+	}
+	
+	public Location offset(Location loc) {
+		return loc.add(offsetX, offsetY, offsetZ);
+	}
     
     public static class LevelWrapper {
     	private LegacyLevel level;

@@ -213,7 +213,7 @@ public class BotCommand extends CommandInstance {
                 String botName = bot.getBotName();
                 String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
                 Location loc = bot.getLocation();
-                String strLoc = ChatColor.YELLOW + formatter.format(loc.getBlockX()) + ", " + formatter.format(loc.getBlockY()) + ", " + formatter.format(loc.getBlockZ());
+                String strLoc = ChatColor.YELLOW + formatter.format(loc.getX()) + ", " + formatter.format(loc.getY()) + ", " + formatter.format(loc.getZ());
                 Vector vel = bot.getVelocity();
                 String strVel = ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
 
