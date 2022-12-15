@@ -254,6 +254,11 @@ public class Bot extends ServerPlayer implements Terminator {
     public int getAliveTicks() {
         return aliveTicks;
     }
+    
+    @Override
+    public int getNoFallTicks() {
+    	return noFallTicks;
+    }
 
     @Override
     public boolean tickDelay(int i) {

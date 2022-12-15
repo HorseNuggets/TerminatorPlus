@@ -112,6 +112,8 @@ public interface Terminator {
     void addVelocity(Vector velocity);
 
     int getAliveTicks();
+    
+    int getNoFallTicks();
 
     boolean tickDelay(int ticks);
 

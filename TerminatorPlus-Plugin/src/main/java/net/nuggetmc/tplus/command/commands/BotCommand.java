@@ -315,8 +315,19 @@ public class BotCommand extends CommandInstance {
             	sender.sendMessage("The spawn location has been reset to the player location.");
             	return;
             }
+            if (arg2.equalsIgnoreCase("playerloc")) {
+            	if (!(sender instanceof Player)) {
+            		sender.sendMessage("You must be a player to do this!");
+                	return;
+            	}
+            	Location loc = ((Player)sender).getLocation();
+            	manager.setSpawnLoc(loc.clone());
+            	sender.sendMessage("The spawn location has been set to " + ChatColor.BLUE + formatter.format(loc.getX()) + ", " + formatter.format(loc.getY()) + ", " + formatter.format(loc.getZ()) + ChatColor.RESET + ".");
+            	return;
+            }
             if (args.size() != 4) {
             	sender.sendMessage("Incorrect argument size. Correct syntax: " + ChatColor.YELLOW + "/bot settings spawnloc <x> <y> <z>" + ChatColor.RESET);
+            	sender.sendMessage("Additionally, to specify a spawnloc at the current player position: " + ChatColor.YELLOW + "/bot settings spawnloc playerloc" + ChatColor.RESET);
             	return;
             }
             double x, y, z;

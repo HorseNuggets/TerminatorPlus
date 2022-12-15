@@ -145,7 +145,7 @@ public class LegacyBlockCheck {
     }
     
     public boolean tryPreMLG(Terminator bot, Location botLoc) {
-    	if(bot.isBotOnGround() || bot.getVelocity().getY() >= -0.8D)
+    	if(bot.isBotOnGround() || bot.getVelocity().getY() >= -0.8D || bot.getNoFallTicks() > 7)
     		return false;
     	if (tryPreMLG(bot, botLoc, 3))
     		return true;
