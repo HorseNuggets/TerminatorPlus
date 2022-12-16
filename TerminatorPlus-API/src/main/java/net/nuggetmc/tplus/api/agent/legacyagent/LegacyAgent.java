@@ -184,7 +184,7 @@ public class LegacyAgent extends Agent {
 
             if (checkDown(bot, botPlayer, livingTarget.getLocation(), bothXZ)) return;
 
-            if ((withinTargetXZ || sameXZ) && checkUp(bot, livingTarget, botPlayer, target, withinTargetXZ)) return;
+            if ((withinTargetXZ || sameXZ) && checkUp(bot, livingTarget, botPlayer, target, withinTargetXZ, sameXZ)) return;
 
             if (bothXZ) sideResult = checkSide(bot, livingTarget, botPlayer);
 
@@ -510,24 +510,6 @@ public class LegacyAgent extends Agent {
     	Collections.sort(locStanding, (a, b) ->
     		Double.compare(BotUtils.getHorizSqDist(a, player.getLocation()), BotUtils.getHorizSqDist(b, player.getLocation())));
     	
-    	//Break snow in the way
-    	for (Location loc : locStanding) {
-    		if (loc.getBlock().getType() == Material.SNOW) {
-    			get = loc.getBlock();
-    			npc.faceLocation(get.getLocation());
-    			level = LegacyLevel.getOffset(player.getLocation(), loc);
-    			
-    			if (level != null) {
-    				preBreak(npc, player, get, level);
-    				return level;
-    			} else {
-    				//This should not happen
-    				level = null;
-    				get = null;
-    			}
-    		}
-    	}
-    	
         //Break potential obstructing walls
     	for (Location loc : locStanding) {
     		boolean up = false;
@@ -596,11 +578,6 @@ public class LegacyAgent extends Agent {
                 			//Break standing block
                 			get = standing;
                 			level = LegacyLevel.BELOW;
-                			
-                            noJump.add(player);
-                            scheduler.runTaskLater(plugin, () -> {
-                            	noJump.remove(player);
-                            }, 15);
                 		} else {
 	                		//Break above
 	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
@@ -639,11 +616,6 @@ public class LegacyAgent extends Agent {
                 			//Break standing block
                 			get = standing;
                 			level = LegacyLevel.BELOW;
-                			
-                            noJump.add(player);
-                            scheduler.runTaskLater(plugin, () -> {
-                            	noJump.remove(player);
-                            }, 15);
                 		} else {
 	                		//Break above
 	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
@@ -682,11 +654,6 @@ public class LegacyAgent extends Agent {
                 			//Break standing block
                 			get = standing;
                 			level = LegacyLevel.BELOW;
-                			
-                            noJump.add(player);
-                            scheduler.runTaskLater(plugin, () -> {
-                            	noJump.remove(player);
-                            }, 15);
                 		} else {
 	                		//Break above
 	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
@@ -725,11 +692,6 @@ public class LegacyAgent extends Agent {
                 			//Break standing block
                 			get = standing;
                 			level = LegacyLevel.BELOW;
-                			
-                            noJump.add(player);
-                            scheduler.runTaskLater(plugin, () -> {
-                            	noJump.remove(player);
-                            }, 15);
                 		} else {
 	                		//Break above
 	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
@@ -783,6 +745,11 @@ public class LegacyAgent extends Agent {
 
         if (level != null) {
         	if (level == LegacyLevel.BELOW) {
+                noJump.add(player);
+                scheduler.runTaskLater(plugin, () -> {
+                	noJump.remove(player);
+                }, 15);
+                
         		npc.look(BlockFace.DOWN);
         		downMine(npc, player, get);
         	} else if (level == LegacyLevel.ABOVE)
@@ -793,7 +760,7 @@ public class LegacyAgent extends Agent {
         return level;
     }
 
-    private boolean checkUp(Terminator npc, LivingEntity target, LivingEntity playerNPC, Location loc, boolean c) {
+    private boolean checkUp(Terminator npc, LivingEntity target, LivingEntity playerNPC, Location loc, boolean c, boolean sameXZ) {
         Location a = playerNPC.getLocation();
         Location b = target.getLocation();
 
@@ -925,6 +892,16 @@ public class LegacyAgent extends Agent {
                 }
 
                 return true;
+            } else if (sameXZ && LegacyMats.BREAK.contains(m1)) {
+                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                if (block != null && block.getLocation().getBlockY() == playerNPC.getLocation().getBlockY()
+                	&& !LegacyMats.BREAK.contains(block.getType())) {
+                    npc.look(BlockFace.DOWN);
+
+                    downMine(npc, playerNPC, block);
+                    preBreak(npc, playerNPC, block, LegacyLevel.BELOW);
+                	return true;
+                }
             }
         }
 

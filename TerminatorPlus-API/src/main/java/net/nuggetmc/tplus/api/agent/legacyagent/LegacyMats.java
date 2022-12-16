@@ -99,7 +99,6 @@ public class LegacyMats {
         Material.WATER,
         Material.LAVA,
         Material.TALL_GRASS,
-        Material.SNOW,
         Material.CAVE_AIR,
         Material.VINE,
         Material.FERN,
