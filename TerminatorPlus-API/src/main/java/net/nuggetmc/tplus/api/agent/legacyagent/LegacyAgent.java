@@ -815,24 +815,25 @@ public class LegacyAgent extends Agent {
                 npc.look(BlockFace.DOWN);
 
                 // maybe put this in lower if statement onGround()
-                scheduler.runTaskLater(plugin, () -> {
-                    npc.sneak();
-                    npc.setItem(new ItemStack(Material.COBBLESTONE));
-                    npc.punch();
-                    npc.look(BlockFace.DOWN);
-
-                    scheduler.runTaskLater(plugin, () -> {
-                        npc.look(BlockFace.DOWN);
-                    }, 1);
-
-                    blockCheck.placeBlock(npc, playerNPC, place);
-
-                    if (!towerList.containsKey(playerNPC)) {
-                        if (c) {
-                            towerList.put(playerNPC, playerNPC.getLocation());
-                        }
-                    }
-                }, 3);
+                if (m0 != Material.WATER)
+	                scheduler.runTaskLater(plugin, () -> {
+	                    npc.sneak();
+	                    npc.setItem(new ItemStack(Material.COBBLESTONE));
+	                    npc.punch();
+	                    npc.look(BlockFace.DOWN);
+	
+	                    scheduler.runTaskLater(plugin, () -> {
+	                        npc.look(BlockFace.DOWN);
+	                    }, 1);
+	
+	                    blockCheck.placeBlock(npc, playerNPC, place);
+	
+	                    if (!towerList.containsKey(playerNPC)) {
+	                        if (c) {
+	                            towerList.put(playerNPC, playerNPC.getLocation());
+	                        }
+	                    }
+	                }, 3);
 
                 if (npc.isBotOnGround()) {
                     if (target.getLocation().distance(playerNPC.getLocation()) < 16) {
