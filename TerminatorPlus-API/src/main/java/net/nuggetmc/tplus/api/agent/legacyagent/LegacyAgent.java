@@ -1463,6 +1463,16 @@ public class LegacyAgent extends Agent {
 
                 break;
             }
+            
+            case NEAREST_RAIDER: {
+                for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
+                    if ((entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider)) && validateCloserEntity(entity, loc, result)) {
+                        result = entity;
+                    }
+                }
+
+                break;
+            }
 
             case NEAREST_MOB: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
