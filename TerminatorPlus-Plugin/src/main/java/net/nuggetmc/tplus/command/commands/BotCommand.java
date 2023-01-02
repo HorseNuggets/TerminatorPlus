@@ -434,12 +434,13 @@ public class BotCommand extends CommandInstance {
             }
             double x1, y1, z1, x2, y2, z2, wX, wY, wZ;
             try {
-            	x1 = Double.parseDouble(args.get(1));
-            	y1 = Double.parseDouble(args.get(2));
-            	z1 = Double.parseDouble(args.get(3));
-            	x2 = Double.parseDouble(args.get(4));
-            	y2 = Double.parseDouble(args.get(5));
-            	z2 = Double.parseDouble(args.get(6));
+            	Location loc = sender instanceof Player pl ? pl.getLocation() : null;
+            	x1 = parseDoubleOrRelative(args.get(1), loc, 0);
+            	y1 = parseDoubleOrRelative(args.get(2), loc, 1);
+            	z1 = parseDoubleOrRelative(args.get(3), loc, 2);
+            	x2 = parseDoubleOrRelative(args.get(4), loc, 0);
+            	y2 = parseDoubleOrRelative(args.get(5), loc, 1);
+            	z2 = parseDoubleOrRelative(args.get(6), loc, 2);
             	if (strict)
             		wX = wY = wZ = 0;
             	else {
@@ -517,5 +518,21 @@ public class BotCommand extends CommandInstance {
     )
     public void debug(CommandSender sender, @Arg("expression") String expression) {
         new Debugger(sender).execute(expression);
+    }
+    
+    private double parseDoubleOrRelative(String pos, Location loc, int type) {
+		if (loc == null || pos.length() == 0 || pos.charAt(0) != '~')
+			return Double.parseDouble(pos);
+		double relative = Double.parseDouble(pos.substring(1));
+    	switch (type) {
+    		case 0:
+    			return relative + loc.getX();
+    		case 1:
+    			return relative + loc.getY();
+    		case 2:
+    			return relative + loc.getZ();
+    		default:
+    			return 0;
+    	}
     }
 }
