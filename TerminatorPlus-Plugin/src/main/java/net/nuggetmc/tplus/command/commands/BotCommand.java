@@ -526,11 +526,11 @@ public class BotCommand extends CommandInstance {
 		double relative = Double.parseDouble(pos.substring(1));
     	switch (type) {
     		case 0:
-    			return relative + loc.getX();
+    			return relative + Math.round(loc.getX() * 1000) / 1000D;
     		case 1:
-    			return relative + loc.getY();
+    			return relative + Math.round(loc.getY() * 1000) / 1000D;
     		case 2:
-    			return relative + loc.getZ();
+    			return relative + Math.round(loc.getZ() * 1000) / 1000D;
     		default:
     			return 0;
     	}
