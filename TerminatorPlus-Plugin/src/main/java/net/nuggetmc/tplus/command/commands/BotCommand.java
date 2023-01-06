@@ -233,18 +233,21 @@ public class BotCommand extends CommandInstance {
     public List<String> infoAutofill(CommandSender sender, String[] args) {
         return args.length == 2 ? manager.fetchNames() : null;
     }
-    
+
     @Command(
-    		name = "count",
-    		desc = "Counts the amount of bots on screen by name."
+            name = "count",
+            desc = "Counts the amount of bots on screen by name.",
+            aliases = {
+                    "list"
+            }
     )
     public void count(CommandSender sender) {
     	List<String> names = manager.fetchNames();
     	Map<String, Integer> freqMap = names.stream().collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
     	List<Entry<String, Integer>> entries = freqMap.entrySet().stream()
     		.sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).collect(Collectors.toList());
-    	
-    	sender.sendMessage(ChatUtils.LINE);
+
+        sender.sendMessage(ChatUtils.LINE);
     	entries.forEach(en -> sender.sendMessage(ChatColor.GREEN + en.getKey()
     		+ ChatColor.RESET + " - " + ChatColor.BLUE + en.getValue().toString() + ChatColor.RESET));
     	sender.sendMessage("Total bots: " + ChatColor.BLUE + freqMap.values().stream().reduce(0, Integer::sum) + ChatColor.RESET);
@@ -519,7 +522,7 @@ public class BotCommand extends CommandInstance {
     public void debug(CommandSender sender, @Arg("expression") String expression) {
         new Debugger(sender).execute(expression);
     }
-    
+
     private double parseDoubleOrRelative(String pos, Location loc, int type) {
 		if (loc == null || pos.length() == 0 || pos.charAt(0) != '~')
 			return Double.parseDouble(pos);
