@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "net.nuggetmc"
-version = "3.2-BETA"
+version = "3.3.1-BETA"
 description = "TerminatorPlus"
 
 java {
@@ -13,7 +13,7 @@ java {
 }
 
 dependencies {
-    paperDevBundle("1.19-R0.1-SNAPSHOT")
+    paperDevBundle("1.19.2-R0.1-SNAPSHOT")
 
     //add the TerminatorPlus-API module
     implementation(project(":TerminatorPlus-API"))

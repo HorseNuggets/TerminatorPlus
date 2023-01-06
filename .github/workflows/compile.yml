@@ -1,19 +1,12 @@
-name: "CodeQL"
+name: "Compile"
 
 on: [push, pull_request]
 
 jobs:
   gradle:
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-      fail-fast: false
-        matrix:
-          language: [ 'java' ]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -37,12 +30,3 @@ jobs:
         with:
           name: TerminatorPlus
           path: build/libs/
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v1
-        with:
-          languages: ${{ matrix.language }}
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1
-

@@ -1,6 +1,8 @@
 package net.nuggetmc.tplus.api.agent.legacyagent;
 
 import net.nuggetmc.tplus.api.Terminator;
+import net.nuggetmc.tplus.api.utils.BotUtils;
+
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -8,9 +10,15 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.BoundingBox;
 
+import com.google.common.base.Optional;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class LegacyBlockCheck {
@@ -134,6 +142,90 @@ public class LegacyBlockCheck {
         for (Player all : Bukkit.getOnlinePlayers())
             all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
         placeFinal(bot, player, block.getLocation());
+    }
+    
+    public boolean tryPreMLG(Terminator bot, Location botLoc) {
+    	if(bot.isBotOnGround() || bot.getVelocity().getY() >= -0.8D || bot.getNoFallTicks() > 7)
+    		return false;
+    	if (tryPreMLG(bot, botLoc, 3))
+    		return true;
+    	return tryPreMLG(bot, botLoc, 2);
+    }
+    
+    private boolean tryPreMLG(Terminator bot, Location botLoc, int blocksBelow) {
+        BoundingBox box = bot.getBotBoundingBox();
+        double[] xVals = new double[]{
+                box.getMinX(),
+                box.getMaxX() - 0.01
+        };
+
+        double[] zVals = new double[]{
+                box.getMinZ(),
+                box.getMaxZ() - 0.01
+        };
+        Set<Location> below2Set = new HashSet<>();
+        
+    	for (double x : xVals) {
+            for (double z : zVals) {
+            	Location below = botLoc.clone();
+            	below.setX(x);
+            	below.setZ(z);
+            	below.setY(bot.getLocation().getBlockY());
+            	for (int i = 0; i < blocksBelow - 1; i++) {
+            		below.setY(below.getY() - 1);
+            		
+            		// Blocks before must all be pass-through
+            		Material type = below.getBlock().getType();
+            		if (type.isSolid() || LegacyMats.canStandOn(type))
+            			return false;
+            		below = below.clone();
+            	}
+            	below.setY(bot.getLocation().getBlockY() - blocksBelow);
+            	below2Set.add(below.getBlock().getLocation());
+            }
+    	}
+    	
+    	// Second block below must have at least one unplaceable block (that is landable)
+    	boolean nether = bot.getDimension() == World.Environment.NETHER;
+    	Iterator<Location> itr = below2Set.iterator();
+    	while (itr.hasNext()) {
+    		Block next = itr.next().getBlock();
+    		boolean placeable = nether ? LegacyMats.canPlaceTwistingVines(next)
+    			: LegacyMats.canPlaceWater(next, Optional.absent());
+    		if (placeable || (!next.getType().isSolid() && !LegacyMats.canStandOn(next.getType())))
+    			itr.remove();
+    	}
+    	
+    	// Clutch
+    	if (!below2Set.isEmpty()) {
+    		List<Location> below2List = new ArrayList<>(below2Set);
+    		below2List.sort((a, b) -> {
+    			Block aBlock = a.clone().add(0, 1, 0).getBlock();
+    			Block bBlock = b.clone().add(0, 1, 0).getBlock();
+    			if (aBlock.getType().isAir() && !bBlock.getType().isAir())
+    				return -1;
+    			if (!bBlock.getType().isAir() && aBlock.getType().isAir())
+    				return 1;
+    			return Double.compare(BotUtils.getHorizSqDist(a, botLoc), BotUtils.getHorizSqDist(b, botLoc));
+    		});
+    		
+    		Location faceLoc = below2List.get(0);
+    		Location loc = faceLoc.clone().add(0, 1, 0);
+            bot.faceLocation(faceLoc);
+            bot.look(BlockFace.DOWN);
+
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                bot.faceLocation(faceLoc);
+            }, 1);
+
+            bot.punch();
+            for (Player all : Bukkit.getOnlinePlayers())
+                all.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
+            bot.setItem(new ItemStack(Material.COBBLESTONE));
+            loc.getBlock().setType(Material.COBBLESTONE);
+    	}
+    	
+    	return false;
     }
 
     public void clutch(Terminator bot, LivingEntity target) {

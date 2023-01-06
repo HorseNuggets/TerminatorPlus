@@ -7,6 +7,7 @@ public enum EnumTargetGoal {
     NEAREST_VULNERABLE_PLAYER("Locate the nearest real player that is in either Survival or Adventure mode."),
     NEAREST_PLAYER("Locate the nearest real online player, despite the gamemode."),
     NEAREST_HOSTILE("Locate the nearest hostile entity."),
+    NEAREST_RAIDER("Locate the nearest raider."),
     NEAREST_MOB("Locate the nearest mob."),
     NEAREST_BOT("Locate the nearest bot."),
     NEAREST_BOT_DIFFER("Locate the nearest bot with a different username."),
@@ -20,10 +21,12 @@ public enum EnumTargetGoal {
             this.put("nearestvulnerableplayer", NEAREST_VULNERABLE_PLAYER);
             this.put("nearestplayer", NEAREST_PLAYER);
             this.put("nearesthostile", NEAREST_HOSTILE);
+            this.put("nearestraider", NEAREST_RAIDER);
             this.put("nearestmob", NEAREST_MOB);
             this.put("nearestbot", NEAREST_BOT);
             this.put("nearestbotdiffer", NEAREST_BOT_DIFFER);
             this.put("nearestbotdifferalpha", NEAREST_BOT_DIFFER_ALPHA);
+            this.put("player", PLAYER);
         }
     };
 

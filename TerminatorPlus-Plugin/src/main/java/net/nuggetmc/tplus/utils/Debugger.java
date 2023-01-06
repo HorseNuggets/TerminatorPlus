@@ -365,10 +365,6 @@ public class Debugger {
         print("This has been established as a feature as \"" + ChatColor.AQUA + "/bot settings setgoal" + ChatColor.RESET + "\"!");
     }
 
-    public void fire(boolean b) {
-        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setOnFirePackets(b));
-    }
-
     public void trackYVel() {
         if (!(sender instanceof Player)) return;
 

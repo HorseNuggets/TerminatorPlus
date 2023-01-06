@@ -35,10 +35,23 @@ public class BotManagerImpl implements BotManager, Listener {
 
     public boolean joinMessages = false;
     private boolean mobTarget = false;
+    private boolean addPlayerList = false;
+    private Location spawnLoc;
+    
     public BotManagerImpl() {
         this.agent = new LegacyAgent(this, TerminatorPlus.getInstance());
         this.bots = ConcurrentHashMap.newKeySet(); //should fix concurrentmodificationexception
         this.numberFormat = NumberFormat.getInstance(Locale.US);
+    }
+    
+    @Override
+    public Location getSpawnLoc() {
+    	return spawnLoc;
+    }
+    
+    @Override
+    public void setSpawnLoc(Location loc) {
+    	spawnLoc = loc;
     }
 
     @Override
@@ -56,7 +69,17 @@ public class BotManagerImpl implements BotManager, Listener {
     }
 
     @Override
-    public Terminator getFirst(String name) {
+    public Terminator getFirst(String name, Location target) {
+    	if (target != null) {
+    		Terminator closest = null;
+    		for (Terminator bot : bots) {
+    			if (name.equals(bot.getBotName()) && (closest == null
+    				|| target.distanceSquared(bot.getLocation()) < target.distanceSquared(closest.getLocation()))) {
+    				closest = bot;
+    			}
+    		}
+    		return closest;
+    	}
         for (Terminator bot : bots) {
             if (name.equals(bot.getBotName())) {
                 return bot;
@@ -98,7 +121,18 @@ public class BotManagerImpl implements BotManager, Listener {
 
         skinName = skinName == null ? name : skinName;
 
-        createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
+        if (spawnLoc != null) {
+        	sender.sendMessage("The spawn location is "
+				 + ChatColor.BLUE + String.format("(%s, %s, %s)", spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ()) + ChatColor.RESET
+				 + ". This will be reset to the player location next time.");
+        	Location loc = sender.getLocation().clone();
+        	loc.setX(spawnLoc.getX());
+        	loc.setY(spawnLoc.getY());
+        	loc.setZ(spawnLoc.getZ());
+        	createBots(loc, name, MojangAPI.getSkin(skinName), n, network);
+        	spawnLoc = null;
+        } else
+        	createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
 
         sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
     }
@@ -139,7 +173,6 @@ public class BotManagerImpl implements BotManager, Listener {
             } else if (i > 1) {
                 bot.setVelocity(randomVelocity().multiply(f));
             }
-            bot.setIgnoredByMobs(!mobTarget);
 
             bots.add(bot);
             i++;
@@ -164,7 +197,7 @@ public class BotManagerImpl implements BotManager, Listener {
     @Override
     public void reset() {
         if (!bots.isEmpty()) {
-            bots.forEach(Terminator::removeVisually);
+            bots.forEach(Terminator::removeBot);
             bots.clear(); // Not always necessary, but a good security measure
         }
 
@@ -204,6 +237,16 @@ public class BotManagerImpl implements BotManager, Listener {
     public void setMobTarget(boolean mobTarget) {
         this.mobTarget = mobTarget;
     }
+    
+    @Override
+    public boolean addToPlayerList() {
+        return addPlayerList;
+    }
+
+    @Override
+    public void setAddToPlayerList(boolean addPlayerList) {
+        this.addPlayerList = addPlayerList;
+    }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
@@ -222,8 +265,10 @@ public class BotManagerImpl implements BotManager, Listener {
 
     @EventHandler
     public void onMobTarget(EntityTargetLivingEntityEvent event) {
-        Bot bot = (Bot) getBot(event.getEntity().getUniqueId());
-        if (bot != null && bot.isIgnoredByMobs()) {
+    	if (mobTarget || event.getTarget() == null)
+    		return;
+        Bot bot = (Bot) getBot(event.getTarget().getUniqueId());
+        if (bot != null) {
             event.setCancelled(true);
         }
     }

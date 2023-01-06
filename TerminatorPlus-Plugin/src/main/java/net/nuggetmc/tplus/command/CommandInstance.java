@@ -1,6 +1,6 @@
 package net.nuggetmc.tplus.command;
 
-import net.md_5.bungee.api.ChatColor;
+import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.OptArg;
@@ -9,6 +9,7 @@ import net.nuggetmc.tplus.command.exception.ArgCountException;
 import net.nuggetmc.tplus.command.exception.ArgParseException;
 import net.nuggetmc.tplus.command.exception.NonPlayerException;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
@@ -47,6 +48,12 @@ public abstract class CommandInstance extends BukkitCommand {
     @Override
     public boolean execute(@Nonnull CommandSender sender, @Nonnull String label, @Nonnull String[] args) {
         if (!sender.hasPermission(MANAGE_PERMISSION)) {
+            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command. (Check if you are OP.)");
+            return false;
+        }
+        if (!TerminatorPlus.isCorrectVersion()) {
+            sender.sendMessage(ChatColor.RED + "You are not running the correct server version of Minecraft!");
+            sender.sendMessage(ChatColor.RED + "You are using MC server version " + TerminatorPlus.getMcVersion() + " but this plugin requires " + TerminatorPlus.REQUIRED_VERSION);
             return false;
         }
 
