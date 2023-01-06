@@ -1,10 +1,10 @@
 plugins {
     `java-library`
     id("io.papermc.paperweight.userdev") version "1.3.7"
+    id("net.nuggetmc.java-conventions")
 }
 
 group = "net.nuggetmc"
-version = "3.3.1-BETA"
 description = "TerminatorPlus"
 
 java {
