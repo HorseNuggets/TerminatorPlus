@@ -4,13 +4,17 @@ import com.mojang.authlib.GameProfile;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface Terminator {
@@ -30,14 +34,14 @@ public interface Terminator {
     boolean hasNeuralNetwork();
 
     Location getLocation();
+    
+    BoundingBox getBotBoundingBox();
 
     boolean isBotAlive(); //Has to be named like this because paper re-obfuscates it
 
     float getBotHealth();
 
     float getBotMaxHealth();
-
-    void ignite();
 
     boolean isBotOnFire();
 
@@ -50,6 +54,8 @@ public interface Terminator {
     boolean isBotInWater();
 
     boolean isBotOnGround();
+    
+    List<Block> getStandingOn();
 
     void setBotPitch(float pitch);
 
@@ -106,14 +112,18 @@ public interface Terminator {
     void addVelocity(Vector velocity);
 
     int getAliveTicks();
+    
+    int getNoFallTicks();
 
     boolean tickDelay(int ticks);
 
     void renderBot(Object packetListener, boolean login);
 
-    void setOnFirePackets(boolean onFire);
-
     UUID getTargetPlayer();
 
     void setTargetPlayer(UUID target);
+    
+    boolean isInPlayerList();
+    
+    World.Environment getDimension();
 }

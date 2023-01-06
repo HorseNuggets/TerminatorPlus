@@ -10,13 +10,17 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface BotManager {
+    Location getSpawnLoc();
+    
+    void setSpawnLoc(Location loc);
+    
     Set<Terminator> fetch();
 
     Agent getAgent();
 
     void add(Terminator bot);
 
-    Terminator getFirst(String name);
+    Terminator getFirst(String name, Location target);
 
     List<String> fetchNames();
 
@@ -50,4 +54,7 @@ public interface BotManager {
 
     void setMobTarget(boolean mobTarget);
 
+    boolean addToPlayerList();
+
+    void setAddToPlayerList(boolean addPlayerList);
 }

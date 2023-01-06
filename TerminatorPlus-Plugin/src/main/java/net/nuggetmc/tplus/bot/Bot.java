@@ -2,8 +2,6 @@ package net.nuggetmc.tplus.bot;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
@@ -27,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.agent.Agent;
+import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
@@ -35,6 +34,7 @@ import net.nuggetmc.tplus.api.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.craftbukkit.v1_19_R1.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
@@ -45,11 +45,13 @@ import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -69,13 +71,14 @@ public class Bot extends ServerPlayer implements Terminator {
     private boolean removeOnDeath;
     private int aliveTicks;
     private int kills;
-    private byte fireTicks; // Fire animation isn't played? Bot still takes damage.
     private byte groundTicks;
     private byte jumpTicks;
     private byte noFallTicks;
-    private boolean ignoredByMobs = true;
+    private List<Block> standingOn = new ArrayList<>();
     private UUID targetPlayer = null;
-    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile) {
+    private boolean inPlayerList;
+    
+    private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile, boolean addToPlayerList) {
         super(minecraftServer, worldServer, profile, null);
 
         this.plugin = TerminatorPlus.getInstance();
@@ -85,9 +88,12 @@ public class Bot extends ServerPlayer implements Terminator {
         this.velocity = new Vector(0, 0, 0);
         this.oldVelocity = velocity.clone();
         this.noFallTicks = 60;
-        this.fireTicks = 0;
         this.removeOnDeath = true;
         this.offset = MathUtils.circleOffset(3);
+        if (addToPlayerList) {
+            minecraftServer.getPlayerList().getPlayers().add(this);
+            inPlayerList = true;
+        }
 
         //this.entityData.set(new EntityDataAccessor<>(16, EntityDataSerializers.BYTE), (byte) 0xFF);
     }
@@ -103,8 +109,10 @@ public class Bot extends ServerPlayer implements Terminator {
         UUID uuid = BotUtils.randomSteveUUID();
 
         CustomGameProfile profile = new CustomGameProfile(uuid, ChatUtils.trim16(name), skin);
+        
+        boolean addPlayerList = TerminatorPlus.getInstance().getManager().addToPlayerList();
 
-        Bot bot = new Bot(nmsServer, nmsWorld, profile);
+        Bot bot = new Bot(nmsServer, nmsWorld, profile, addPlayerList);
 
         bot.connection = new ServerGamePacketListenerImpl(nmsServer, new Connection(PacketFlow.CLIENTBOUND) {
 
@@ -119,7 +127,10 @@ public class Bot extends ServerPlayer implements Terminator {
         bot.getBukkitEntity().setNoDamageTicks(0);
         Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
                 new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, bot)));
-        nmsWorld.addFreshEntity(bot);
+        if (addPlayerList)
+        	nmsWorld.addNewPlayer(bot);
+        else
+        	nmsWorld.addFreshEntity(bot);
         bot.renderAll();
 
         TerminatorPlus.getInstance().getManager().add(bot);
@@ -243,6 +254,11 @@ public class Bot extends ServerPlayer implements Terminator {
     public int getAliveTicks() {
         return aliveTicks;
     }
+    
+    @Override
+    public int getNoFallTicks() {
+    	return noFallTicks;
+    }
 
     @Override
     public boolean tickDelay(int i) {
@@ -278,8 +294,6 @@ public class Bot extends ServerPlayer implements Terminator {
 
         aliveTicks++;
 
-        if (fireTicks > 0) --fireTicks;
-        if (invulnerableTime > 0) --invulnerableTime;
         if (jumpTicks > 0) --jumpTicks;
         if (noFallTicks > 0) --noFallTicks;
 
@@ -290,6 +304,8 @@ public class Bot extends ServerPlayer implements Terminator {
         }
 
         updateLocation();
+        
+        if (!isAlive()) return;
 
         float health = getHealth();
         float maxHealth = getMaxHealth();
@@ -304,14 +320,11 @@ public class Bot extends ServerPlayer implements Terminator {
 
         setHealth(amount);
 
-        fireDamageCheck();
         fallDamageCheck();
 
-        if (position().y < -64) {
-            die(DamageSource.OUT_OF_WORLD);
-        }
-
         oldVelocity = velocity.clone();
+        
+        doTick();
     }
 
     private void loadChunks() {
@@ -328,52 +341,6 @@ public class Bot extends ServerPlayer implements Terminator {
         }
     }
 
-    private void fireDamageCheck() {
-        if (!isAlive()) {
-            return; // maybe also have packet reset thing
-        }
-
-        Material type = getLocation().getBlock().getType();
-
-        if (type == Material.WATER) {
-            setOnFirePackets(false); // maybe also play extinguish noise?
-            fireTicks = 0;
-            return;
-        }
-
-        boolean lava = type == org.bukkit.Material.LAVA;
-
-        if (lava || type == org.bukkit.Material.FIRE || type == Material.SOUL_FIRE) {
-            ignite();
-        }
-
-        if (invulnerableTime == 0) {
-            if (lava) {
-                hurt(DamageSource.LAVA, 4);
-                invulnerableTime = 20;//this used to be 12 ticks but that would cause the bot to take damage too quickly
-            } else if (fireTicks > 1) {
-                hurt(DamageSource.IN_FIRE, 1);
-                invulnerableTime = 20;
-            }
-        }
-
-        if (fireTicks == 1) {
-            setOnFirePackets(false);
-        }
-    }
-
-    @Override
-    public void ignite() {
-        if (fireTicks <= 1) setOnFirePackets(true);
-        fireTicks = 100;
-    }
-
-    @Override
-    public void setOnFirePackets(boolean onFire) {
-        //entityData.set(new EntityDataAccessor<>(0, EntityDataSerializers.BYTE), onFire ? (byte) 1 : (byte) 0);
-        //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, false));
-    }
-
     @Override
     public UUID getTargetPlayer() {
         return targetPlayer;
@@ -386,12 +353,12 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public boolean isBotOnFire() {
-        return fireTicks != 0;
+        return this.isOnFire();
     }
 
     private void fallDamageCheck() { // TODO create a better bot event system in the future, also have bot.getAgent()
-        if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !BotUtils.NO_FALL.contains(getLocation().getBlock().getType())) {
-            BotFallDamageEvent event = new BotFallDamageEvent(this);
+        if (groundTicks != 0 && noFallTicks == 0 && !(oldVelocity.getY() >= -0.8) && !isFallBlocked()) {
+            BotFallDamageEvent event = new BotFallDamageEvent(this, new ArrayList<>(getStandingOn()));
 
             plugin.getManager().getAgent().onFallDamage(event);
 
@@ -399,6 +366,33 @@ public class Bot extends ServerPlayer implements Terminator {
                 hurt(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
             }
         }
+    }
+    
+    private boolean isFallBlocked() {
+        AABB box = getBoundingBox();
+        double[] xVals = new double[]{
+                box.minX,
+                box.maxX - 0.01
+        };
+
+        double[] zVals = new double[]{
+                box.minZ,
+                box.maxZ - 0.01
+        };
+        BoundingBox playerBox = new BoundingBox(box.minX, position().y - 0.01, box.minZ,
+        	box.maxX, position().y + getBbHeight(), box.maxZ);
+    	for (double x : xVals) {
+            for (double z : zVals) {
+            	Location loc = new Location(getBukkitEntity().getWorld(), Math.floor(x), getLocation().getY(), Math.floor(z));
+            	Block block = loc.getBlock();
+            	if (block.getBlockData() instanceof Waterlogged wl && wl.isWaterlogged())
+            		return true;
+            	if (BotUtils.NO_FALL.contains(loc.getBlock().getType()) && (BotUtils.overlaps(playerBox, loc.getBlock().getBoundingBox())
+            		|| loc.getBlock().getType() == Material.WATER || loc.getBlock().getType() == Material.LAVA))
+            		return true;
+            }
+    	}
+    	return false;
     }
 
     @Override
@@ -525,7 +519,11 @@ public class Bot extends ServerPlayer implements Terminator {
             return false;
         }
 
-        World world = getBukkitEntity().getWorld();
+        return checkStandingOn();
+    }
+    
+    public boolean checkStandingOn() {
+    	World world = getBukkitEntity().getWorld();
         AABB box = getBoundingBox();
 
         double[] xVals = new double[]{
@@ -537,19 +535,55 @@ public class Bot extends ServerPlayer implements Terminator {
                 box.minZ,
                 box.maxZ
         };
+        BoundingBox playerBox = new BoundingBox(box.minX, position().y - 0.01, box.minZ,
+        	box.maxX, position().y + getBbHeight(), box.maxZ);
+        List<Block> standingOn = new ArrayList<>();
+        List<Location> locations = new ArrayList<>();
 
         for (double x : xVals) {
             for (double z : zVals) {
                 Location loc = new Location(world, x, position().y - 0.01, z);
                 Block block = world.getBlockAt(loc);
 
-                if (block.getType().isSolid() && BotUtils.solidAt(loc)) {
-                    return true;
+                if ((block.getType().isSolid() || LegacyMats.canStandOn(block.getType())) && BotUtils.overlaps(playerBox, block.getBoundingBox())) {
+                	if (!locations.contains(block.getLocation())) {
+                		standingOn.add(block);
+                		locations.add(block.getLocation());
+                	}
+                }
+            }
+        }
+        
+        //Fence/wall check
+        for (double x : xVals) {
+            for (double z : zVals) {
+                Location loc = new Location(world, x, position().y - 0.51, z);
+                Block block = world.getBlockAt(loc);
+                BoundingBox blockBox = loc.getBlock().getBoundingBox();
+                BoundingBox modifiedBox = new BoundingBox(blockBox.getMinX(), blockBox.getMinY(), blockBox.getMinZ(), blockBox.getMaxX(),
+                		blockBox.getMinY() + 1.5, blockBox.getMaxZ());
+                		
+                if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
+                		&& block.getType().isSolid() && BotUtils.overlaps(playerBox, modifiedBox)) {
+                	if (!locations.contains(block.getLocation())) {
+                		standingOn.add(block);
+                		locations.add(block.getLocation());
+                	}
                 }
             }
         }
 
-        return false;
+        //Closest block comes first
+        Collections.sort(standingOn, (a, b) ->
+        	Double.compare(BotUtils.getHorizSqDist(a.getLocation(), getLocation()), BotUtils.getHorizSqDist(b.getLocation(), getLocation())));
+        
+        this.standingOn = standingOn;
+        return !standingOn.isEmpty();
+    }
+    
+    @Override
+    public List<Block> getStandingOn() {
+    	return standingOn;
     }
 
     @Override
@@ -582,6 +616,8 @@ public class Bot extends ServerPlayer implements Terminator {
             scheduler.runTask(plugin, () -> this.remove(RemovalReason.DISCARDED));
         }
         this.removeVisually();
+        if (inPlayerList)
+        	this.server.getPlayerList().getPlayers().remove(this);
     }
 
     private void removeTab() {
@@ -609,7 +645,7 @@ public class Bot extends ServerPlayer implements Terminator {
             // this should fix the concurrentmodificationexception mentioned above, I used the ConcurrentHashMap.newKeySet to make a "ConcurrentHashSet"
             plugin.getManager().remove(this);
 
-            scheduler.runTaskLater(plugin, this::setDead, 30);
+            scheduler.runTaskLater(plugin, this::removeBot, 20);
 
             this.removeTab();
         }
@@ -728,6 +764,11 @@ public class Bot extends ServerPlayer implements Terminator {
     public Location getLocation() {
         return getBukkitEntity().getLocation();
     }
+    
+    @Override
+    public BoundingBox getBotBoundingBox() {
+        return getBukkitEntity().getBoundingBox();
+    }
 
     @Override
     public void setBotPitch(float pitch) {
@@ -842,25 +883,16 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public void doTick() {
-        if (this.hurtTime > 0) {
-            this.hurtTime -= 1;
-        }
-
         baseTick();
-        tickEffects();
-
-        this.animStepO = (int) this.animStep;
-        this.yBodyRotO = this.yBodyRot;
-        this.yHeadRotO = this.yHeadRot;
-        this.yRotO = this.getYRot();
-        this.xRotO = this.getXRot();
     }
-
-    public boolean isIgnoredByMobs() {
-        return ignoredByMobs;
+    
+    @Override
+    public boolean isInPlayerList() {
+    	return inPlayerList;
     }
-
-    public void setIgnoredByMobs(boolean ignoredByMobs) {
-        this.ignoredByMobs = ignoredByMobs;
+    
+    @Override
+    public World.Environment getDimension() {
+    	return getBukkitEntity().getWorld().getEnvironment();
     }
 }

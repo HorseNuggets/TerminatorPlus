@@ -11,18 +11,25 @@ import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.api.event.BotDeathEvent;
 import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
 import net.nuggetmc.tplus.api.event.TerminatorLocateTargetEvent;
+import net.nuggetmc.tplus.api.utils.BotUtils;
 import net.nuggetmc.tplus.api.utils.MathUtils;
 import net.nuggetmc.tplus.api.utils.PlayerUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import com.google.common.base.Optional;
+
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 // Yes, this code is very unoptimized, I know.
@@ -43,24 +50,12 @@ public class LegacyAgent extends Agent {
     private final Map<BukkitRunnable, Byte> mining = new HashMap<>();
     private final Set<Terminator> fallDamageCooldown = new HashSet<>();
     public boolean offsets = true;
-    private List<Material> instantBreakBlocks = Arrays.asList(
-            Material.TALL_GRASS,
-            Material.GRASS,
-            Material.KELP_PLANT,
-            Material.WHEAT,
-            Material.POTATOES,
-            Material.CARROT,
-            Material.BEETROOT,
-            Material.SUGAR_CANE,
-            Material.SWEET_BERRY_BUSH,
-            Material.LILY_PAD,
-            Material.DANDELION,
-            Material.POPPY,
-            Material.ROSE_BUSH,
-            Material.PUMPKIN_STEM,
-            Material.MELON_STEM
-    );
+    private List<LivingEntity> botsInPlayerList;
     private EnumTargetGoal goal;
+    private BoundingBox region;
+    private double regionWeightX;
+    private double regionWeightY;
+    private double regionWeightZ;
 
     public LegacyAgent(BotManager manager, Plugin plugin) {
         super(manager, plugin);
@@ -75,7 +70,8 @@ public class LegacyAgent extends Agent {
 
     @Override
     protected void tick() {
-        manager.fetch().forEach(this::tickBot);
+    	botsInPlayerList = manager.fetch().stream().filter(t -> t.isInPlayerList()).map(b -> b.getBukkitEntity()).toList();
+    	manager.fetch().forEach(this::tickBot);
     }
 
     private void center(Terminator bot) {
@@ -115,6 +111,8 @@ public class LegacyAgent extends Agent {
         Location loc = bot.getLocation();
         LivingEntity livingTarget = locateTarget(bot, loc);
 
+        blockCheck.tryPreMLG(bot, loc);
+        
         if (livingTarget == null) {
             stopMining(bot);
             return;
@@ -180,11 +178,13 @@ public class LegacyAgent extends Agent {
 
             if (checkAt(bot, block, botPlayer)) return;
 
-            if (checkFence(bot, loc.getBlock(), botPlayer)) return;
+            if (checkFenceAndGates(bot, loc.getBlock(), botPlayer)) return;
+            
+            if (checkObstacles(bot, loc.getBlock(), botPlayer)) return;
 
             if (checkDown(bot, botPlayer, livingTarget.getLocation(), bothXZ)) return;
 
-            if ((withinTargetXZ || sameXZ) && checkUp(bot, livingTarget, botPlayer, target, withinTargetXZ)) return;
+            if ((withinTargetXZ || sameXZ) && checkUp(bot, livingTarget, botPlayer, target, withinTargetXZ, sameXZ)) return;
 
             if (bothXZ) sideResult = checkSide(bot, livingTarget, botPlayer);
 
@@ -303,7 +303,7 @@ public class LegacyAgent extends Agent {
 
             Material itemType;
 
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 itemType = Material.TWISTING_VINES;
             } else {
                 itemType = Material.WATER_BUCKET;
@@ -344,26 +344,50 @@ public class LegacyAgent extends Agent {
         Material itemType;
         Material placeType;
         Sound sound;
+        Location groundLoc = null;
+        boolean nether = bot.getDimension() == World.Environment.NETHER;
+        double yPos = bot.getBukkitEntity().getLocation().getY();
 
-        if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+        if (nether) {
             itemType = Material.TWISTING_VINES;
             sound = Sound.BLOCK_WEEPING_VINES_PLACE;
             placeType = itemType;
+            
+            for (Block block : event.getStandingOn()) {
+            	if (LegacyMats.canPlaceTwistingVines(block)) {
+            		groundLoc = block.getLocation();
+            		break;
+            	}
+            }
         } else {
             itemType = Material.WATER_BUCKET;
             sound = Sound.ITEM_BUCKET_EMPTY;
             placeType = Material.WATER;
+            
+            for (Block block : event.getStandingOn()) {
+            	if (LegacyMats.canPlaceWater(block, Optional.of(yPos))) {
+            		groundLoc = block.getLocation();
+            		break;
+            	}
+            }
         }
-
-        Location loc = bot.getLocation();
-
-        if (!loc.clone().add(0, -1, 0).getBlock().getType().isSolid()) return;
+        
+        if (groundLoc == null) return;
+        
+        Location loc = !LegacyMats.shouldReplace(groundLoc.getBlock(), yPos, nether) ? groundLoc.add(0, 1, 0) : groundLoc;
+        boolean waterloggable = !nether && loc.getBlock().getBlockData() instanceof Waterlogged;
+        boolean waterlogged = waterloggable && ((Waterlogged)loc.getBlock().getBlockData()).isWaterlogged();
 
         event.setCancelled(true);
 
-        if (loc.getBlock().getType() != placeType) {
+        if (loc.getBlock().getType() != placeType && !waterlogged) {
             bot.punch();
-            loc.getBlock().setType(placeType);
+            if (waterloggable) {
+            	Waterlogged data = (Waterlogged)loc.getBlock().getBlockData();
+            	data.setWaterlogged(true);
+            	loc.getBlock().setBlockData(data);
+            } else
+            	loc.getBlock().setType(placeType);
             world.playSound(loc, sound, 1, 1);
 
             if (itemType == Material.WATER_BUCKET) {
@@ -372,11 +396,18 @@ public class LegacyAgent extends Agent {
                 scheduler.runTaskLater(plugin, () -> {
                     Block block = loc.getBlock();
 
-                    if (block.getType() == Material.WATER) {
+                    boolean waterloggedNow = !nether && block.getBlockData() instanceof Waterlogged
+                    	&& ((Waterlogged)block.getBlockData()).isWaterlogged();
+                    if (block.getType() == Material.WATER || waterloggedNow) {
                         bot.look(BlockFace.DOWN);
                         bot.setItem(new ItemStack(Material.WATER_BUCKET));
                         world.playSound(loc, Sound.ITEM_BUCKET_FILL, 1, 1);
-                        block.setType(Material.AIR);
+                        if (waterloggedNow) {
+                        	Waterlogged data = (Waterlogged)loc.getBlock().getBlockData();
+                        	data.setWaterlogged(false);
+                        	loc.getBlock().setBlockData(data);
+                        } else
+                        	block.setType(Material.AIR);
                     }
                 }, 5);
             }
@@ -442,7 +473,7 @@ public class LegacyAgent extends Agent {
         if (level == null) {
             resetHand(npc, target, playerNPC);
             return 1;
-        } else if (level.isSide()) {
+        } else if (level.isSide() || level == LegacyLevel.BELOW || level == LegacyLevel.ABOVE) {
             return 0;
         } else {
             return 2;
@@ -457,6 +488,71 @@ public class LegacyAgent extends Agent {
         BlockFace dir = player.getFacing();
         LegacyLevel level = null;
         Block get = null;
+        
+        BoundingBox box = player.getBoundingBox();
+        double[] xVals = new double[]{
+                box.getMinX(),
+                box.getMaxX() - 0.01
+        };
+
+        double[] zVals = new double[]{
+                box.getMinZ(),
+                box.getMaxZ() - 0.01
+        };
+        List<Location> locStanding = new ArrayList<>();
+    	for (double x : xVals) {
+            for (double z : zVals) {
+            	Location loc = new Location(player.getWorld(), Math.floor(x), npc.getLocation().getBlockY(), Math.floor(z));
+            	if (!locStanding.contains(loc))
+            		locStanding.add(loc);
+            }
+    	}
+    	Collections.sort(locStanding, (a, b) ->
+    		Double.compare(BotUtils.getHorizSqDist(a, player.getLocation()), BotUtils.getHorizSqDist(b, player.getLocation())));
+    	
+        //Break potential obstructing walls
+    	for (Location loc : locStanding) {
+    		boolean up = false;
+    		get = loc.getBlock();
+    		if (!LegacyMats.FENCE.contains(get.getType())) {
+    			up = true;
+    			get = loc.add(0, 1, 0).getBlock();
+    			if (!LegacyMats.FENCE.contains(get.getType())) {
+    				get = null;
+    			}
+    		}
+    		
+    		if (get != null) {
+    			int distanceX = get.getLocation().getBlockX() - player.getLocation().getBlockX();
+    			int distanceZ = get.getLocation().getBlockZ() - player.getLocation().getBlockZ();
+    			if (distanceX == 1 && distanceZ == 0) {
+    				if (dir == BlockFace.NORTH || dir == BlockFace.SOUTH) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.EAST : LegacyLevel.EAST_D;
+    				}
+    			} else if (distanceX == -1 && distanceZ == 0) {
+    				if (dir == BlockFace.NORTH || dir == BlockFace.SOUTH) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.WEST : LegacyLevel.WEST_D;
+    				}
+    			} else if (distanceX == 0 && distanceZ == 1) {
+    				if (dir == BlockFace.EAST || dir == BlockFace.WEST) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.SOUTH : LegacyLevel.SOUTH_D;
+    				}
+    			} else if (distanceX == 0 && distanceZ == -1) {
+    				if (dir == BlockFace.EAST || dir == BlockFace.WEST) {
+    					npc.faceLocation(get.getLocation());
+    					level = up ? LegacyLevel.NORTH : LegacyLevel.NORTH_D;
+    				}
+    			}
+    			
+    	        if (level != null) {
+    	            preBreak(npc, player, get, level);
+        	        return level;
+    	        }
+    		}
+    	}
 
         switch (dir) {
             case NORTH:
@@ -466,6 +562,35 @@ public class LegacyAgent extends Agent {
                 } else if (checkSideBreak(get.getLocation().add(0, -1, 0).getBlock().getType())) {
                     get = get.getLocation().add(0, -1, 0).getBlock();
                     level = LegacyLevel.NORTH_D;
+                } else if (LegacyMats.FENCE.contains(get.getLocation().add(0, -2, 0).getBlock().getType())) {
+                    get = get.getLocation().add(0, -2, 0).getBlock();
+                    level = LegacyLevel.NORTH_D_2;
+                } else {
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	if(standing == null)
+                		break;
+                	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
+                		|| (standing.getLocation().getBlockY() + 1 == player.getLocation().getBlockY()
+                		&& (LegacyMats.FENCE.contains(standing.getType()) || LegacyMats.GATES.contains(standing.getType())));
+                	if(obstructed) {
+                		Block belowStanding = standing.getLocation().add(0, -1, 0).getBlock();
+                		if(!LegacyMats.BREAK.contains(belowStanding.getType()) && !LegacyMats.NONSOLID.contains(belowStanding.getType())) {
+                			//Break standing block
+                			get = standing;
+                			level = LegacyLevel.BELOW;
+                		} else {
+	                		//Break above
+	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
+	                		Block aboveSide = get.getLocation().add(0, 1, 0).getBlock();
+	                		if(!LegacyMats.BREAK.contains(above.getType())) {
+	                			get = above;
+	                            level = LegacyLevel.ABOVE;
+	                		} else if(!LegacyMats.BREAK.contains(aboveSide.getType())) {
+	                			get = aboveSide;
+	                            level = LegacyLevel.NORTH_U;
+	                		}
+                		}
+                	}
                 }
                 break;
             case SOUTH:
@@ -475,6 +600,35 @@ public class LegacyAgent extends Agent {
                 } else if (checkSideBreak(get.getLocation().add(0, -1, 0).getBlock().getType())) {
                     get = get.getLocation().add(0, -1, 0).getBlock();
                     level = LegacyLevel.SOUTH_D;
+                } else if (LegacyMats.FENCE.contains(get.getLocation().add(0, -2, 0).getBlock().getType())) {
+                    get = get.getLocation().add(0, -2, 0).getBlock();
+                    level = LegacyLevel.SOUTH_D_2;
+                } else {
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	if(standing == null)
+                		break;
+                	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
+                		|| (standing.getLocation().getBlockY() + 1 == player.getLocation().getBlockY()
+                		&& (LegacyMats.FENCE.contains(standing.getType()) || LegacyMats.GATES.contains(standing.getType())));
+                	if(obstructed) {
+                		Block belowStanding = standing.getLocation().add(0, -1, 0).getBlock();
+                		if(!LegacyMats.BREAK.contains(belowStanding.getType()) && !LegacyMats.NONSOLID.contains(belowStanding.getType())) {
+                			//Break standing block
+                			get = standing;
+                			level = LegacyLevel.BELOW;
+                		} else {
+	                		//Break above
+	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
+	                		Block aboveSide = get.getLocation().add(0, 1, 0).getBlock();
+	                		if(!LegacyMats.BREAK.contains(above.getType())) {
+	                			get = above;
+	                            level = LegacyLevel.ABOVE;
+	                		} else if(!LegacyMats.BREAK.contains(aboveSide.getType())) {
+	                			get = aboveSide;
+	                            level = LegacyLevel.SOUTH_U;
+	                		}
+                		}
+                	}
                 }
                 break;
             case EAST:
@@ -484,6 +638,35 @@ public class LegacyAgent extends Agent {
                 } else if (checkSideBreak(get.getLocation().add(0, -1, 0).getBlock().getType())) {
                     get = get.getLocation().add(0, -1, 0).getBlock();
                     level = LegacyLevel.EAST_D;
+                } else if (LegacyMats.FENCE.contains(get.getLocation().add(0, -2, 0).getBlock().getType())) {
+                    get = get.getLocation().add(0, -2, 0).getBlock();
+                    level = LegacyLevel.EAST_D_2;
+                } else {
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	if(standing == null)
+                		break;
+                	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
+                		|| (standing.getLocation().getBlockY() + 1 == player.getLocation().getBlockY()
+                		&& (LegacyMats.FENCE.contains(standing.getType()) || LegacyMats.GATES.contains(standing.getType())));
+                	if(obstructed) {
+                		Block belowStanding = standing.getLocation().add(0, -1, 0).getBlock();
+                		if(!LegacyMats.BREAK.contains(belowStanding.getType()) && !LegacyMats.NONSOLID.contains(belowStanding.getType())) {
+                			//Break standing block
+                			get = standing;
+                			level = LegacyLevel.BELOW;
+                		} else {
+	                		//Break above
+	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
+	                		Block aboveSide = get.getLocation().add(0, 1, 0).getBlock();
+	                		if(!LegacyMats.BREAK.contains(above.getType())) {
+	                			get = above;
+	                            level = LegacyLevel.ABOVE;
+	                		} else if(!LegacyMats.BREAK.contains(aboveSide.getType())) {
+	                			get = aboveSide;
+	                            level = LegacyLevel.EAST_U;
+	                		}
+                		}
+                	}
                 }
                 break;
             case WEST:
@@ -493,27 +676,91 @@ public class LegacyAgent extends Agent {
                 } else if (checkSideBreak(get.getLocation().add(0, -1, 0).getBlock().getType())) {
                     get = get.getLocation().add(0, -1, 0).getBlock();
                     level = LegacyLevel.WEST_D;
+                } else if (LegacyMats.FENCE.contains(get.getLocation().add(0, -2, 0).getBlock().getType())) {
+                    get = get.getLocation().add(0, -2, 0).getBlock();
+                    level = LegacyLevel.WEST_D_2;
+                } else {
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	if(standing == null)
+                		break;
+                	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
+                		|| (standing.getLocation().getBlockY() + 1 == player.getLocation().getBlockY()
+                		&& (LegacyMats.FENCE.contains(standing.getType()) || LegacyMats.GATES.contains(standing.getType())));
+                	if(obstructed) {
+                		Block belowStanding = standing.getLocation().add(0, -1, 0).getBlock();
+                		if(!LegacyMats.BREAK.contains(belowStanding.getType()) && !LegacyMats.NONSOLID.contains(belowStanding.getType())) {
+                			//Break standing block
+                			get = standing;
+                			level = LegacyLevel.BELOW;
+                		} else {
+	                		//Break above
+	                		Block above = npc.getLocation().add(0, 2, 0).getBlock();
+	                		Block aboveSide = get.getLocation().add(0, 1, 0).getBlock();
+	                		if(!LegacyMats.BREAK.contains(above.getType())) {
+	                			get = above;
+	                            level = LegacyLevel.ABOVE;
+	                		} else if(!LegacyMats.BREAK.contains(aboveSide.getType())) {
+	                			get = aboveSide;
+	                            level = LegacyLevel.WEST_U;
+	                		}
+                		}
+                	}
                 }
                 break;
             default:
                 break;
         }
 
-        if (level == LegacyLevel.EAST_D || level == LegacyLevel.WEST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D) {
+        if (level == LegacyLevel.EAST_D || level == LegacyLevel.WEST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D
+        		|| level == LegacyLevel.EAST_D_2 || level == LegacyLevel.WEST_D_2 || level == LegacyLevel.NORTH_D_2 || level == LegacyLevel.SOUTH_D_2) {
             if (LegacyMats.AIR.contains(player.getLocation().add(0, 2, 0).getBlock().getType())
-                    && LegacyMats.AIR.contains(get.getLocation().add(0, 2, 0).getBlock().getType())) {
+                    && LegacyMats.AIR.contains(get.getLocation().add(0, 2, 0).getBlock().getType())
+                    && !LegacyMats.FENCE.contains(get.getType()) && !LegacyMats.GATES.contains(get.getType())) {
                 return null;
             }
         }
+        if (level == LegacyLevel.ABOVE || level == LegacyLevel.BELOW) {
+            Block check;
+
+            switch (dir) {
+                case NORTH:
+                	check = player.getLocation().add(0, 2, -1).getBlock();
+                    break;
+                case SOUTH:
+                	check = player.getLocation().add(0, 2, 1).getBlock();
+                    break;
+                case EAST:
+                	check = player.getLocation().add(1, 2, 0).getBlock();
+                    break;
+                case WEST:
+                	check = player.getLocation().add(-1, 2, 0).getBlock();
+                    break;
+                default:
+                	check = null;
+            }
+            if (LegacyMats.AIR.contains(player.getLocation().add(0, 2, 0).getBlock().getType())
+                && LegacyMats.AIR.contains(check.getType()))
+                return null;
+        }
 
         if (level != null) {
+        	if (level == LegacyLevel.BELOW) {
+                noJump.add(player);
+                scheduler.runTaskLater(plugin, () -> {
+                	noJump.remove(player);
+                }, 15);
+                
+        		npc.look(BlockFace.DOWN);
+        		downMine(npc, player, get);
+        	} else if (level == LegacyLevel.ABOVE)
+        		npc.look(BlockFace.UP);
             preBreak(npc, player, get, level);
         }
 
         return level;
     }
 
-    private boolean checkUp(Terminator npc, LivingEntity target, LivingEntity playerNPC, Location loc, boolean c) {
+    private boolean checkUp(Terminator npc, LivingEntity target, LivingEntity playerNPC, Location loc, boolean c, boolean sameXZ) {
         Location a = playerNPC.getLocation();
         Location b = target.getLocation();
 
@@ -568,24 +815,25 @@ public class LegacyAgent extends Agent {
                 npc.look(BlockFace.DOWN);
 
                 // maybe put this in lower if statement onGround()
-                scheduler.runTaskLater(plugin, () -> {
-                    npc.sneak();
-                    npc.setItem(new ItemStack(Material.COBBLESTONE));
-                    npc.punch();
-                    npc.look(BlockFace.DOWN);
-
-                    scheduler.runTaskLater(plugin, () -> {
-                        npc.look(BlockFace.DOWN);
-                    }, 1);
-
-                    blockCheck.placeBlock(npc, playerNPC, place);
-
-                    if (!towerList.containsKey(playerNPC)) {
-                        if (c) {
-                            towerList.put(playerNPC, playerNPC.getLocation());
-                        }
-                    }
-                }, 5);
+                if (m0 != Material.WATER)
+	                scheduler.runTaskLater(plugin, () -> {
+	                    npc.sneak();
+	                    npc.setItem(new ItemStack(Material.COBBLESTONE));
+	                    npc.punch();
+	                    npc.look(BlockFace.DOWN);
+	
+	                    scheduler.runTaskLater(plugin, () -> {
+	                        npc.look(BlockFace.DOWN);
+	                    }, 1);
+	
+	                    blockCheck.placeBlock(npc, playerNPC, place);
+	
+	                    if (!towerList.containsKey(playerNPC)) {
+	                        if (c) {
+	                            towerList.put(playerNPC, playerNPC.getLocation());
+	                        }
+	                    }
+	                }, 3);
 
                 if (npc.isBotOnGround()) {
                     if (target.getLocation().distance(playerNPC.getLocation()) < 16) {
@@ -645,6 +893,16 @@ public class LegacyAgent extends Agent {
                 }
 
                 return true;
+            } else if (sameXZ && LegacyMats.BREAK.contains(m1)) {
+                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                if (block != null && block.getLocation().getBlockY() == playerNPC.getLocation().getBlockY()
+                	&& !LegacyMats.BREAK.contains(block.getType())) {
+                    npc.look(BlockFace.DOWN);
+
+                    downMine(npc, playerNPC, block);
+                    preBreak(npc, playerNPC, block, LegacyLevel.BELOW);
+                	return true;
+                }
             }
         }
 
@@ -657,7 +915,9 @@ public class LegacyAgent extends Agent {
             return false;
 
         if (c && npc.getLocation().getBlockY() > loc.getBlockY() + 1) {
-            Block block = npc.getLocation().add(0, -1, 0).getBlock();
+            Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+            if (block == null)
+            	return false;
             npc.look(BlockFace.DOWN);
 
             downMine(npc, player, block);
@@ -671,7 +931,9 @@ public class LegacyAgent extends Agent {
             b.setY(0);
 
             if (npc.getLocation().getBlockY() > loc.getBlockY() + 10 && a.distance(b) < 10) {
-                Block block = npc.getLocation().add(0, -1, 0).getBlock();
+                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                if (block == null)
+                	return false;
                 npc.look(BlockFace.DOWN);
 
                 downMine(npc, player, block);
@@ -719,13 +981,30 @@ public class LegacyAgent extends Agent {
         }
     }
 
-    private boolean checkFence(Terminator bot, Block block, LivingEntity player) {
-        if (LegacyMats.FENCE.contains(block.getType())) {
+    private boolean checkFenceAndGates(Terminator bot, Block block, LivingEntity player) {
+        if (LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType())) {
             preBreak(bot, player, block, LegacyLevel.AT_D);
             return true;
         }
 
         return false;
+    }
+    
+    private boolean checkObstacles(Terminator bot, Block block, LivingEntity player) {
+        if (LegacyMats.OBSTACLES.contains(block.getType()) || isDoorObstacle(block)) {
+            preBreak(bot, player, block, LegacyLevel.AT_D);
+            return true;
+        }
+
+        return false;
+    }
+    
+    private boolean isDoorObstacle(Block block) {
+    	if (block.getType().data == Door.class)
+    		return true;
+    	if (block.getType().data == TrapDoor.class && ((TrapDoor)block.getBlockData()).isOpen())
+    		return true;
+    	return false;
     }
 
     private boolean checkAt(Terminator bot, Block block, LivingEntity player) {
@@ -751,13 +1030,15 @@ public class LegacyAgent extends Agent {
 
         bot.setItem(new ItemStack(item));
 
-        if (level == LegacyLevel.EAST_D || level == LegacyLevel.NORTH_D || level == LegacyLevel.SOUTH_D || level == LegacyLevel.WEST_D) {
+        if (level.isSideDown() || level.isSideDown2()) {
             bot.setBotPitch(69);
 
             scheduler.runTaskLater(plugin, () -> {
                 btCheck.put(player, true);
             }, 5);
-        } else if (level == LegacyLevel.AT_D || level == LegacyLevel.AT) {
+        } else if (level.isSideUp()) {
+            bot.setBotPitch(-53);
+        }else if (level == LegacyLevel.AT_D || level == LegacyLevel.AT) {
             Location blockLoc = block.getLocation().add(0.5, -1, 0.5);
             bot.faceLocation(blockLoc);
         }
@@ -777,10 +1058,10 @@ public class LegacyAgent extends Agent {
             miningAnim.put(player, task);
         }
 
-        blockBreakEffect(player, block, level);
+        blockBreakEffect(bot, player, block, new LegacyLevel.LevelWrapper(level));
     }
 
-    private void blockBreakEffect(LivingEntity player, Block block, LegacyLevel level) {
+    private void blockBreakEffect(Terminator bot, LivingEntity player, Block block, LegacyLevel.LevelWrapper wrapper) {
 
         if (LegacyMats.NO_CRACK.contains(block.getType())) return;
 
@@ -792,47 +1073,45 @@ public class LegacyAgent extends Agent {
                     byte i = mining.get(this);
 
                     Block cur;
-                    switch (level) {
-                        case ABOVE:
-                            cur = player.getLocation().add(0, 2, 0).getBlock();
-                            break;
-                        case BELOW:
-                            cur = player.getLocation().add(0, -1, 0).getBlock();
-                            break;
-                        case NORTH:
-                            cur = player.getLocation().add(0, 1, -1).getBlock();
-                            break;
-                        case SOUTH:
-                            cur = player.getLocation().add(0, 1, 1).getBlock();
-                            break;
-                        case EAST:
-                            cur = player.getLocation().add(1, 1, 0).getBlock();
-                            break;
-                        case WEST:
-                            cur = player.getLocation().add(-1, 1, 0).getBlock();
-                            break;
-                        case NORTH_D:
-                            cur = player.getLocation().add(0, 0, -1).getBlock();
-                            break;
-                        case SOUTH_D:
-                            cur = player.getLocation().add(0, 0, 1).getBlock();
-                            break;
-                        case EAST_D:
-                            cur = player.getLocation().add(1, 0, 0).getBlock();
-                            break;
-                        case WEST_D:
-                            cur = player.getLocation().add(-1, 0, 0).getBlock();
-                            break;
-                        case AT_D:
-                            cur = player.getLocation().getBlock();
-                            break;
-                        default:
-                            cur = player.getLocation().add(0, 1, 0).getBlock();
-                    }
+                    if (wrapper.getLevel() == null)
+                    	 cur = player.getLocation().add(0, 1, 0).getBlock();
+                    else if (wrapper.getLevel() == LegacyLevel.BELOW)
+                    	cur = bot.getStandingOn().isEmpty() ? null : bot.getStandingOn().get(0);
+                    else
+                    	cur = wrapper.getLevel().offset(player.getLocation()).getBlock();
 
+                    // Fix boat clutching while breaking block
+                    // As a side effect, the bot is able to break multiple blocks at once while over lava
+                    if ((wrapper.getLevel().isSideAt() || wrapper.getLevel().isSideUp())
+                    	&& bot.getLocation().add(0, -2, 0).getBlock().getType() == Material.LAVA
+                    	&& block.getLocation().clone().add(0, 1, 0).equals(cur.getLocation())) {
+                    	cur = block;
+                    	wrapper.setLevel(wrapper.getLevel().sideDown());
+                    	
+                    	if (wrapper.getLevel().isSideDown() || wrapper.getLevel().isSideDown2())
+                    		bot.setBotPitch(69);
+                    	else if (wrapper.getLevel().isSideUp())
+                    		bot.setBotPitch(-53);
+                    	else if (wrapper.getLevel().isSide())
+                    		bot.setBotPitch(0);
+                    }
+                    if ((wrapper.getLevel().isSideAt() || wrapper.getLevel().isSideDown())
+                    	&& bot.getLocation().add(0, -1, 0).getBlock().getType() == Material.LAVA
+                    	&& block.getLocation().clone().add(0, -1, 0).equals(cur.getLocation())) {
+                    	cur = block;
+                    	wrapper.setLevel(wrapper.getLevel().sideUp());
+                    	
+                    	if (wrapper.getLevel().isSideDown() || wrapper.getLevel().isSideDown2())
+                    		bot.setBotPitch(69);
+                    	else if (wrapper.getLevel().isSideUp())
+                    		bot.setBotPitch(-53);
+                    	else if (wrapper.getLevel().isSide())
+                    		bot.setBotPitch(0);
+                    }
+                    
                     // wow this repeated code is so bad lmao
 
-                    if (player.isDead() || (!block.equals(cur) || block.getType() != cur.getType())) {
+                    if (player.isDead() || cur == null || (!block.equals(cur) || block.getType() != cur.getType())) {
                         this.cancel();
 
                         TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), -1);
@@ -857,7 +1136,7 @@ public class LegacyAgent extends Agent {
 
                         block.breakNaturally();
 
-                        if (level == LegacyLevel.ABOVE) {
+                        if (wrapper.getLevel() == LegacyLevel.ABOVE) {
                             noJump.add(player);
 
                             scheduler.runTaskLater(plugin, () -> {
@@ -875,10 +1154,13 @@ public class LegacyAgent extends Agent {
                             all.playSound(block.getLocation(), sound, SoundCategory.BLOCKS, (float) 0.3, 1);
                     }
 
-                    if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME)
+                    if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME
+                    		|| block.getType() == Material.STRUCTURE_BLOCK || block.getType() == Material.STRUCTURE_BLOCK
+                    		|| block.getType() == Material.COMMAND_BLOCK || block.getType() == Material.REPEATING_COMMAND_BLOCK
+                    		|| block.getType() == Material.CHAIN_COMMAND_BLOCK)
                         return;
 
-                    if (instantBreakBlocks.contains(block.getType())) { // instant break blocks
+                    if (LegacyMats.INSTANT_BREAK.contains(block.getType())) { // instant break blocks
                         block.breakNaturally();
                         return;
                     }
@@ -924,7 +1206,7 @@ public class LegacyAgent extends Agent {
         Location loc = bot.getLocation();
 
         if (bot.isBotOnFire()) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() != World.Environment.NETHER) {
+            if (bot.getDimension() != World.Environment.NETHER) {
                 placeWaterDown(bot, world, loc);
             }
         }
@@ -932,7 +1214,7 @@ public class LegacyAgent extends Agent {
         Material atType = loc.getBlock().getType();
 
         if (atType == Material.FIRE || atType == Material.SOUL_FIRE) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() != World.Environment.NETHER) {
+            if (bot.getDimension() != World.Environment.NETHER) {
                 placeWaterDown(bot, world, loc);
                 world.playSound(loc, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
             } else {
@@ -944,7 +1226,7 @@ public class LegacyAgent extends Agent {
         }
 
         if (atType == Material.LAVA) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 bot.attemptBlockPlace(loc, Material.COBBLESTONE, false);
             } else {
                 placeWaterDown(bot, world, loc);
@@ -955,7 +1237,7 @@ public class LegacyAgent extends Agent {
         Material headType = head.getBlock().getType();
 
         if (headType == Material.LAVA) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 bot.attemptBlockPlace(head, Material.COBBLESTONE, false);
             } else {
                 placeWaterDown(bot, world, head);
@@ -963,7 +1245,7 @@ public class LegacyAgent extends Agent {
         }
 
         if (headType == Material.FIRE || headType == Material.SOUL_FIRE) {
-            if (bot.getBukkitEntity().getWorld().getEnvironment() == World.Environment.NETHER) {
+            if (bot.getDimension() == World.Environment.NETHER) {
                 bot.look(BlockFace.DOWN);
                 bot.punch();
                 world.playSound(head, Sound.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 1, 1);
@@ -1111,12 +1393,39 @@ public class LegacyAgent extends Agent {
 
         bot.attack(target);
     }
+    
+    public void setRegion(BoundingBox region, double regionWeightX, double regionWeightY, double regionWeightZ) {
+        this.region = region;
+        this.regionWeightX = regionWeightX;
+        this.regionWeightY = regionWeightY;
+        this.regionWeightZ = regionWeightZ;
+    }
+    
+    public BoundingBox getRegion() {
+    	return region;
+    }
+    
+    public double getRegionWeightX() {
+    	return regionWeightX;
+    }
+    
+    public double getRegionWeightY() {
+    	return regionWeightY;
+    }
+    
+    public double getRegionWeightZ() {
+    	return regionWeightZ;
+    }
+    
+    public EnumTargetGoal getTargetType() {
+        return goal;
+    }
 
     public void setTargetType(EnumTargetGoal goal) {
         this.goal = goal;
     }
 
-    public LivingEntity locateTarget(Terminator bot, Location loc, EnumTargetGoal... targetGoal) {
+    private LivingEntity locateTarget(Terminator bot, Location loc, EnumTargetGoal... targetGoal) {
         LivingEntity result = null;
 
         EnumTargetGoal g = goal;
@@ -1127,7 +1436,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (validateCloserEntity(player, loc, result)) {
+                    if (!botsInPlayerList.contains(player) && validateCloserEntity(player, loc, result)) {
                         result = player;
                     }
                 }
@@ -1137,7 +1446,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_VULNERABLE_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
+                    if (!botsInPlayerList.contains(player) && !PlayerUtils.isInvincible(player.getGameMode()) && validateCloserEntity(player, loc, result)) {
                         result = player;
                     }
                 }
@@ -1148,6 +1457,16 @@ public class LegacyAgent extends Agent {
             case NEAREST_HOSTILE: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
                     if (entity instanceof Monster && validateCloserEntity(entity, loc, result)) {
+                        result = entity;
+                    }
+                }
+
+                break;
+            }
+            
+            case NEAREST_RAIDER: {
+                for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
+                    if ((entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider)) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
@@ -1211,7 +1530,7 @@ public class LegacyAgent extends Agent {
             case PLAYER: { //Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found.
                 if (bot.getTargetPlayer() != null) {
                     Player player = Bukkit.getPlayer(bot.getTargetPlayer());
-                    if (player != null) {
+                    if (player != null && !botsInPlayerList.contains(player) && validateCloserEntity(player, loc, null)) {
                         return player;
                     }
                 }
@@ -1225,6 +1544,36 @@ public class LegacyAgent extends Agent {
     }
 
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
-        return loc.getWorld() == entity.getWorld() && !entity.isDead() && (result == null || loc.distance(entity.getLocation()) < loc.distance(result.getLocation()));
+    	double regionDistEntity = getWeightedRegionDist(entity.getLocation());
+    	if (regionDistEntity == Double.MAX_VALUE)
+    		return false;
+    	double regionDistResult = result == null ? 0 : getWeightedRegionDist(result.getLocation());
+    	return loc.getWorld() == entity.getWorld() && !entity.isDead()
+    		&& (result == null || (loc.distanceSquared(entity.getLocation()) + regionDistEntity) < (loc.distanceSquared(result.getLocation())) + regionDistResult);
+    }
+    
+    private double getWeightedRegionDist(Location loc) {
+    	if (region == null)
+    		return 0;
+    	double diffX = Math.max(0, Math.abs(region.getCenterX() - loc.getX()) - region.getWidthX() * 0.5);
+    	double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
+    	double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
+    	if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0)
+    		if (diffX > 0 || diffY > 0 || diffZ > 0)
+    			return Double.MAX_VALUE;
+    	return diffX * diffX * regionWeightX + diffY * diffY * regionWeightY + diffZ * diffZ * regionWeightZ;
+    }
+    
+    @Override
+    public void stopAllTasks() {
+    	super.stopAllTasks();
+    	
+    	Iterator<Entry<Block, Short>> itr = crackList.entrySet().iterator();
+    	while(itr.hasNext()) {
+    		Block block = itr.next().getKey();
+    		TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), -1);
+            itr.remove();
+    	}
+    	mining.clear();
     }
 }
