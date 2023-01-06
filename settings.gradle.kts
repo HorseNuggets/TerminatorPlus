@@ -8,3 +8,5 @@ pluginManagement {
 rootProject.name = "TerminatorPlus"
 include("TerminatorPlus-Plugin")
 include("TerminatorPlus-API")
+
+// set the version
