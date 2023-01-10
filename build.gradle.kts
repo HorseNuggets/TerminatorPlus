@@ -24,7 +24,7 @@ tasks.processResources {
 }
 
 tasks.jar {
-    from(configurations.compileClasspath.get().map { if (it.isDirectory()) it else zipTree(it) })
+    from(configurations.compileClasspath.get().map { if (it.getName().endsWith(".jar")) zipTree(it) else it })
     archiveFileName.set(jarName + ".jar")
 }
 

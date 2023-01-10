@@ -27,6 +27,7 @@ public abstract class CommandInstance extends BukkitCommand {
     protected final CommandHandler commandHandler;
 
     private final Map<String, CommandMethod> methods;
+    private final Map<String, String> aliasesToNames;
 
     private static final String MANAGE_PERMISSION = "terminatorplus.manage";
 
@@ -35,6 +36,7 @@ public abstract class CommandInstance extends BukkitCommand {
 
         this.commandHandler = handler;
         this.methods = new HashMap<>();
+        this.aliasesToNames = new HashMap<>();
     }
 
     public Map<String, CommandMethod> getMethods() {
@@ -43,6 +45,10 @@ public abstract class CommandInstance extends BukkitCommand {
 
     protected void addMethod(String name, CommandMethod method) {
         methods.put(name, method);
+    }
+    
+    protected void addAlias(String alias, String name) {
+    	aliasesToNames.put(alias, name);
     }
 
     @Override
@@ -61,8 +67,8 @@ public abstract class CommandInstance extends BukkitCommand {
 
         if (args.length == 0) {
             method = methods.get("");
-        } else if (methods.containsKey(args[0])) {
-            method = methods.get(args[0]);
+        } else if (methods.containsKey(aliasesToNames.getOrDefault(args[0], args[0]))) {
+            method = methods.get(aliasesToNames.getOrDefault(args[0], args[0]));
         } else {
             method = methods.get("");
         }
