@@ -89,6 +89,7 @@ public class CommandHandler {
                     CommandMethod commandMethod = new CommandMethod(methodName, Sets.newHashSet(cmd.aliases()), cmd.desc(), perm, command, method, autofiller);
 
                     command.addMethod(methodName, commandMethod);
+                    commandMethod.getAliases().forEach(alias -> command.addAlias(alias, methodName));
                 }
             }
 

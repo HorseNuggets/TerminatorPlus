@@ -526,7 +526,7 @@ public class BotCommand extends CommandInstance {
     private double parseDoubleOrRelative(String pos, Location loc, int type) {
 		if (loc == null || pos.length() == 0 || pos.charAt(0) != '~')
 			return Double.parseDouble(pos);
-		double relative = Double.parseDouble(pos.substring(1));
+		double relative = pos.length() == 1 ? 0 : Double.parseDouble(pos.substring(1));
     	switch (type) {
     		case 0:
     			return relative + Math.round(loc.getX() * 1000) / 1000D;
