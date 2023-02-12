@@ -237,6 +237,10 @@ public class Debugger {
         TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.block(10, 10));
     }
 
+    public void shield() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setShield(true));
+    }
+
     public void offsets(boolean b) {
         Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
         if (!(agent instanceof LegacyAgent)) {

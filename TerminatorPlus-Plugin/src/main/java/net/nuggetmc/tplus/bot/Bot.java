@@ -35,11 +35,11 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.craftbukkit.v1_19_R1.CraftEquipmentSlot;
-import org.bukkit.craftbukkit.v1_19_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R2.CraftEquipmentSlot;
+import org.bukkit.craftbukkit.v1_19_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
@@ -49,11 +49,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class Bot extends ServerPlayer implements Terminator {
 
@@ -77,9 +73,9 @@ public class Bot extends ServerPlayer implements Terminator {
     private List<Block> standingOn = new ArrayList<>();
     private UUID targetPlayer = null;
     private boolean inPlayerList;
-    
+
     private Bot(MinecraftServer minecraftServer, ServerLevel worldServer, GameProfile profile, boolean addToPlayerList) {
-        super(minecraftServer, worldServer, profile, null);
+        super(minecraftServer, worldServer, profile);
 
         this.plugin = TerminatorPlus.getInstance();
         this.scheduler = Bukkit.getScheduler();
@@ -109,7 +105,7 @@ public class Bot extends ServerPlayer implements Terminator {
         UUID uuid = BotUtils.randomSteveUUID();
 
         CustomGameProfile profile = new CustomGameProfile(uuid, ChatUtils.trim16(name), skin);
-        
+
         boolean addPlayerList = TerminatorPlus.getInstance().getManager().addToPlayerList();
 
         Bot bot = new Bot(nmsServer, nmsWorld, profile, addPlayerList);
@@ -126,7 +122,7 @@ public class Bot extends ServerPlayer implements Terminator {
         bot.setRot(loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
         Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
-                new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, bot)));
+                new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, bot)));
         if (addPlayerList)
         	nmsWorld.addNewPlayer(bot);
         else
@@ -205,9 +201,10 @@ public class Bot extends ServerPlayer implements Terminator {
 
     private Packet<?>[] getRenderPackets() {
         return new Packet[]{
-                new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.ADD_PLAYER, this),
+                new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this),
                 new ClientboundAddPlayerPacket(this),
-                new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
+                //new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
+                new ClientboundSetEntityDataPacket(this.getId(), this.entityData.packDirty()),
                 new ClientboundRotateHeadPacket(this, (byte) ((this.yHeadRot * 256f) / 360f))
         };
     }
@@ -215,7 +212,8 @@ public class Bot extends ServerPlayer implements Terminator {
     private Packet<?>[] getRenderPacketsNoInfo() {
         return new Packet[]{
                 new ClientboundAddPlayerPacket(this),
-                new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
+                //new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
+                new ClientboundSetEntityDataPacket(this.getId(), this.entityData.packDirty()),
                 new ClientboundRotateHeadPacket(this, (byte) ((this.yHeadRot * 256f) / 360f))
         };
     }
@@ -254,7 +252,7 @@ public class Bot extends ServerPlayer implements Terminator {
     public int getAliveTicks() {
         return aliveTicks;
     }
-    
+
     @Override
     public int getNoFallTicks() {
     	return noFallTicks;
@@ -304,7 +302,7 @@ public class Bot extends ServerPlayer implements Terminator {
         }
 
         updateLocation();
-        
+
         if (!isAlive()) return;
 
         float health = getHealth();
@@ -323,7 +321,7 @@ public class Bot extends ServerPlayer implements Terminator {
         fallDamageCheck();
 
         oldVelocity = velocity.clone();
-        
+
         doTick();
     }
 
@@ -367,7 +365,7 @@ public class Bot extends ServerPlayer implements Terminator {
             }
         }
     }
-    
+
     private boolean isFallBlocked() {
         AABB box = getBoundingBox();
         double[] xVals = new double[]{
@@ -411,14 +409,16 @@ public class Bot extends ServerPlayer implements Terminator {
         this.blocking = true;
         this.blockUse = true;
         startUsingItem(InteractionHand.OFF_HAND);
-        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
+        //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
+        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData.packDirty()));
     }
 
     private void stopBlocking(int cooldown) {
         this.blocking = false;
         stopUsingItem();
         scheduler.runTaskLater(plugin, () -> this.blockUse = false, cooldown);
-        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
+        //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
+        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData.packDirty()));
     }
 
     @Override
@@ -426,6 +426,7 @@ public class Bot extends ServerPlayer implements Terminator {
         return isBlocking();
     }
 
+    @Override
     public void setShield(boolean enabled) {
         this.shield = enabled;
 
@@ -521,7 +522,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
         return checkStandingOn();
     }
-    
+
     public boolean checkStandingOn() {
     	World world = getBukkitEntity().getWorld();
         AABB box = getBoundingBox();
@@ -553,7 +554,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 }
             }
         }
-        
+
         //Fence/wall check
         for (double x : xVals) {
             for (double z : zVals) {
@@ -562,7 +563,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 BoundingBox blockBox = loc.getBlock().getBoundingBox();
                 BoundingBox modifiedBox = new BoundingBox(blockBox.getMinX(), blockBox.getMinY(), blockBox.getMinZ(), blockBox.getMaxX(),
                 		blockBox.getMinY() + 1.5, blockBox.getMaxZ());
-                		
+
                 if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
                 		&& block.getType().isSolid() && BotUtils.overlaps(playerBox, modifiedBox)) {
                 	if (!locations.contains(block.getLocation())) {
@@ -576,11 +577,11 @@ public class Bot extends ServerPlayer implements Terminator {
         //Closest block comes first
         Collections.sort(standingOn, (a, b) ->
         	Double.compare(BotUtils.getHorizSqDist(a.getLocation(), getLocation()), BotUtils.getHorizSqDist(b.getLocation(), getLocation())));
-        
+
         this.standingOn = standingOn;
         return !standingOn.isEmpty();
     }
-    
+
     @Override
     public List<Block> getStandingOn() {
     	return standingOn;
@@ -621,7 +622,7 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     private void removeTab() {
-        sendPacket(new ClientboundPlayerInfoPacket(ClientboundPlayerInfoPacket.Action.REMOVE_PLAYER, this));
+        sendPacket(new ClientboundPlayerInfoRemovePacket(Arrays.asList(this.getUUID())));
     }
 
     public void setRemoveOnDeath(boolean enabled) {
@@ -764,7 +765,7 @@ public class Bot extends ServerPlayer implements Terminator {
     public Location getLocation() {
         return getBukkitEntity().getLocation();
     }
-    
+
     @Override
     public BoundingBox getBotBoundingBox() {
         return getBukkitEntity().getBoundingBox();
@@ -885,12 +886,12 @@ public class Bot extends ServerPlayer implements Terminator {
     public void doTick() {
         baseTick();
     }
-    
+
     @Override
     public boolean isInPlayerList() {
     	return inPlayerList;
     }
-    
+
     @Override
     public World.Environment getDimension() {
     	return getBukkitEntity().getWorld().getEnvironment();

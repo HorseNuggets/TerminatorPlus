@@ -34,7 +34,7 @@ public interface Terminator {
     boolean hasNeuralNetwork();
 
     Location getLocation();
-    
+
     BoundingBox getBotBoundingBox();
 
     boolean isBotAlive(); //Has to be named like this because paper re-obfuscates it
@@ -54,7 +54,7 @@ public interface Terminator {
     boolean isBotInWater();
 
     boolean isBotOnGround();
-    
+
     List<Block> getStandingOn();
 
     void setBotPitch(float pitch);
@@ -112,7 +112,7 @@ public interface Terminator {
     void addVelocity(Vector velocity);
 
     int getAliveTicks();
-    
+
     int getNoFallTicks();
 
     boolean tickDelay(int ticks);
@@ -122,8 +122,10 @@ public interface Terminator {
     UUID getTargetPlayer();
 
     void setTargetPlayer(UUID target);
-    
+
     boolean isInPlayerList();
-    
+
     World.Environment getDimension();
+
+    void setShield(boolean b);
 }

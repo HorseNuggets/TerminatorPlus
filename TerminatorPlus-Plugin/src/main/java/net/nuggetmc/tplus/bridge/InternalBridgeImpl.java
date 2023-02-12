@@ -9,8 +9,8 @@ import net.nuggetmc.tplus.api.InternalBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class InternalBridgeImpl implements InternalBridge {
