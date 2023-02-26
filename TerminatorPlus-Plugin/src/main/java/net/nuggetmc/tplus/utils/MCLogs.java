@@ -5,7 +5,10 @@ import com.google.gson.JsonParser;
 import net.nuggetmc.tplus.TerminatorPlus;
 import org.bukkit.Bukkit;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
@@ -17,28 +20,29 @@ public class MCLogs {
 
     private static final String FORMAT =
             """
-            ====== TERMINATOR PLUS DEBUG INFO ======
-            Plugin Version: %s
-            Server Version: %s
-            Server Software: %s
-            Server Plugins: %s
-            Server TPS: %s
-            Server Memory: %s
-            
-            Correct Version: %s
-            Required Version: %s
-            ====== TERMINATOR PLUS DEBUG INFO ======
-            """;
+                    ====== TERMINATOR PLUS DEBUG INFO ======
+                    Plugin Version: %s
+                    Server Version: %s
+                    Server Software: %s
+                    Server Plugins: %s
+                    Server TPS: %s
+                    Memory: %s/%s
+                                
+                    Correct Version: %s
+                    Required Version: %s
+                    ====== TERMINATOR PLUS DEBUG INFO ======
+                    """;
 
 	public static String postInfo() throws IOException {
-		String serverVersion = Bukkit.getVersion();
-		String pluginVersion = TerminatorPlus.getVersion();
+        String serverVersion = Bukkit.getVersion();
+        String pluginVersion = TerminatorPlus.getVersion();
         String serverSoftware = Bukkit.getName();
         String serverPlugins = Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(plugin -> plugin.getName() + " v" + plugin.getDescription().getVersion()).reduce((s, s2) -> s + ", " + s2).orElse("No plugins");
         String serverTPS = Arrays.stream(Bukkit.getTPS()).mapToObj(tps -> String.format("%.2f", tps)).reduce((s, s2) -> s + ", " + s2).orElse("No TPS");
-        String serverMemory = String.format("%.2f", (double) (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024) + "MB";
+        String freeMemory = String.format("%.2f", (double) (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024) + "MB";
+        String maxMemory = String.format("%.2f", (double) Runtime.getRuntime().maxMemory() / 1024 / 1024) + "MB";
 
-        String info = String.format(FORMAT, pluginVersion, serverVersion, serverSoftware, serverPlugins, serverTPS, serverMemory, TerminatorPlus.isCorrectVersion(), TerminatorPlus.REQUIRED_VERSION);
+        String info = String.format(FORMAT, pluginVersion, serverVersion, serverSoftware, serverPlugins, serverTPS, freeMemory, maxMemory, TerminatorPlus.isCorrectVersion(), TerminatorPlus.REQUIRED_VERSION);
         return pasteText(info);
     }
 
