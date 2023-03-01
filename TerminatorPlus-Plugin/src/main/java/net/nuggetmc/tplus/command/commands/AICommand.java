@@ -10,12 +10,11 @@ import net.nuggetmc.tplus.api.utils.MathUtils;
 import net.nuggetmc.tplus.bot.BotManagerImpl;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
-import net.nuggetmc.tplus.command.annotation.Arg;
-import net.nuggetmc.tplus.command.annotation.Autofill;
-import net.nuggetmc.tplus.command.annotation.Command;
-import net.nuggetmc.tplus.command.annotation.OptArg;
+import net.nuggetmc.tplus.command.annotation.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -51,16 +50,48 @@ public class AICommand extends CommandInstance implements AIManager {
     }
 
     @Command(
-        name = "random",
-        desc = "Create bots with random neural networks, collecting feed data."
+            name = "random",
+            desc = "Create bots with random neural networks, collecting feed data."
     )
-    public void random(Player sender, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin) {
-        manager.createBots(sender, name, skin, amount, NeuralNetwork.RANDOM);
+    public void random(CommandSender sender, List<String> args, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin, @OptArg("loc") @TextArg String loc) {
+        if (sender instanceof Player && args.size() < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /ai random <amount> <name> [skin] [spawnLoc: [player Player]/[x,y,z]]");
+            return;
+        }
+        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        if (loc != null && !loc.isEmpty()) {
+            Player player = Bukkit.getPlayer(loc);
+            if (player != null) {
+                location = player.getLocation();
+            } else {
+                String[] split = loc.split(" ");
+                if (split.length >= 3) {
+                    try {
+                        double x = Double.parseDouble(split[0]);
+                        double y = Double.parseDouble(split[1]);
+                        double z = Double.parseDouble(split[2]);
+                        World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
+                        location = new Location(world, x, y, z);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                        return;
+                    }
+                } else {
+                    sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                    return;
+                }
+            }
+        } else {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Spawning bot at 0, 0, 0 in world " + location.getWorld().getName() + " because no location was specified.");
+            }
+        }
+        manager.createBots(sender, name, skin, amount, NeuralNetwork.RANDOM, location);
     }
 
     @Command(
-        name = "reinforcement",
-        desc = "Begin an AI training session."
+            name = "reinforcement",
+            desc = "Begin an AI training session."
     )
     public void reinforcement(Player sender, @Arg("population-size") int populationSize, @Arg("name") String name, @OptArg("skin") String skin) {
         //FIXME: Sometimes, bots will become invisible, or just stop working if they're the last one alive, this has been partially fixed (invis part) see Terminator#removeBot, which removes the bot.
@@ -83,8 +114,8 @@ public class AICommand extends CommandInstance implements AIManager {
     }
 
     @Command(
-        name = "stop",
-        desc = "End a currently running AI training session."
+            name = "stop",
+            desc = "End a currently running AI training session."
     )
     public void stop(CommandSender sender) {
         if (agent == null) {
@@ -112,9 +143,9 @@ public class AICommand extends CommandInstance implements AIManager {
     }
 
     @Command(
-        name = "info",
-        desc = "Display neural network information about a bot.",
-        autofill = "infoAutofill"
+            name = "info",
+            desc = "Display neural network information about a bot.",
+            autofill = "infoAutofill"
     )
     public void info(CommandSender sender, @Arg("bot-name") String name) {
         sender.sendMessage("Processing request...");
@@ -149,9 +180,7 @@ public class AICommand extends CommandInstance implements AIManager {
                 sender.sendMessage(ChatColor.DARK_GREEN + "NeuralNetwork" + ChatUtils.BULLET_FORMATTED + ChatColor.GRAY + "[" + ChatColor.GREEN + name + ChatColor.GRAY + "]");
                 strings.forEach(sender::sendMessage);
                 sender.sendMessage(ChatUtils.LINE);
-            }
-
-            catch (Exception e) {
+            } catch (Exception e) {
                 sender.sendMessage(ChatUtils.EXCEPTION_MESSAGE);
             }
         });

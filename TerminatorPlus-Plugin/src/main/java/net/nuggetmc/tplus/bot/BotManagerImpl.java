@@ -10,6 +10,7 @@ import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import net.nuggetmc.tplus.api.event.BotDeathEvent;
 import net.nuggetmc.tplus.api.utils.MojangAPI;
 import org.bukkit.*;
+import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -36,22 +37,11 @@ public class BotManagerImpl implements BotManager, Listener {
     public boolean joinMessages = false;
     private boolean mobTarget = false;
     private boolean addPlayerList = false;
-    private Location spawnLoc;
-    
+
     public BotManagerImpl() {
         this.agent = new LegacyAgent(this, TerminatorPlus.getInstance());
         this.bots = ConcurrentHashMap.newKeySet(); //should fix concurrentmodificationexception
         this.numberFormat = NumberFormat.getInstance(Locale.US);
-    }
-    
-    @Override
-    public Location getSpawnLoc() {
-    	return spawnLoc;
-    }
-    
-    @Override
-    public void setSpawnLoc(Location loc) {
-    	spawnLoc = loc;
     }
 
     @Override
@@ -70,16 +60,16 @@ public class BotManagerImpl implements BotManager, Listener {
 
     @Override
     public Terminator getFirst(String name, Location target) {
-    	if (target != null) {
-    		Terminator closest = null;
-    		for (Terminator bot : bots) {
-    			if (name.equals(bot.getBotName()) && (closest == null
-    				|| target.distanceSquared(bot.getLocation()) < target.distanceSquared(closest.getLocation()))) {
-    				closest = bot;
-    			}
-    		}
-    		return closest;
-    	}
+        if (target != null) {
+            Terminator closest = null;
+            for (Terminator bot : bots) {
+                if (name.equals(bot.getBotName()) && (closest == null
+                        || target.distanceSquared(bot.getLocation()) < target.distanceSquared(closest.getLocation()))) {
+                    closest = bot;
+                }
+            }
+            return closest;
+        }
         for (Terminator bot : bots) {
             if (name.equals(bot.getBotName())) {
                 return bot;
@@ -104,12 +94,12 @@ public class BotManagerImpl implements BotManager, Listener {
     }
 
     @Override
-    public void createBots(Player sender, String name, String skinName, int n) {
-        createBots(sender, name, skinName, n, null);
+    public void createBots(CommandSender sender, String name, String skinName, int n, Location loc) {
+        createBots(sender, name, skinName, n, null, loc);
     }
 
     @Override
-    public void createBots(Player sender, String name, String skinName, int n, NeuralNetwork network) {
+    public void createBots(CommandSender sender, String name, String skinName, int n, NeuralNetwork network, Location location) {
         long timestamp = System.currentTimeMillis();
 
         if (n < 1) n = 1;
@@ -121,18 +111,17 @@ public class BotManagerImpl implements BotManager, Listener {
 
         skinName = skinName == null ? name : skinName;
 
-        if (spawnLoc != null) {
-        	sender.sendMessage("The spawn location is "
-				 + ChatColor.BLUE + String.format("(%s, %s, %s)", spawnLoc.getX(), spawnLoc.getY(), spawnLoc.getZ()) + ChatColor.RESET
-				 + ". This will be reset to the player location next time.");
-        	Location loc = sender.getLocation().clone();
-        	loc.setX(spawnLoc.getX());
-        	loc.setY(spawnLoc.getY());
-        	loc.setZ(spawnLoc.getZ());
-        	createBots(loc, name, MojangAPI.getSkin(skinName), n, network);
-        	spawnLoc = null;
-        } else
-        	createBots(sender.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
+        if (location != null) {
+            createBots(location, name, MojangAPI.getSkin(skinName), n, network);
+        } else {
+            if (sender instanceof Player player)
+                createBots(player.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
+            else {
+                Location l = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+                sender.sendMessage(ChatColor.RED + "No location specified, defaulting to " + l + ".");
+                createBots(l, name, MojangAPI.getSkin(skinName), n, network);
+            }
+        }
 
         sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
     }
@@ -237,7 +226,7 @@ public class BotManagerImpl implements BotManager, Listener {
     public void setMobTarget(boolean mobTarget) {
         this.mobTarget = mobTarget;
     }
-    
+
     @Override
     public boolean addToPlayerList() {
         return addPlayerList;
@@ -265,8 +254,8 @@ public class BotManagerImpl implements BotManager, Listener {
 
     @EventHandler
     public void onMobTarget(EntityTargetLivingEntityEvent event) {
-    	if (mobTarget || event.getTarget() == null)
-    		return;
+        if (mobTarget || event.getTarget() == null)
+            return;
         Bot bot = (Bot) getBot(event.getTarget().getUniqueId());
         if (bot != null) {
             event.setCancelled(true);

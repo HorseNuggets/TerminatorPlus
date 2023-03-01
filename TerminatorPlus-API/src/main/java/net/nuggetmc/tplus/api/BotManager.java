@@ -3,6 +3,7 @@ package net.nuggetmc.tplus.api;
 import net.nuggetmc.tplus.api.agent.Agent;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
 import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -10,10 +11,6 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface BotManager {
-    Location getSpawnLoc();
-    
-    void setSpawnLoc(Location loc);
-    
     Set<Terminator> fetch();
 
     Agent getAgent();
@@ -24,9 +21,9 @@ public interface BotManager {
 
     List<String> fetchNames();
 
-    void createBots(Player sender, String name, String skinName, int n);
+    void createBots(CommandSender sender, String name, String skinName, int n, Location location);
 
-    void createBots(Player sender, String name, String skinName, int n, NeuralNetwork network);
+    void createBots(CommandSender sender, String name, String skinName, int n, NeuralNetwork network, Location location);
 
     Set<Terminator> createBots(Location loc, String name, String[] skin, List<NeuralNetwork> networks);
 

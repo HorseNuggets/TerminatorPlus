@@ -8,15 +8,9 @@ import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.bot.BotManagerImpl;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
-import net.nuggetmc.tplus.command.annotation.Arg;
-import net.nuggetmc.tplus.command.annotation.Autofill;
-import net.nuggetmc.tplus.command.annotation.Command;
-import net.nuggetmc.tplus.command.annotation.OptArg;
+import net.nuggetmc.tplus.command.annotation.*;
 import net.nuggetmc.tplus.utils.Debugger;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -64,16 +58,72 @@ public class BotCommand extends CommandInstance {
             name = "create",
             desc = "Create a bot."
     )
-    public void create(Player sender, @Arg("name") String name, @OptArg("skin") String skin) {
-        manager.createBots(sender, name, skin, 1);
+    public void create(CommandSender sender, @Arg("name") String name, @OptArg("skin") String skin, @TextArg @OptArg("loc") String loc) {
+        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        if (loc != null && !loc.isEmpty()) {
+            Player player = Bukkit.getPlayer(loc);
+            if (player != null) {
+                location = player.getLocation();
+            } else {
+                String[] split = loc.split(" ");
+                if (split.length >= 3) {
+                    try {
+                        double x = Double.parseDouble(split[0]);
+                        double y = Double.parseDouble(split[1]);
+                        double z = Double.parseDouble(split[2]);
+                        World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
+                        location = new Location(world, x, y, z);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                        return;
+                    }
+                } else {
+                    sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                    return;
+                }
+            }
+        } else {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Spawning bot at 0, 0, 0 in world " + location.getWorld().getName() + " because no location was specified.");
+            }
+        }
+        manager.createBots(sender, name, skin, 1, location);
     }
 
     @Command(
             name = "multi",
             desc = "Create multiple bots at once."
     )
-    public void multi(Player sender, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin) {
-        manager.createBots(sender, name, skin, amount);
+    public void multi(CommandSender sender, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin, @TextArg @OptArg("loc") String loc) {
+        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        if (loc != null && !loc.isEmpty()) {
+            Player player = Bukkit.getPlayer(loc);
+            if (player != null) {
+                location = player.getLocation();
+            } else {
+                String[] split = loc.split(" ");
+                if (split.length >= 3) {
+                    try {
+                        double x = Double.parseDouble(split[0]);
+                        double y = Double.parseDouble(split[1]);
+                        double z = Double.parseDouble(split[2]);
+                        World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
+                        location = new Location(world, x, y, z);
+                    } catch (NumberFormatException e) {
+                        sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                        return;
+                    }
+                } else {
+                    sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                    return;
+                }
+            }
+        } else {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Spawning bot at 0, 0, 0 in world " + location.getWorld().getName() + " because no location was specified.");
+            }
+        }
+        manager.createBots(sender, name, skin, amount, location);
     }
 
     @Command(
@@ -156,8 +206,7 @@ public class BotCommand extends CommandInstance {
         ItemStack[] armor = armorTiers.get(tier);
 
         manager.fetch().forEach(bot -> {
-            if (bot.getBukkitEntity() instanceof Player) {
-                Player botPlayer = (Player) bot.getBukkitEntity();
+            if (bot.getBukkitEntity() instanceof Player botPlayer) {
                 botPlayer.getInventory().setArmorContents(armor);
                 botPlayer.updateInventory();
 
@@ -289,11 +338,10 @@ public class BotCommand extends CommandInstance {
 
         String extra = ChatColor.GRAY + " [" + ChatColor.YELLOW + "/bot settings" + ChatColor.GRAY + "]";
 
-        if (arg1 == null || (!arg1.equalsIgnoreCase("spawnloc") && !arg1.equalsIgnoreCase("setgoal") && !arg1.equalsIgnoreCase("mobtarget") && !arg1.equalsIgnoreCase("playertarget")
+        if (arg1 == null || (!arg1.equalsIgnoreCase("setgoal") && !arg1.equalsIgnoreCase("mobtarget") && !arg1.equalsIgnoreCase("playertarget")
         		&& !arg1.equalsIgnoreCase("addplayerlist") && !arg1.equalsIgnoreCase("region"))) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage(ChatColor.GOLD + "Bot Settings" + extra);
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "spawnloc" + ChatUtils.BULLET_FORMATTED + "Set the location where the bots should spawn. This will be reset after a spawn command is executed.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
             sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
@@ -302,50 +350,7 @@ public class BotCommand extends CommandInstance {
             sender.sendMessage(ChatUtils.LINE);
             return;
         }
-
-        if (arg1.equalsIgnoreCase("spawnloc")) {
-        	if (arg2 == null) {
-        		if (manager.getSpawnLoc() == null)
-        			sender.sendMessage("No custom spawn location has been set. The bots will spawn at the player location.");
-        		else {
-        			Location loc = manager.getSpawnLoc();
-        			sender.sendMessage("The next spawn location will be at " + ChatColor.BLUE + String.format("(%s, %s, %s)", loc.getX(), loc.getY(), loc.getZ()) + ChatColor.RESET + ".");
-        		}
-        		return;
-        	}
-            if (arg2.equalsIgnoreCase("clear")) {
-            	manager.setSpawnLoc(null);
-            	sender.sendMessage("The spawn location has been reset to the player location.");
-            	return;
-            }
-            if (arg2.equalsIgnoreCase("playerloc")) {
-            	if (!(sender instanceof Player)) {
-            		sender.sendMessage("You must be a player to do this!");
-                	return;
-            	}
-            	Location loc = ((Player)sender).getLocation();
-            	manager.setSpawnLoc(loc.clone());
-            	sender.sendMessage("The spawn location has been set to " + ChatColor.BLUE + formatter.format(loc.getX()) + ", " + formatter.format(loc.getY()) + ", " + formatter.format(loc.getZ()) + ChatColor.RESET + ".");
-            	return;
-            }
-            if (args.size() != 4) {
-            	sender.sendMessage("Incorrect argument size. Correct syntax: " + ChatColor.YELLOW + "/bot settings spawnloc <x> <y> <z>" + ChatColor.RESET);
-            	sender.sendMessage("Additionally, to specify a spawnloc at the current player position: " + ChatColor.YELLOW + "/bot settings spawnloc playerloc" + ChatColor.RESET);
-            	return;
-            }
-            double x, y, z;
-            try {
-            	x = Double.parseDouble(args.get(1));
-            	y = Double.parseDouble(args.get(2));
-            	z = Double.parseDouble(args.get(3));
-            } catch (NumberFormatException e) {
-            	sender.sendMessage("The block coordinates must be doubles!");
-            	sender.sendMessage("Correct syntax: " + ChatColor.YELLOW + "/bot settings spawnloc <x> <y> <z>" + ChatColor.RESET);
-            	return;
-            }
-            manager.setSpawnLoc(new Location(null, x, y, z));
-            sender.sendMessage("The next spawn location has been set to " + ChatColor.BLUE + String.format("(%s, %s, %s)", x, y, z) + ChatColor.RESET + ".");
-        } else if (arg1.equalsIgnoreCase("setgoal")) {
+        else if (arg1.equalsIgnoreCase("setgoal")) {
         	if (arg2 == null) {
         		sender.sendMessage("The global bot goal is currently " + ChatColor.BLUE + agent.getTargetType() + ChatColor.RESET + ".");
         		return;
@@ -486,7 +491,6 @@ public class BotCommand extends CommandInstance {
         // lookall
 
         if (args.length == 2) {
-            output.add("spawnloc");
             output.add("setgoal");
             output.add("mobtarget");
             output.add("playertarget");
