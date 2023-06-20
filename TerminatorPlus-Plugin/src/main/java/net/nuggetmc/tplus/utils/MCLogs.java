@@ -33,7 +33,7 @@ public class MCLogs {
                     ====== TERMINATOR PLUS DEBUG INFO ======
                     """;
 
-	public static String postInfo() throws IOException {
+    public static String postInfo() throws IOException {
         String serverVersion = Bukkit.getVersion();
         String pluginVersion = TerminatorPlus.getVersion();
         String serverSoftware = Bukkit.getName();
@@ -46,8 +46,8 @@ public class MCLogs {
         return pasteText(info);
     }
 
-	private static String pasteText(String text) throws IOException {
-		URL url = new URL("https://api.mclo.gs/1/log"); // application/x-www-form-urlencoded
+    private static String pasteText(String text) throws IOException {
+        URL url = new URL("https://api.mclo.gs/1/log"); // application/x-www-form-urlencoded
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -60,5 +60,5 @@ public class MCLogs {
         String response = new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine();
         JsonObject json = JsonParser.parseString(response).getAsJsonObject();
         return json.get("url").getAsString();
-	}
+    }
 }

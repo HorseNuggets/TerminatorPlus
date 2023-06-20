@@ -10,6 +10,7 @@ import java.util.List;
 
 public class NMSUtils {
     private static String itemsByIdFieldName;
+
     static {
         // find a private final field in SynchedEntityData that is an Int2ObjectMap<SynchedEntityData.DataItem>
         Class<SynchedEntityData> clazz = SynchedEntityData.class;
@@ -24,6 +25,7 @@ public class NMSUtils {
             throw new RuntimeException("Could not find itemsById field in SynchedEntityData");
         }
     }
+
     public static List<SynchedEntityData.DataValue<?>> getEntityData(SynchedEntityData synchedEntityData) {
         Int2ObjectMap<SynchedEntityData.DataItem> map = null;
         try {
@@ -35,7 +37,7 @@ public class NMSUtils {
         }
         List<SynchedEntityData.DataValue<?>> entityData = new ArrayList<>();
         for (SynchedEntityData.DataItem<?> dataItem : map.values()) {
-            entityData.add(dataItem .value());
+            entityData.add(dataItem.value());
         }
         return entityData;
     }

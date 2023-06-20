@@ -41,9 +41,9 @@ public class CommandHandler {
 
     private void registerCommands() {
         registerCommands(
-            new MainCommand(this, "terminatorplus", "The TerminatorPlus main command.", "tplus"),
-            new BotCommand(this, "bot", "The root command for bot management.", "npc"),
-            new AICommand(this, "ai", "The root command for bot AI training.")
+                new MainCommand(this, "terminatorplus", "The TerminatorPlus main command.", "tplus"),
+                new BotCommand(this, "bot", "The root command for bot management.", "npc"),
+                new AICommand(this, "ai", "The root command for bot AI training.")
         );
     }
 

@@ -2,13 +2,11 @@ package net.nuggetmc.tplus.bot;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,7 +50,6 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class Bot extends ServerPlayer implements Terminator {
@@ -128,9 +125,9 @@ public class Bot extends ServerPlayer implements Terminator {
         Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
                 new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, bot)));
         if (addPlayerList)
-        	nmsWorld.addNewPlayer(bot);
+            nmsWorld.addNewPlayer(bot);
         else
-        	nmsWorld.addFreshEntity(bot);
+            nmsWorld.addFreshEntity(bot);
         bot.renderAll();
 
         TerminatorPlus.getInstance().getManager().add(bot);
@@ -259,7 +256,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public int getNoFallTicks() {
-    	return noFallTicks;
+        return noFallTicks;
     }
 
     @Override
@@ -382,19 +379,19 @@ public class Bot extends ServerPlayer implements Terminator {
                 box.maxZ - 0.01
         };
         BoundingBox playerBox = new BoundingBox(box.minX, position().y - 0.01, box.minZ,
-        	box.maxX, position().y + getBbHeight(), box.maxZ);
-    	for (double x : xVals) {
+                box.maxX, position().y + getBbHeight(), box.maxZ);
+        for (double x : xVals) {
             for (double z : zVals) {
-            	Location loc = new Location(getBukkitEntity().getWorld(), Math.floor(x), getLocation().getY(), Math.floor(z));
-            	Block block = loc.getBlock();
-            	if (block.getBlockData() instanceof Waterlogged wl && wl.isWaterlogged())
-            		return true;
-            	if (BotUtils.NO_FALL.contains(loc.getBlock().getType()) && (BotUtils.overlaps(playerBox, loc.getBlock().getBoundingBox())
-            		|| loc.getBlock().getType() == Material.WATER || loc.getBlock().getType() == Material.LAVA))
-            		return true;
+                Location loc = new Location(getBukkitEntity().getWorld(), Math.floor(x), getLocation().getY(), Math.floor(z));
+                Block block = loc.getBlock();
+                if (block.getBlockData() instanceof Waterlogged wl && wl.isWaterlogged())
+                    return true;
+                if (BotUtils.NO_FALL.contains(loc.getBlock().getType()) && (BotUtils.overlaps(playerBox, loc.getBlock().getBoundingBox())
+                        || loc.getBlock().getType() == Material.WATER || loc.getBlock().getType() == Material.LAVA))
+                    return true;
             }
-    	}
-    	return false;
+        }
+        return false;
     }
 
     @Override
@@ -528,7 +525,7 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     public boolean checkStandingOn() {
-    	World world = getBukkitEntity().getWorld();
+        World world = getBukkitEntity().getWorld();
         AABB box = getBoundingBox();
 
         double[] xVals = new double[]{
@@ -541,7 +538,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 box.maxZ
         };
         BoundingBox playerBox = new BoundingBox(box.minX, position().y - 0.01, box.minZ,
-        	box.maxX, position().y + getBbHeight(), box.maxZ);
+                box.maxX, position().y + getBbHeight(), box.maxZ);
         List<Block> standingOn = new ArrayList<>();
         List<Location> locations = new ArrayList<>();
 
@@ -551,10 +548,10 @@ public class Bot extends ServerPlayer implements Terminator {
                 Block block = world.getBlockAt(loc);
 
                 if ((block.getType().isSolid() || LegacyMats.canStandOn(block.getType())) && BotUtils.overlaps(playerBox, block.getBoundingBox())) {
-                	if (!locations.contains(block.getLocation())) {
-                		standingOn.add(block);
-                		locations.add(block.getLocation());
-                	}
+                    if (!locations.contains(block.getLocation())) {
+                        standingOn.add(block);
+                        locations.add(block.getLocation());
+                    }
                 }
             }
         }
@@ -566,21 +563,21 @@ public class Bot extends ServerPlayer implements Terminator {
                 Block block = world.getBlockAt(loc);
                 BoundingBox blockBox = loc.getBlock().getBoundingBox();
                 BoundingBox modifiedBox = new BoundingBox(blockBox.getMinX(), blockBox.getMinY(), blockBox.getMinZ(), blockBox.getMaxX(),
-                		blockBox.getMinY() + 1.5, blockBox.getMaxZ());
+                        blockBox.getMinY() + 1.5, blockBox.getMaxZ());
 
                 if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
-                		&& block.getType().isSolid() && BotUtils.overlaps(playerBox, modifiedBox)) {
-                	if (!locations.contains(block.getLocation())) {
-                		standingOn.add(block);
-                		locations.add(block.getLocation());
-                	}
+                        && block.getType().isSolid() && BotUtils.overlaps(playerBox, modifiedBox)) {
+                    if (!locations.contains(block.getLocation())) {
+                        standingOn.add(block);
+                        locations.add(block.getLocation());
+                    }
                 }
             }
         }
 
         //Closest block comes first
         Collections.sort(standingOn, (a, b) ->
-        	Double.compare(BotUtils.getHorizSqDist(a.getLocation(), getLocation()), BotUtils.getHorizSqDist(b.getLocation(), getLocation())));
+                Double.compare(BotUtils.getHorizSqDist(a.getLocation(), getLocation()), BotUtils.getHorizSqDist(b.getLocation(), getLocation())));
 
         this.standingOn = standingOn;
         return !standingOn.isEmpty();
@@ -588,7 +585,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public List<Block> getStandingOn() {
-    	return standingOn;
+        return standingOn;
     }
 
     @Override
@@ -622,7 +619,7 @@ public class Bot extends ServerPlayer implements Terminator {
         }
         this.removeVisually();
         if (inPlayerList)
-        	this.server.getPlayerList().getPlayers().remove(this);
+            this.server.getPlayerList().getPlayers().remove(this);
     }
 
     private void removeTab() {
@@ -893,11 +890,11 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public boolean isInPlayerList() {
-    	return inPlayerList;
+        return inPlayerList;
     }
 
     @Override
     public World.Environment getDimension() {
-    	return getBukkitEntity().getWorld().getEnvironment();
+        return getBukkitEntity().getWorld().getEnvironment();
     }
 }

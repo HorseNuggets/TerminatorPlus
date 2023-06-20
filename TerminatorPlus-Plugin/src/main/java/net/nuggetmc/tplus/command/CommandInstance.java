@@ -24,12 +24,10 @@ import java.util.stream.Collectors;
 
 public abstract class CommandInstance extends BukkitCommand {
 
+    private static final String MANAGE_PERMISSION = "terminatorplus.manage";
     protected final CommandHandler commandHandler;
-
     private final Map<String, CommandMethod> methods;
     private final Map<String, String> aliasesToNames;
-
-    private static final String MANAGE_PERMISSION = "terminatorplus.manage";
 
     public CommandInstance(CommandHandler handler, String name, String description, @Nullable String... aliases) {
         super(name, description, "", aliases == null ? new ArrayList<>() : Arrays.asList(aliases));
@@ -39,6 +37,24 @@ public abstract class CommandInstance extends BukkitCommand {
         this.aliasesToNames = new HashMap<>();
     }
 
+    public static String getArgumentName(Parameter parameter) {
+        if (parameter.isAnnotationPresent(OptArg.class)) {
+            OptArg arg = parameter.getAnnotation(OptArg.class);
+
+            if (!arg.value().isEmpty()) {
+                return "[" + ChatUtils.camelToDashed(arg.value()) + "]";
+            }
+        } else if (parameter.isAnnotationPresent(Arg.class)) {
+            Arg arg = parameter.getAnnotation(Arg.class);
+
+            if (!arg.value().isEmpty()) {
+                return "<" + ChatUtils.camelToDashed(arg.value()) + ">";
+            }
+        }
+
+        return "<" + ChatUtils.camelToDashed(parameter.getName()) + ">";
+    }
+
     public Map<String, CommandMethod> getMethods() {
         return methods;
     }
@@ -46,9 +62,9 @@ public abstract class CommandInstance extends BukkitCommand {
     protected void addMethod(String name, CommandMethod method) {
         methods.put(name, method);
     }
-    
+
     protected void addAlias(String alias, String name) {
-    	aliasesToNames.put(alias, name);
+        aliasesToNames.put(alias, name);
     }
 
     @Override
@@ -104,9 +120,7 @@ public abstract class CommandInstance extends BukkitCommand {
                     parsedArguments.add(sender);
                 } else if (type == List.class) {
                     parsedArguments.add(arguments);
-                }
-
-                else {
+                } else {
                     if (parameter.isAnnotationPresent(TextArg.class)) {
                         if (index >= arguments.size()) {
                             parsedArguments.add("");
@@ -182,27 +196,21 @@ public abstract class CommandInstance extends BukkitCommand {
                     }
                 }
             }
-        }
-
-        catch (NonPlayerException e) {
+        } catch (NonPlayerException e) {
             sender.sendMessage("This is a player-only command.");
             return true;
-        }
-
-        catch (ArgParseException e) {
+        } catch (ArgParseException e) {
             Parameter parameter = e.getParameter();
             String name = getArgumentName(parameter);
             sender.sendMessage("The parameter " + ChatColor.YELLOW + name + ChatColor.RESET + " must be of type " + ChatColor.YELLOW + parameter.getType().toString() + ChatColor.RESET + ".");
             return true;
-        }
-
-        catch (ArgCountException e) {
+        } catch (ArgCountException e) {
             List<String> usageArgs = new ArrayList<>();
 
             Arrays.stream(method.getMethod().getParameters()).forEach(parameter -> {
                 Class<?> type = parameter.getType();
 
-                if (type != CommandSender.class && type != Player.class){
+                if (type != CommandSender.class && type != Player.class) {
                     usageArgs.add(getArgumentName(parameter));
                 }
             });
@@ -220,24 +228,6 @@ public abstract class CommandInstance extends BukkitCommand {
         }
 
         return true;
-    }
-
-    public static String getArgumentName(Parameter parameter) {
-        if (parameter.isAnnotationPresent(OptArg.class)) {
-            OptArg arg = parameter.getAnnotation(OptArg.class);
-
-            if (!arg.value().isEmpty()) {
-                return "[" + ChatUtils.camelToDashed(arg.value()) + "]";
-            }
-        } else if (parameter.isAnnotationPresent(Arg.class)) {
-            Arg arg = parameter.getAnnotation(Arg.class);
-
-            if (!arg.value().isEmpty()) {
-                return "<" + ChatUtils.camelToDashed(arg.value()) + ">";
-            }
-        }
-
-        return "<" + ChatUtils.camelToDashed(parameter.getName()) + ">";
     }
 
     @Override

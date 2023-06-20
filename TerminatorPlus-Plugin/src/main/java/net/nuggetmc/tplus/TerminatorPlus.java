@@ -31,6 +31,14 @@ public class TerminatorPlus extends JavaPlugin {
         return version;
     }
 
+    public static boolean isCorrectVersion() {
+        return correctVersion;
+    }
+
+    public static String getMcVersion() {
+        return mcVersion;
+    }
+
     public BotManagerImpl getManager() {
         return manager;
     }
@@ -80,13 +88,5 @@ public class TerminatorPlus extends JavaPlugin {
 
     private void registerEvents(Listener... listeners) {
         Arrays.stream(listeners).forEach(li -> this.getServer().getPluginManager().registerEvents(li, this));
-    }
-
-    public static boolean isCorrectVersion() {
-        return correctVersion;
-    }
-
-    public static String getMcVersion() {
-        return mcVersion;
     }
 }

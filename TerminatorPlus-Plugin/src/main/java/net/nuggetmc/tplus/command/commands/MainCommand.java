@@ -32,6 +32,7 @@ public class MainCommand extends CommandInstance {
 
         sender.spigot().sendMessage(rootInfo);
     }
+
     @Command(
             name = "debuginfo",
             desc = "Upload debug info to mclo.gs"
