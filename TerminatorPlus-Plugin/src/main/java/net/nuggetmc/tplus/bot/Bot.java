@@ -26,7 +26,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
-import net.nuggetmc.tplus.api.TerminatorPlusAPI;
 import net.nuggetmc.tplus.api.agent.Agent;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
@@ -34,6 +33,7 @@ import net.nuggetmc.tplus.api.event.BotDamageByPlayerEvent;
 import net.nuggetmc.tplus.api.event.BotFallDamageEvent;
 import net.nuggetmc.tplus.api.event.BotKilledByPlayerEvent;
 import net.nuggetmc.tplus.api.utils.*;
+import net.nuggetmc.tplus.utils.NMSUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -208,7 +208,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this),
                 new ClientboundAddPlayerPacket(this),
                 //new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
-                new ClientboundSetEntityDataPacket(this.getId(), this.entityData.packDirty()),
+                new ClientboundSetEntityDataPacket(this.getId(), NMSUtils.getEntityData(this.entityData)),
                 new ClientboundRotateHeadPacket(this, (byte) ((this.yHeadRot * 256f) / 360f))
         };
     }
