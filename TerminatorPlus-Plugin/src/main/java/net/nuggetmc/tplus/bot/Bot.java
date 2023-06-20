@@ -2,11 +2,13 @@ package net.nuggetmc.tplus.bot;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +26,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
+import net.nuggetmc.tplus.api.TerminatorPlusAPI;
 import net.nuggetmc.tplus.api.agent.Agent;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
 import net.nuggetmc.tplus.api.agent.legacyagent.ai.NeuralNetwork;
@@ -35,11 +38,11 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.craftbukkit.v1_19_R2.CraftEquipmentSlot;
-import org.bukkit.craftbukkit.v1_19_R2.CraftServer;
-import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.CraftEquipmentSlot;
+import org.bukkit.craftbukkit.v1_20_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_20_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
@@ -49,6 +52,7 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class Bot extends ServerPlayer implements Terminator {
@@ -326,7 +330,7 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     private void loadChunks() {
-        Level world = getLevel();
+        Level world = level();
 
         for (int i = chunkPosition().x - 1; i <= chunkPosition().x + 1; i++) {
             for (int j = chunkPosition().z - 1; j <= chunkPosition().z + 1; j++) {
@@ -361,7 +365,7 @@ public class Bot extends ServerPlayer implements Terminator {
             plugin.getManager().getAgent().onFallDamage(event);
 
             if (!event.isCancelled()) {
-                hurt(DamageSource.FALL, (float) Math.pow(3.6, -oldVelocity.getY()));
+                hurt(damageSources().fall(), (float) Math.pow(3.6, -oldVelocity.getY()));
             }
         }
     }
