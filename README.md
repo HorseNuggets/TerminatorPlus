@@ -1,5 +1,9 @@
 # TerminatorPlus [BETA]
 
+**This project is on pause indefinitely.**
+
+Additionally, the readme and wiki may be outdated.
+
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=java&logoColor=white)
 ![GitHub](https://img.shields.io/github/languages/code-size/HorseNuggets/TerminatorPlus?color=cyan&label=Size&labelColor=000000&logo=GitHub&style=for-the-badge)
 ![GitHub](https://img.shields.io/github/license/HorseNuggets/TerminatorPlus?color=violet&logo=GitHub&labelColor=000000&style=for-the-badge)
@@ -26,7 +30,7 @@ Bot bot = Bot.createBot(loc, "Dream");
 
 ### Version Support
 
-This plugin requires [Spigot 1.16.5](https://www.spigotmc.org/wiki/buildtools/#1-16-5). NMS 1.17 kind of screwed up a lot of the EntityPlayer variable names (obfuscation yay!!!) so I don't really wanna have to deal with that yet.
+This plugin requires [Paper 1.20.1](https://papermc.io/downloads/all).
 
 ### Future Updates
 
