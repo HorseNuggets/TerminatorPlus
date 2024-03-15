@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.bot;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.BotManager;
@@ -52,7 +53,8 @@ public class BotManagerImpl implements BotManager, Listener {
     @Override
     public void add(Terminator bot) {
         if (joinMessages) {
-            Bukkit.broadcastMessage(ChatColor.YELLOW + (bot.getBotName() + " joined the game"));
+            // Bukkit.broadcastMessage(ChatColor.YELLOW + (bot.getBotName() + " joined the game"));
+            Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<yellow>" + bot.getBotName() + " joined the game"));
         }
 
         bots.add(bot);
@@ -110,10 +112,11 @@ public class BotManagerImpl implements BotManager, Listener {
         if (n < 1) n = 1;
 
         if (sender != null) {
-            sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + numberFormat.format(n) + ChatColor.RESET + " new bots")
-                    + " with name " + ChatColor.GREEN + name.replace("%", ChatColor.LIGHT_PURPLE + "%" + ChatColor.RESET)
-                    + (skinName == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skinName)
-                    + ChatColor.RESET + "...");
+            String message = "Creating " + (n == 1 ? "new bot" : "<red>" + numberFormat.format(n) + "<reset>" + " new bots")
+                    + " with name " + "<green>" + name.replace("%", "<light_purple>%" + "<reset>")
+                    + (skinName == null ? "" : "<reset>" + " and skin " + "<green>" + skinName)
+                    + "<reset>...";
+            sender.sendRichMessage(message);
         }
 
         skinName = skinName == null ? name : skinName;
@@ -126,13 +129,15 @@ public class BotManagerImpl implements BotManager, Listener {
             else {
                 Location l = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
                 if (sender != null)
-                    sender.sendMessage(ChatColor.RED + "No location specified, defaulting to " + l + ".");
+                    // sender.sendMessage(ChatColor.RED + "No location specified, defaulting to " + l + ".");
+                    sender.sendRichMessage("<red>No location specified, defaulting to " + l.getX() + ", " + l.getY() + ", " + l.getZ() + ".");
                 createBots(l, name, MojangAPI.getSkin(skinName), n, network);
             }
         }
 
         if (sender != null)
-            sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
+            // sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
+            sender.sendRichMessage("Process completed (<red>" + ((System.currentTimeMillis() - timestamp) / 1000D) + "s<reset>).");
     }
 
     @Override
