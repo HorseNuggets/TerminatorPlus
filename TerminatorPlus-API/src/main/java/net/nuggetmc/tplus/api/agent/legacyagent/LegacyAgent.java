@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.api.agent.legacyagent;
 
+import com.google.common.base.Optional;
 import net.nuggetmc.tplus.api.BotManager;
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.TerminatorPlusAPI;
@@ -18,15 +19,14 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.block.data.type.*;
+import org.bukkit.block.data.type.Door;
+import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
-
-import com.google.common.base.Optional;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -1114,7 +1114,7 @@ public class LegacyAgent extends Agent {
                     if (player.isDead() || cur == null || (!block.equals(cur) || block.getType() != cur.getType())) {
                         this.cancel();
 
-                        TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), -1);
+                        TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block, -1);
 
                         crackList.remove(block);
                         mining.remove(this);
@@ -1126,7 +1126,7 @@ public class LegacyAgent extends Agent {
                     if (i == 9) {
                         this.cancel();
 
-                        TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), -1);
+                        TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block, -1);
 
 
                         if (sound != null) {
@@ -1165,7 +1165,7 @@ public class LegacyAgent extends Agent {
                         return;
                     }
 
-                    TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), i);
+                    TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block, i);
 
                     mining.put(this, (byte) (i + 1));
                 }
@@ -1571,7 +1571,7 @@ public class LegacyAgent extends Agent {
     	Iterator<Entry<Block, Short>> itr = crackList.entrySet().iterator();
     	while(itr.hasNext()) {
     		Block block = itr.next().getKey();
-    		TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block.getX(), block.getY(), block.getZ(), -1);
+            TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block, -1);
             itr.remove();
     	}
     	mining.clear();

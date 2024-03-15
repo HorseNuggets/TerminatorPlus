@@ -12,7 +12,7 @@ public class NMSUtils {
     private static String itemsByIdFieldName;
 
     static {
-        // find a private final field in SynchedEntityData that is an Int2ObjectMap<SynchedEntityData.DataItem>
+        // find a private final field in SynchedEntityData that is an Int2ObjectMap<SynchedEntityData.DataItem<?>>
         Class<SynchedEntityData> clazz = SynchedEntityData.class;
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
@@ -26,12 +26,13 @@ public class NMSUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static List<SynchedEntityData.DataValue<?>> getEntityData(SynchedEntityData synchedEntityData) {
-        Int2ObjectMap<SynchedEntityData.DataItem> map = null;
+        Int2ObjectMap<SynchedEntityData.DataItem<?>> map = null;
         try {
             Field field = synchedEntityData.getClass().getDeclaredField(itemsByIdFieldName);
             field.setAccessible(true);
-            map = (Int2ObjectMap<SynchedEntityData.DataItem>) field.get(synchedEntityData);
+            map = (Int2ObjectMap<SynchedEntityData.DataItem<?>>) field.get(synchedEntityData);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
