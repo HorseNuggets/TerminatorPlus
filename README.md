@@ -1,6 +1,6 @@
 # TerminatorPlus [BETA]
 
-**This project is on pause indefinitely.**
+**This project is on pause indefinitely. Updates are not guaranteed. Please do not use in a production server.**
 
 Additionally, the readme and wiki may be outdated.
 
@@ -9,11 +9,13 @@ Additionally, the readme and wiki may be outdated.
 ![GitHub](https://img.shields.io/github/license/HorseNuggets/TerminatorPlus?color=violet&logo=GitHub&labelColor=000000&style=for-the-badge)
 ![Discord](https://img.shields.io/discord/357333217340162069?color=5865F2&label=Discord&logo=Discord&labelColor=23272a&style=for-the-badge)
 
-**TerminatorPlus** is a Spigot plugin that allows the creation of server-side player bots. Unlike many NPC plugins that already exist, this project has an emphasis on making the bots as human-like as possible.
+**TerminatorPlus** is a bukkit (paper) plugin that allows the creation of server-side player bots. Unlike many NPC
+plugins that already exist, this project has an emphasis on making the bots as human-like as possible.
 
 ### Download
 
-Releases are currently available on our Discord server, which can be found [here](https://discord.gg/vZVSf2D6mz).
+Releases are currently available on our Discord server, which can be found [here](https://discord.gg/vZVSf2D6mz). You
+can also find them on the [releases page](https://github.com/HorseNuggets/TerminatorPlus/releases)
 
 ### Machine Learning
 
@@ -21,16 +23,20 @@ TerminatorPlus currently utilizes classic population-based reinforcement learnin
 
 ### API Support
 
-The jar artifact can be used as a dependency for your own plugins, however stronger support will come in the future. Below is an exmaple of a simple bot creation method provided.
+Built API artifacts are available on the [releases page](https://github.com/HorseNuggets/TerminatorPlus/releases), and
+the Discord server.
+See
+the [API Module](https://github.com/HorseNuggets/TerminatorPlus/tree/master/TerminatorPlus-API/src/main/java/net/nuggetmc/tplus/api)
+for available methods.
 
+Example:
 ```java
-Location loc = player.getLocation();
-Bot bot = Bot.createBot(loc, "Dream");
+Terminator terminator = TerminatorPlusAPI.getBotManager().createBot(location, "BotName", skin, skinSignature);
 ```
 
 ### Version Support
 
-This plugin requires [Paper 1.20.1](https://papermc.io/downloads/all).
+This plugin requires [Paper 1.20.4](https://papermc.io/downloads/all).
 
 ### Future Updates
 
