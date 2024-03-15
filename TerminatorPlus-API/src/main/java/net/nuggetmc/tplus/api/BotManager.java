@@ -21,6 +21,8 @@ public interface BotManager {
 
     List<String> fetchNames();
 
+    Terminator createBot(Location loc, String name, String skin, String signature);
+
     void createBots(CommandSender sender, String name, String skinName, int n, Location location);
 
     void createBots(CommandSender sender, String name, String skinName, int n, NeuralNetwork network, Location location);

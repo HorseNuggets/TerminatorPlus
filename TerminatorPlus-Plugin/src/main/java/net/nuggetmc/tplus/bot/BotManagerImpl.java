@@ -89,6 +89,11 @@ public class BotManagerImpl implements BotManager, Listener {
     }
 
     @Override
+    public Terminator createBot(Location loc, String name, String skin, String sig) {
+        return Bot.createBot(loc, name, new String[]{skin, sig});
+    }
+
+    @Override
     public Agent getAgent() {
         return agent;
     }
@@ -104,10 +109,12 @@ public class BotManagerImpl implements BotManager, Listener {
 
         if (n < 1) n = 1;
 
-        sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + numberFormat.format(n) + ChatColor.RESET + " new bots")
-                + " with name " + ChatColor.GREEN + name.replace("%", ChatColor.LIGHT_PURPLE + "%" + ChatColor.RESET)
-                + (skinName == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skinName)
-                + ChatColor.RESET + "...");
+        if (sender != null) {
+            sender.sendMessage("Creating " + (n == 1 ? "new bot" : ChatColor.RED + numberFormat.format(n) + ChatColor.RESET + " new bots")
+                    + " with name " + ChatColor.GREEN + name.replace("%", ChatColor.LIGHT_PURPLE + "%" + ChatColor.RESET)
+                    + (skinName == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + skinName)
+                    + ChatColor.RESET + "...");
+        }
 
         skinName = skinName == null ? name : skinName;
 
@@ -118,12 +125,14 @@ public class BotManagerImpl implements BotManager, Listener {
                 createBots(player.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
             else {
                 Location l = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
-                sender.sendMessage(ChatColor.RED + "No location specified, defaulting to " + l + ".");
+                if (sender != null)
+                    sender.sendMessage(ChatColor.RED + "No location specified, defaulting to " + l + ".");
                 createBots(l, name, MojangAPI.getSkin(skinName), n, network);
             }
         }
 
-        sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
+        if (sender != null)
+            sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
     }
 
     @Override
