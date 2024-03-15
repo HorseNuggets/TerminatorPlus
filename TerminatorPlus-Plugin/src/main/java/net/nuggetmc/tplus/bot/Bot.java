@@ -4,6 +4,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -155,6 +157,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
     private void renderAll() {
         Packet<?>[] packets = getRenderPacketsNoInfo();
+        this.entityData.set(new EntityDataAccessor<>(17, EntityDataSerializers.BYTE), (byte) 0x7F);
         Bukkit.getOnlinePlayers().forEach(p -> renderNoInfo(((CraftPlayer) p).getHandle().connection, packets, false));
     }
 
