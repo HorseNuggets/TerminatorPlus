@@ -887,7 +887,6 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public void doTick() {
-        //detectEquipmentUpdatesPublic();
         baseTick();
     }
 

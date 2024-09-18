@@ -64,7 +64,7 @@ public abstract class CommandInstance extends BukkitCommand {
     }
     
     protected void addAlias(String alias, String name) {
-    	aliasesToNames.put(alias, name);
+        aliasesToNames.put(alias, name);
     }
 
     @Override
