@@ -176,7 +176,7 @@ public class LegacyBlockCheck {
             		
             		// Blocks before must all be pass-through
             		Material type = below.getBlock().getType();
-            		if (type.isSolid() || LegacyMats.canStandOn(type))
+            		if (LegacyMats.isSolid(type) || LegacyMats.canStandOn(type))
             			return false;
             		below = below.clone();
             	}
@@ -192,7 +192,7 @@ public class LegacyBlockCheck {
     		Block next = itr.next().getBlock();
     		boolean placeable = nether ? LegacyMats.canPlaceTwistingVines(next)
     			: LegacyMats.canPlaceWater(next, Optional.absent());
-    		if (placeable || (!next.getType().isSolid() && !LegacyMats.canStandOn(next.getType())))
+    		if (placeable || (!LegacyMats.isSolid(next.getType()) && !LegacyMats.canStandOn(next.getType())))
     			itr.remove();
     	}
     	

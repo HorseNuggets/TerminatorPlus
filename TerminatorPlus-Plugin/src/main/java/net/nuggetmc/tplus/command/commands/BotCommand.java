@@ -520,10 +520,16 @@ public class BotCommand extends CommandInstance {
     @Command(
             name = "debug",
             desc = "Debug plugin code.",
-            visible = false
+            visible = false,
+            autofill = "debugAutofill"
     )
     public void debug(CommandSender sender, @Arg("expression") String expression) {
         new Debugger(sender).execute(expression);
+    }
+    
+    @Autofill
+    public List<String> debugAutofill(CommandSender sender, String[] args) {
+    	return args.length == 2 ? new ArrayList<>(Debugger.AUTOFILL_METHODS) : new ArrayList<>();
     }
 
     private double parseDoubleOrRelative(String pos, Location loc, int type) {

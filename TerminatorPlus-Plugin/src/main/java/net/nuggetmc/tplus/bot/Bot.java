@@ -93,6 +93,11 @@ public class Bot extends ServerPlayer implements Terminator {
             inPlayerList = true;
         }
 
+        // Magma fix - In case a mod causes the Bukkit entity to be created too early
+        try {
+        	getClass().getMethod("resetBukkitEntity").invoke(this);
+        } catch (ReflectiveOperationException e) {}
+
         //this.entityData.set(new EntityDataAccessor<>(16, EntityDataSerializers.BYTE), (byte) 0xFF);
     }
 
@@ -544,7 +549,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 Location loc = new Location(world, x, position().y - 0.01, z);
                 Block block = world.getBlockAt(loc);
 
-                if ((block.getType().isSolid() || LegacyMats.canStandOn(block.getType())) && BotUtils.overlaps(playerBox, block.getBoundingBox())) {
+                if ((LegacyMats.isSolid(block.getType()) || LegacyMats.canStandOn(block.getType())) && BotUtils.overlaps(playerBox, block.getBoundingBox())) {
                     if (!locations.contains(block.getLocation())) {
                         standingOn.add(block);
                         locations.add(block.getLocation());
@@ -563,7 +568,7 @@ public class Bot extends ServerPlayer implements Terminator {
                         blockBox.getMinY() + 1.5, blockBox.getMaxZ());
 
                 if ((LegacyMats.FENCE.contains(block.getType()) || LegacyMats.GATES.contains(block.getType()))
-                        && block.getType().isSolid() && BotUtils.overlaps(playerBox, modifiedBox)) {
+                        && LegacyMats.isSolid(block.getType()) && BotUtils.overlaps(playerBox, modifiedBox)) {
                     if (!locations.contains(block.getLocation())) {
                         standingOn.add(block);
                         locations.add(block.getLocation());
@@ -815,7 +820,7 @@ public class Bot extends ServerPlayer implements Terminator {
         Block block = loc.getBlock();
         World world = loc.getWorld();
 
-        if (!block.getType().isSolid()) {
+        if (!LegacyMats.isSolid(block.getType())) {
             block.setType(type);
             if (world != null) world.playSound(loc, Sound.BLOCK_STONE_PLACE, SoundCategory.BLOCKS, 1, 1);
         }
@@ -882,6 +887,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public void doTick() {
+        //detectEquipmentUpdatesPublic();
         baseTick();
     }
 

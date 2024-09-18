@@ -85,7 +85,7 @@ public class LegacyMats {
         Material.JUNGLE_SIGN, Material.JUNGLE_SLAB, Material.JUNGLE_STAIRS, Material.JUNGLE_TRAPDOOR, Material.JUNGLE_WALL_SIGN, Material.JUNGLE_WOOD,
         Material.SPRUCE_PLANKS, Material.SPRUCE_DOOR, Material.SPRUCE_FENCE, Material.SPRUCE_FENCE_GATE, Material.SPRUCE_LOG,
         Material.SPRUCE_SIGN, Material.SPRUCE_SLAB, Material.SPRUCE_STAIRS, Material.SPRUCE_TRAPDOOR, Material.SPRUCE_WALL_SIGN, Material.SPRUCE_WOOD,
-        Material.MANGROVE_PLANKS, Material.MANGROVE_DOOR, Material.MANGROVE_FENCE, Material.MANGROVE_FENCE_GATE, Material.MANGROVE_LOG,
+		Material.MANGROVE_PLANKS, Material.MANGROVE_DOOR, Material.MANGROVE_FENCE, Material.MANGROVE_FENCE_GATE, Material.MANGROVE_LOG,
         Material.MANGROVE_SIGN, Material.MANGROVE_SLAB, Material.MANGROVE_STAIRS, Material.MANGROVE_TRAPDOOR, Material.MANGROVE_WALL_SIGN, Material.MANGROVE_WOOD,
         Material.CRIMSON_PLANKS, Material.CRIMSON_DOOR, Material.CRIMSON_FENCE, Material.CRIMSON_FENCE_GATE, Material.CRIMSON_STEM,
         Material.CRIMSON_SIGN, Material.CRIMSON_SLAB, Material.CRIMSON_STAIRS, Material.CRIMSON_TRAPDOOR, Material.CRIMSON_WALL_SIGN,
@@ -319,7 +319,7 @@ public class LegacyMats {
     }
     
     public static boolean canPlaceWater(Block block, Optional<Double> entityYPos) {
-    	if (block.getType().isSolid()) {
+    	if (isSolid(block.getType())) {
     		if (block.getType() == Material.CHAIN && ((Chain)block.getBlockData()).getAxis() == Axis.Y
     			&& !((Chain)block.getBlockData()).isWaterlogged())
     			return false;
@@ -381,7 +381,7 @@ public class LegacyMats {
     }
     
     public static boolean canPlaceTwistingVines(Block block) {
-    	if (block.getType().isSolid()) {
+    	if (isSolid(block.getType())) {
     		if (block.getType().data == Leaves.class)
     			return false;
     		if (block.getType().name().endsWith("_CORAL_FAN") || block.getType().name().endsWith("_CORAL")
@@ -514,5 +514,14 @@ public class LegacyMats {
 			}
 			return false;
 		}
+	}
+	
+	/**
+	 * This set stores solid materials that are added by mods.
+	 */
+	public static final Set<Material> SOLID_MATERIALS = new HashSet<>();
+	
+	public static boolean isSolid(Material mat) {
+		return mat.isSolid() || SOLID_MATERIALS.contains(mat);
 	}
 }
