@@ -62,15 +62,15 @@ public class BotEnvironmentCommand extends CommandInstance {
 	    	sender.sendMessage(ChatUtils.LINE);
     	} else if (args.size() > 0 && args.get(0).equals("mobs")) {
     		sender.sendMessage(ChatUtils.LINE);
-    		sender.sendMessage("Sometimes, you may want to have a pre-set list of mob types that the bot will target.");
-    		sender.sendMessage("Additionally, some mobs (especially bosses) may not be considered as hostile.");
-    		sender.sendMessage("To resolve this, use " + ChatColor.YELLOW + "/botenvironment addCustomMob <name>" + ChatColor.RESET + " to add mob types to a list.");
-    		sender.sendMessage(ChatColor.YELLOW + "/botenvironment mobListType" + ChatColor.RESET + " changes if the nearest hostile targeting option should consider this list.");
-    		sender.sendMessage("The nearest mob and custom list targeting options will always include mobs in this list.");
+    		sender.sendMessage("The custom mob list is a user-defined list of mobs.");
+    		sender.sendMessage("Use " + ChatColor.YELLOW + "/botenvironment addCustomMob <name>" + ChatColor.RESET + " to add mob types to the list.");
+    		sender.sendMessage("The list can be used in the CUSTOM_LIST targeting option, and can also be appended to the hostile, raider, or mob targeting options.");
+    		sender.sendMessage("When appending, the mobs predefined as well as the mobs in the custom list will be considered.");
+    		sender.sendMessage("Use " + ChatColor.YELLOW + "/botenvironment mobListType" + ChatColor.RESET + " to change the behavior of the custom mob list.");
     		sender.sendMessage(ChatUtils.LINE);
     	} else {
     		sender.sendMessage("Do " + ChatColor.YELLOW + "/botenvironment help blocks " + ChatColor.RESET + "for more information on adding solid blocks.");
-    		sender.sendMessage("Do " + ChatColor.YELLOW + "/botenvironment help mobs " + ChatColor.RESET + "for more information on adding custom mobs.");
+    		sender.sendMessage("Do " + ChatColor.YELLOW + "/botenvironment help mobs " + ChatColor.RESET + "for more information on creating a custom mob list.");
     	}
     }
     
@@ -277,7 +277,7 @@ public class BotEnvironmentCommand extends CommandInstance {
     
     @Command(
         name = "addCustomMob",
-        desc = "Adds a mob type to the list of custom mobs.",
+        desc = "Adds a mob to the custom list.",
         aliases = {"addcustommob"},
         autofill = "autofill"
     )
@@ -287,7 +287,7 @@ public class BotEnvironmentCommand extends CommandInstance {
     		sender.sendMessage("The entity type you specified does not exist!");
     		return;
     	}
-    	if (LegacyAgent.CUSTOM_TYPES_LIST.add(type))
+    	if (LegacyAgent.CUSTOM_MOB_LIST.add(type))
     		sender.sendMessage("Successfully added " + ChatColor.BLUE + type.name() + ChatColor.RESET + " to the list.");
     	else
     		sender.sendMessage(ChatColor.BLUE + type.name() + ChatColor.RESET + " already exists in the list!");
@@ -295,7 +295,7 @@ public class BotEnvironmentCommand extends CommandInstance {
     
     @Command(
         name = "removeCustomMob",
-        desc = "Removes a mob type to the list of custom mobs.",
+        desc = "Removes a mob from the custom list.",
         aliases = {"removecustommob"},
         autofill = "autofill"
     )
@@ -305,7 +305,7 @@ public class BotEnvironmentCommand extends CommandInstance {
     		sender.sendMessage("The entity type you specified does not exist!");
     		return;
     	}
-    	if (LegacyAgent.CUSTOM_TYPES_LIST.remove(type))
+    	if (LegacyAgent.CUSTOM_MOB_LIST.remove(type))
     		sender.sendMessage("Successfully removed " + ChatColor.BLUE + type.name() + ChatColor.RESET + " from the list.");
     	else
     		sender.sendMessage(ChatColor.BLUE + type.name() + ChatColor.RESET + " does not exist in the list!");
@@ -313,46 +313,44 @@ public class BotEnvironmentCommand extends CommandInstance {
     
     @Command(
         name = "listCustomMobs",
-        desc = "Displays the list of custom mobs manually added.",
+        desc = "Displays the custom list of mobs.",
         aliases = {"listcustommobs"}
     )
     public void listCustomMobs(CommandSender sender) {
     	sender.sendMessage(ChatUtils.LINE);
-    	for (EntityType type : LegacyAgent.CUSTOM_TYPES_LIST)
+    	for (EntityType type : LegacyAgent.CUSTOM_MOB_LIST)
     		sender.sendMessage(ChatColor.GREEN + type.name() + ChatColor.RESET);
-    	sender.sendMessage("Total items: " + ChatColor.BLUE + LegacyAgent.CUSTOM_TYPES_LIST.size() + ChatColor.RESET);
+    	sender.sendMessage("Total items: " + ChatColor.BLUE + LegacyAgent.CUSTOM_MOB_LIST.size() + ChatColor.RESET);
     	sender.sendMessage(ChatUtils.LINE);
     }
     
     @Command(
         name = "clearCustomMobs",
-        desc = "Clears the list of custom mobs manually added.",
+        desc = "Clears the custom list of mobs.",
         aliases = {"clearcustommobs"}
     )
     public void clearCustomMobs(CommandSender sender) {
-    	int size = LegacyAgent.CUSTOM_TYPES_LIST.size();
-    	LegacyAgent.CUSTOM_TYPES_LIST.clear();
+    	int size = LegacyAgent.CUSTOM_MOB_LIST.size();
+    	LegacyAgent.CUSTOM_MOB_LIST.clear();
     	sender.sendMessage("Removed all " + ChatColor.BLUE + size + ChatColor.RESET + " item(s) from the list.");
     }
     
     @Command(
         name = "mobListType",
-        desc = "Changes the custom mob list type to hostile or passive.",
+        desc = "Changes the behavior of the custom mob list.",
         aliases = {"moblisttype"},
         autofill = "autofill"
     )
     public void mobListType(CommandSender sender, List<String> args) {
     	if (args.isEmpty()) {
-    		String type = LegacyAgent.areCustomTypesHostile ? "hostile" : "passive";
-    		sender.sendMessage("The custom mob list type is " + ChatColor.BLUE + type + ChatColor.RESET + ".");
-    	} else if (args.size() > 0 && args.get(0).equals("hostile")) {
-    		LegacyAgent.areCustomTypesHostile = true;
-    		sender.sendMessage("The custom mob list type has been set to " + ChatColor.BLUE + "hostile" + ChatColor.RESET + ".");
-    	} else if (args.size() > 0 && args.get(0).equals("passive")) {
-    		LegacyAgent.areCustomTypesHostile = false;
-    		sender.sendMessage("The custom mob list type has been set to " + ChatColor.BLUE + "passive" + ChatColor.RESET + ".");
+    		sender.sendMessage("The custom mob list type is " + ChatColor.BLUE + LegacyAgent.customListMode + ChatColor.RESET + ".");
+    	} else if (args.size() > 0 && (args.get(0).equals("hostile") || args.get(0).equals("raider")
+    		|| args.get(0).equals("mob") || args.get(0).equals("custom"))) {
+    		LegacyAgent.customListMode = args.get(0);
+    		sender.sendMessage(
+    			"Successfully set the custom mob list type to " + ChatColor.BLUE + args.get(0) + ChatColor.RESET + ".");
     	} else
-    		sender.sendMessage("Usage: " + ChatColor.YELLOW + "/botenvironment mobListType (hostile|passive)" + ChatColor.RESET);
+    		sender.sendMessage("Usage: " + ChatColor.YELLOW + "/botenvironment mobListType (hostile|raider|mob|custom)" + ChatColor.RESET);
     }
     
     @Autofill
@@ -374,7 +372,9 @@ public class BotEnvironmentCommand extends CommandInstance {
         				output.add(type.name());
         	} else if (matches(args[0], "mobListType")) {
         		output.add("hostile");
-        		output.add("passive");
+        		output.add("raider");
+        		output.add("mob");
+        		output.add("custom");
         	}
         }
         return output;

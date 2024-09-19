@@ -57,8 +57,8 @@ public class LegacyAgent extends Agent {
     private double regionWeightY;
     private double regionWeightZ;
     
-    public static final Set<EntityType> CUSTOM_TYPES_LIST = new HashSet<>();
-    public static boolean areCustomTypesHostile = false;
+    public static final Set<EntityType> CUSTOM_MOB_LIST = new HashSet<>();
+    public static String customListMode = "custom";
 
     public LegacyAgent(BotManager manager, Plugin plugin) {
         super(manager, plugin);
@@ -1459,7 +1459,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_HOSTILE: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if ((entity instanceof Monster || (areCustomTypesHostile && CUSTOM_TYPES_LIST.contains(entity.getType()))) && validateCloserEntity(entity, loc, result)) {
+                    if ((entity instanceof Monster || (customListMode.equals("hostile") && CUSTOM_MOB_LIST.contains(entity.getType()))) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
@@ -1469,7 +1469,8 @@ public class LegacyAgent extends Agent {
             
             case NEAREST_RAIDER: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if ((entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider)) && validateCloserEntity(entity, loc, result)) {
+                    boolean raider = entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider);
+                    if (raider || (customListMode.equals("raider") && CUSTOM_MOB_LIST.contains(entity.getType())) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
@@ -1479,7 +1480,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_MOB: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if ((entity instanceof Mob || CUSTOM_TYPES_LIST.contains(entity.getType())) && validateCloserEntity(entity, loc, result)) {
+                    if ((entity instanceof Mob || (customListMode.equals("mob") && CUSTOM_MOB_LIST.contains(entity.getType()))) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
@@ -1535,7 +1536,7 @@ public class LegacyAgent extends Agent {
             
             case CUSTOM_LIST: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if (CUSTOM_TYPES_LIST.contains(entity.getType()) && validateCloserEntity(entity, loc, result)) {
+                    if (customListMode.equals("custom") && CUSTOM_MOB_LIST.contains(entity.getType()) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
@@ -1559,7 +1560,7 @@ public class LegacyAgent extends Agent {
         if (event.isCancelled()) return null;
         return event.getTarget();
     }
-
+    
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
     	double regionDistEntity = getWeightedRegionDist(entity.getLocation());
     	if (regionDistEntity == Double.MAX_VALUE)
