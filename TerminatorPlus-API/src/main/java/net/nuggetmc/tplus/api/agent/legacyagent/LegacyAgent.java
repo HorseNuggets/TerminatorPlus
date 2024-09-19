@@ -1470,7 +1470,7 @@ public class LegacyAgent extends Agent {
             case NEAREST_RAIDER: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
                     boolean raider = entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider);
-                    if (raider || (customListMode.equals("raider") && CUSTOM_MOB_LIST.contains(entity.getType())) && validateCloserEntity(entity, loc, result)) {
+                    if ((raider || (customListMode.equals("raider") && CUSTOM_MOB_LIST.contains(entity.getType()))) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
