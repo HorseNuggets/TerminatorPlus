@@ -22,7 +22,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
@@ -117,19 +116,19 @@ public class BotEnvironmentCommand extends CommandInstance {
     		byName.setAccessible(true);
     		Map<String, Material> map = (Map<String, Material>) byName.get(null);
     		Map<Material, Block> materialsToBlocks = new HashMap<>();
-			if (!includeNonSolid) {
-				// Build material -> block map using ForgeRegistries
-				Object blocksRegistry = Class.forName("net.minecraftforge.registries.ForgeRegistries").getDeclaredField("BLOCKS").get(null);
-				Set<Entry<ResourceKey<Block>, Block>> blockSet = (Set<Entry<ResourceKey<Block>, Block>>) Class.forName("net.minecraftforge.registries.IForgeRegistry").getMethod("getEntries").invoke(blocksRegistry);
-				
-				for (Entry<ResourceKey<Block>, Block> entry : blockSet) {
-		            String result = (String) Class.forName("org.magmafoundation.magma.util.ResourceLocationUtil").getMethod("standardize", ResourceLocation.class).invoke(null, entry.getKey().location());
-		            Material material = Material.getMaterial(result);
-		            if (material != null)
-		            	materialsToBlocks.put(material, entry.getValue());
-				}
-			}
-			int added = 0;
+    		if (!includeNonSolid) {
+    			// Build material -> block map using ForgeRegistries
+    			Object blocksRegistry = Class.forName("net.minecraftforge.registries.ForgeRegistries").getDeclaredField("BLOCKS").get(null);
+    			Set<Entry<ResourceKey<Block>, Block>> blockSet = (Set<Entry<ResourceKey<Block>, Block>>) Class.forName("net.minecraftforge.registries.IForgeRegistry").getMethod("getEntries").invoke(blocksRegistry);
+    			
+    			for (Entry<ResourceKey<Block>, Block> entry : blockSet) {
+    				String result = (String) Class.forName("org.magmafoundation.magma.util.ResourceLocationUtil").getMethod("standardize", ResourceLocation.class).invoke(null, entry.getKey().location());
+    				Material material = Material.getMaterial(result);
+    				if (material != null)
+    					materialsToBlocks.put(material, entry.getValue());
+    			}
+    		}
+    		int added = 0;
     		for (Entry<String, Material> entry : map.entrySet()) {
     			boolean valid = entry.getValue().isBlock() && entry.getKey().startsWith(prefix);
     			if (valid && !includeNonSolid)
@@ -139,7 +138,7 @@ public class BotEnvironmentCommand extends CommandInstance {
     				} else {
     					// Check if block is solid
     					Block block = materialsToBlocks.get(entry.getValue());
-    					valid = false; //TODO: BROKEN
+    					valid = block.defaultBlockState().blocksMotion();
     				}
     			if (valid && LegacyMats.SOLID_MATERIALS.add(entry.getValue()))
     				added++;
