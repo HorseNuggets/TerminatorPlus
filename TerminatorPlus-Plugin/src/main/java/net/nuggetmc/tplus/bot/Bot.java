@@ -122,12 +122,15 @@ public class Bot extends ServerPlayer implements Terminator {
         bot.setPos(loc.getX(), loc.getY(), loc.getZ());
         bot.setRot(loc.getYaw(), loc.getPitch());
         bot.getBukkitEntity().setNoDamageTicks(0);
-        Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
-                new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, bot)));
-        if (addPlayerList)
+        if (addPlayerList) {
+            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
+            	ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(bot))));
             nmsWorld.addNewPlayer(bot);
-        else
+        } else {
+            Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
+                new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, bot)));
             nmsWorld.addFreshEntity(bot);
+        }
         bot.renderAll();
 
         TerminatorPlus.getInstance().getManager().add(bot);
