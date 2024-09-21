@@ -146,6 +146,13 @@ public class BotCommand extends CommandInstance {
     }
 
     private void armorTierSetup() {
+        armorTiers.put("none", new ItemStack[]{
+                new ItemStack(Material.AIR),
+                new ItemStack(Material.AIR),
+                new ItemStack(Material.AIR),
+                new ItemStack(Material.AIR),
+        });
+
         armorTiers.put("leather", new ItemStack[]{
                 new ItemStack(Material.LEATHER_BOOTS),
                 new ItemStack(Material.LEATHER_LEGGINGS),
