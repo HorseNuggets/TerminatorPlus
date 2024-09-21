@@ -223,7 +223,7 @@ public class BotCommand extends CommandInstance {
 
     @Autofill
     public List<String> armorAutofill(CommandSender sender, String[] args) {
-        return args.length == 2 ? new ArrayList<>(armorTiers.keySet()) : null;
+        return args.length == 2 ? new ArrayList<>(armorTiers.keySet()) : new ArrayList<>();
     }
 
     @Command(
@@ -280,7 +280,7 @@ public class BotCommand extends CommandInstance {
 
     @Autofill
     public List<String> infoAutofill(CommandSender sender, String[] args) {
-        return args.length == 2 ? manager.fetchNames() : null;
+        return args.length == 2 ? manager.fetchNames() : new ArrayList<>();
     }
 
     @Command(
