@@ -1,6 +1,5 @@
 package net.nuggetmc.tplus.api.agent.legacyagent;
 
-import net.nuggetmc.tplus.api.TerminatorPlusAPI;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -32,6 +31,6 @@ public class LegacyUtils {
     }
 
     public static Sound breakBlockSound(Block block) {
-        return TerminatorPlusAPI.getInternalBridge().breakBlockSound(block);
+        return block.getBlockData().getSoundGroup().getBreakSound();
     }
 }
