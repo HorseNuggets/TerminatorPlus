@@ -1020,18 +1020,21 @@ public class LegacyAgent extends Agent {
     }
 
     private void preBreak(Terminator bot, LivingEntity player, Block block, LegacyLevel level) {
-        Material item;
-        Material type = block.getType();
+        List<Material> materials = List.of(LegacyItems.PICKAXE, LegacyItems.AXE, LegacyItems.SHOVEL);
+        ItemStack optimal = new ItemStack(Material.AIR);
+        float optimalSpeed = 1;
 
-        if (LegacyMats.SHOVEL.contains(type)) {
-            item = LegacyItems.SHOVEL;
-        } else if (LegacyMats.AXE.contains(type)) {
-            item = LegacyItems.AXE;
-        } else {
-            item = LegacyItems.PICKAXE;
+        for (Material mat : materials) {
+            ItemStack tool = new ItemStack(mat);
+            float destroySpeed = block.getDestroySpeed(tool);
+
+            if (destroySpeed > optimalSpeed) {
+                optimal = tool;
+                optimalSpeed = destroySpeed;
+            }
         }
 
-        bot.setItem(new ItemStack(item));
+        bot.setItem(optimal);
 
         if (level.isSideDown() || level.isSideDown2()) {
             bot.setBotPitch(69);
