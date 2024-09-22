@@ -260,6 +260,18 @@ public class Debugger {
         TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setShield(true));
     }
 
+    public void totem() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setItemOffhand(new ItemStack(Material.TOTEM_OF_UNDYING)));
+    }
+
+    public void clearMainHand() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setItem(new ItemStack(Material.AIR)));
+    }
+
+    public void clearOffHand() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setItemOffhand(new ItemStack(Material.AIR)));
+    }
+
     public void offsets(boolean b) {
         Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
         if (!(agent instanceof LegacyAgent)) {
