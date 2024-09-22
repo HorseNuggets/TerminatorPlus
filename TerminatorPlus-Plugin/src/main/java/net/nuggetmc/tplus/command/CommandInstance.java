@@ -62,7 +62,7 @@ public abstract class CommandInstance extends BukkitCommand {
     protected void addMethod(String name, CommandMethod method) {
         methods.put(name, method);
     }
-    
+
     protected void addAlias(String alias, String name) {
         aliasesToNames.put(alias, name);
     }
@@ -237,9 +237,9 @@ public abstract class CommandInstance extends BukkitCommand {
         if (args.length == 1) {
             List<String> result = methods.keySet().stream().filter(c -> !c.isEmpty() && c.contains(args[0])).collect(Collectors.toList());
             if (result.isEmpty()) {
-            	// Add aliases also
-            	methods.forEach((s, m) -> result.addAll(m.getAliases()));
-            	return result.stream().filter(c -> c.contains(args[0])).collect(Collectors.toList());
+                // Add aliases also
+                methods.forEach((s, m) -> result.addAll(m.getAliases()));
+                return result.stream().filter(c -> c.contains(args[0])).collect(Collectors.toList());
             }
             return result;
         }
@@ -247,7 +247,7 @@ public abstract class CommandInstance extends BukkitCommand {
         if (args.length > 1) {
             CommandMethod commandMethod = methods.get(args[0]);
             if (commandMethod == null)
-            	commandMethod = methods.values().stream().filter(m -> m.getAliases().contains(args[0])).findFirst().orElse(null);
+                commandMethod = methods.values().stream().filter(m -> m.getAliases().contains(args[0])).findFirst().orElse(null);
             if (commandMethod == null) return new ArrayList<>();
             Method autofiller = commandMethod.getAutofiller();
 

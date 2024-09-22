@@ -35,18 +35,18 @@ public class Debugger {
     public static final Set<String> AUTOFILL_METHODS = new HashSet<>();
     
     static {
-    	for (Method method : Debugger.class.getDeclaredMethods()) {
-    		if (!method.getName().equals("print") && !method.getName().equals("execute") && !method.getName().equals("buildObjects")
-    			&& !method.getName().startsWith("lambda$")) {
-    			String autofill = method.getName() + "(";
-    			for (Parameter par : method.getParameters()) {
-    				autofill += par.getType().getSimpleName() + ",";
-    			}
-    			autofill = method.getParameters().length > 0 ? autofill.substring(0, autofill.length() - 1) : autofill;
-    			autofill += ")";
-    			AUTOFILL_METHODS.add(autofill);
-    		}
-    	}
+        for (Method method : Debugger.class.getDeclaredMethods()) {
+            if (!method.getName().equals("print") && !method.getName().equals("execute") && !method.getName().equals("buildObjects")
+                    && !method.getName().startsWith("lambda$")) {
+                String autofill = method.getName() + "(";
+                for (Parameter par : method.getParameters()) {
+                    autofill += par.getType().getSimpleName() + ",";
+                }
+                autofill = method.getParameters().length > 0 ? autofill.substring(0, autofill.length() - 1) : autofill;
+                autofill += ")";
+                AUTOFILL_METHODS.add(autofill);
+            }
+        }
     }
 
     public Debugger(CommandSender sender) {
@@ -478,7 +478,7 @@ public class Debugger {
 
         print("The Bot Agent is now " + (b ? ChatColor.RED + "DISABLED" : ChatColor.GREEN + "ENABLED") + ChatColor.RESET + ".");
     }
-    
+
     public void printSurroundingMobs(double dist) {
         if (!(sender instanceof Player)) {
             print("You must be a player to call this.");
@@ -488,10 +488,10 @@ public class Debugger {
         Player player = (Player) sender;
         double distSq = Math.pow(dist, 2);
         for (Entity en : player.getWorld().getEntities()) {
-        	Location loc = en.getLocation();
-        	if (loc.distanceSquared(player.getLocation()) < distSq)
-        		print(String.format("Entity at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + ": Type " + ChatColor.GREEN + "%s" + ChatColor.RESET,
-        			loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), en.getType().toString()));
+            Location loc = en.getLocation();
+            if (loc.distanceSquared(player.getLocation()) < distSq)
+                print(String.format("Entity at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + ": Type " + ChatColor.GREEN + "%s" + ChatColor.RESET,
+                        loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), en.getType().toString()));
         }
     }
 }

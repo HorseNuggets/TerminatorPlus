@@ -536,7 +536,7 @@ public class BotCommand extends CommandInstance {
     
     @Autofill
     public List<String> debugAutofill(CommandSender sender, String[] args) {
-    	return args.length == 2 ? new ArrayList<>(Debugger.AUTOFILL_METHODS) : new ArrayList<>();
+        return args.length == 2 ? new ArrayList<>(Debugger.AUTOFILL_METHODS) : new ArrayList<>();
     }
 
     private double parseDoubleOrRelative(String pos, Location loc, int type) {

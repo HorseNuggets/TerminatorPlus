@@ -95,7 +95,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
         // Magma fix - In case a mod causes the Bukkit entity to be created too early
         try {
-        	getClass().getMethod("resetBukkitEntity").invoke(this);
+            getClass().getMethod("resetBukkitEntity").invoke(this);
         } catch (ReflectiveOperationException e) {}
 
         //this.entityData.set(new EntityDataAccessor<>(16, EntityDataSerializers.BYTE), (byte) 0xFF);
@@ -124,11 +124,11 @@ public class Bot extends ServerPlayer implements Terminator {
         bot.getBukkitEntity().setNoDamageTicks(0);
         if (addPlayerList) {
             Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
-            	ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(bot))));
+                    ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(bot))));
             nmsWorld.addNewPlayer(bot);
         } else {
             Bukkit.getOnlinePlayers().forEach(p -> ((CraftPlayer) p).getHandle().connection.send(
-                new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, bot)));
+                    new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, bot)));
             nmsWorld.addFreshEntity(bot);
         }
         bot.renderAll();

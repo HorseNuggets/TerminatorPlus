@@ -56,7 +56,7 @@ public class LegacyAgent extends Agent {
     private double regionWeightX;
     private double regionWeightY;
     private double regionWeightZ;
-    
+
     public static final Set<EntityType> CUSTOM_MOB_LIST = new HashSet<>();
     public static String customListMode = "custom";
 
@@ -1469,7 +1469,7 @@ public class LegacyAgent extends Agent {
 
                 break;
             }
-            
+
             case NEAREST_RAIDER: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
                     boolean raider = entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider);
@@ -1536,17 +1536,17 @@ public class LegacyAgent extends Agent {
                 
                 break;
             }
-            
+
             case CUSTOM_LIST: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
                     if (customListMode.equals("custom") && CUSTOM_MOB_LIST.contains(entity.getType()) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
-                
+
                 break;
             }
-            
+
             case PLAYER: {
                 if (bot.getTargetPlayer() != null) {
                     Player player = Bukkit.getPlayer(bot.getTargetPlayer());
@@ -1554,7 +1554,7 @@ public class LegacyAgent extends Agent {
                         result = player;
                     }
                 }
-                
+
                 break;
             }
         }
@@ -1563,28 +1563,28 @@ public class LegacyAgent extends Agent {
         if (event.isCancelled()) return null;
         return event.getTarget();
     }
-    
+
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
-    	double regionDistEntity = getWeightedRegionDist(entity.getLocation());
-    	if (regionDistEntity == Double.MAX_VALUE)
-    		return false;
-    	double regionDistResult = result == null ? 0 : getWeightedRegionDist(result.getLocation());
-    	return loc.getWorld() == entity.getWorld() && !entity.isDead()
-    		&& (result == null || (loc.distanceSquared(entity.getLocation()) + regionDistEntity) < (loc.distanceSquared(result.getLocation())) + regionDistResult);
+        double regionDistEntity = getWeightedRegionDist(entity.getLocation());
+        if (regionDistEntity == Double.MAX_VALUE)
+            return false;
+        double regionDistResult = result == null ? 0 : getWeightedRegionDist(result.getLocation());
+        return loc.getWorld() == entity.getWorld() && !entity.isDead()
+                && (result == null || (loc.distanceSquared(entity.getLocation()) + regionDistEntity) < (loc.distanceSquared(result.getLocation())) + regionDistResult);
     }
-    
+
     private double getWeightedRegionDist(Location loc) {
-    	if (region == null)
-    		return 0;
-    	double diffX = Math.max(0, Math.abs(region.getCenterX() - loc.getX()) - region.getWidthX() * 0.5);
-    	double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
-    	double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
-    	if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0)
-    		if (diffX > 0 || diffY > 0 || diffZ > 0)
-    			return Double.MAX_VALUE;
-    	return diffX * diffX * regionWeightX + diffY * diffY * regionWeightY + diffZ * diffZ * regionWeightZ;
+        if (region == null)
+            return 0;
+        double diffX = Math.max(0, Math.abs(region.getCenterX() - loc.getX()) - region.getWidthX() * 0.5);
+        double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
+        double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
+        if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0)
+            if (diffX > 0 || diffY > 0 || diffZ > 0)
+                return Double.MAX_VALUE;
+        return diffX * diffX * regionWeightX + diffY * diffY * regionWeightY + diffZ * diffZ * regionWeightZ;
     }
-    
+
     @Override
     public void stopAllTasks() {
     	super.stopAllTasks();

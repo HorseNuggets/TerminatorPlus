@@ -188,6 +188,6 @@ public class AICommand extends CommandInstance implements AIManager {
 
     @Autofill
     public List<String> infoAutofill(CommandSender sender, String[] args) {
-    	return args.length == 2 ? manager.fetchNames() : new ArrayList<>();
+        return args.length == 2 ? manager.fetchNames() : new ArrayList<>();
     }
 }
