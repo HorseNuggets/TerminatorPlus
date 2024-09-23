@@ -16,10 +16,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
-
-      - name: Get Plugin Name
-        run: echo "PLUGIN_NAME=$(${{ github.workspace }}/gradlew -q getVersion)" >> $GITHUB_ENV
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Execute Gradle build
         run: ./gradlew build
@@ -29,4 +26,4 @@ jobs:
         if: success()
         with:
           name: TerminatorPlus
-          path: build/libs/${{ env.PLUGIN_NAME }}
+          path: build/libs/
