@@ -41,3 +41,9 @@ tasks.register("copyPlugin", Copy::class.java) {
     from("build/libs/" + jarName + ".jar")
     into("run/plugins")
 }
+
+tasks.register("getJarName") {
+    doLast {
+        println(jarName + ".jar")
+    }
+}
