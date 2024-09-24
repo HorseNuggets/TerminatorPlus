@@ -33,7 +33,7 @@ public class Debugger {
 
     private final CommandSender sender;
     public static final Set<String> AUTOFILL_METHODS = new HashSet<>();
-    
+
     static {
         for (Method method : Debugger.class.getDeclaredMethods()) {
             if (!method.getName().equals("print") && !method.getName().equals("execute") && !method.getName().equals("buildObjects")
