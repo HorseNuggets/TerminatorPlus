@@ -52,13 +52,9 @@ public class TerminatorPlus extends JavaPlugin {
         instance = this;
         version = getDescription().getVersion();
 
-        String version = Bukkit.getVersion();
-        correctVersion = version.contains(REQUIRED_VERSION);
-        if (version.contains("MC:")) { // git-ABX-123 (MC: ABCD)
-            version = version.substring(version.indexOf("MC:") + 3, version.indexOf(")")).trim();
-        }
-        mcVersion = version;
-        getLogger().info("Running on version: " + version + ", required version: " + REQUIRED_VERSION + ", correct version: " + correctVersion);
+        mcVersion = Bukkit.getServer().getMinecraftVersion();
+        correctVersion = mcVersion.equals(REQUIRED_VERSION);
+        getLogger().info("Running on version: " + mcVersion + ", required version: " + REQUIRED_VERSION + ", correct version: " + correctVersion);
 
         // Create Instances
         this.manager = new BotManagerImpl();
@@ -74,7 +70,7 @@ public class TerminatorPlus extends JavaPlugin {
             for (int i = 0; i < 20; i++) { // Kids are stupid so we need to make sure they see this
                 getLogger().severe("----------------------------------------");
                 getLogger().severe("TerminatorPlus is not compatible with your server version!");
-                getLogger().severe("You are running on version: " + version + ", required version: " + REQUIRED_VERSION);
+                getLogger().severe("You are running on version: " + mcVersion + ", required version: " + REQUIRED_VERSION);
                 getLogger().severe("Either download the correct version of TerminatorPlus or update your server. (https://papermc.io/downloads)");
                 getLogger().severe("----------------------------------------");
             }
