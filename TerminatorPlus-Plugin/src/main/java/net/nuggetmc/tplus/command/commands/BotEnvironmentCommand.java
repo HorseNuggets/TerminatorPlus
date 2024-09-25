@@ -10,6 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
+import net.nuggetmc.tplus.api.agent.legacyagent.CustomListMode;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
@@ -265,13 +266,12 @@ public class BotEnvironmentCommand extends CommandInstance {
     public void mobListType(CommandSender sender, List<String> args) {
         if (args.isEmpty()) {
             sender.sendMessage("The custom mob list type is " + ChatColor.BLUE + LegacyAgent.customListMode + ChatColor.RESET + ".");
-        } else if (args.size() > 0 && (args.get(0).equals("hostile") || args.get(0).equals("raider")
-            || args.get(0).equals("mob") || args.get(0).equals("custom"))) {
-            LegacyAgent.customListMode = args.get(0);
+        } else if (args.size() > 0 && CustomListMode.isValid(args.get(0))) {
+            LegacyAgent.customListMode = CustomListMode.from(args.get(0));
             sender.sendMessage(
                     "Successfully set the custom mob list type to " + ChatColor.BLUE + args.get(0) + ChatColor.RESET + ".");
         } else
-            sender.sendMessage("Usage: " + ChatColor.YELLOW + "/botenvironment mobListType (hostile|raider|mob|custom)" + ChatColor.RESET);
+            sender.sendMessage("Usage: " + ChatColor.YELLOW + "/botenvironment mobListType (" + CustomListMode.listModes() + ")" + ChatColor.RESET);
     }
 
     @Autofill
@@ -290,10 +290,8 @@ public class BotEnvironmentCommand extends CommandInstance {
                     if (type != EntityType.UNKNOWN)
                         output.add(type.name());
             } else if (matches(args[0], "mobListType")) {
-                output.add("hostile");
-                output.add("raider");
-                output.add("mob");
-                output.add("custom");
+                for (CustomListMode mode : CustomListMode.values())
+                    output.add(mode.name().toLowerCase(Locale.ENGLISH));
             }
         }
         return output;
