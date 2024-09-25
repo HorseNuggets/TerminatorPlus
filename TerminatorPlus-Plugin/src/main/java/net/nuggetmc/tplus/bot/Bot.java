@@ -93,11 +93,6 @@ public class Bot extends ServerPlayer implements Terminator {
             inPlayerList = true;
         }
 
-        // Magma fix - In case a mod causes the Bukkit entity to be created too early
-        try {
-            getClass().getMethod("resetBukkitEntity").invoke(this);
-        } catch (ReflectiveOperationException e) {}
-
         //this.entityData.set(new EntityDataAccessor<>(16, EntityDataSerializers.BYTE), (byte) 0xFF);
     }
 

@@ -1,27 +1,15 @@
 package net.nuggetmc.tplus.command.commands;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyAgent;
 import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
@@ -30,12 +18,8 @@ import net.nuggetmc.tplus.command.CommandInstance;
 import net.nuggetmc.tplus.command.annotation.Arg;
 import net.nuggetmc.tplus.command.annotation.Autofill;
 import net.nuggetmc.tplus.command.annotation.Command;
-import net.nuggetmc.tplus.command.annotation.OptArg;
 
 public class BotEnvironmentCommand extends CommandInstance {
-
-    private static final Set<String> LOADED_MODS = new HashSet<>();
-    private static boolean loaded;
 
     public BotEnvironmentCommand(CommandHandler handler, String name, String description, String... aliases) {
         super(handler, name, description, aliases);
@@ -54,11 +38,8 @@ public class BotEnvironmentCommand extends CommandInstance {
     public void help(CommandSender sender, List<String> args) {
         if (args.size() > 0 && args.get(0).equals("blocks")) {
             sender.sendMessage(ChatUtils.LINE);
-            sender.sendMessage("If you are running this plugin on a Magma server, keep in mind that blocks added by mods are not considered solid.");
+            sender.sendMessage("If you are running this plugin on a hybrid server, keep in mind that blocks added by mods are not considered solid.");
             sender.sendMessage("You must manually add solid blocks added by mods with " + ChatColor.YELLOW + "/botenvironment addSolid <material>" + ChatColor.RESET + ".");
-            sender.sendMessage("The material name is the mod ID and the block name concatted with a \"_\", converted to uppercase.");
-            sender.sendMessage("For example, if mod \"examplemod\" adds a block \"custom_block\", the material name is EXAMPLEMOD_CUSTOM_BLOCK.");
-            sender.sendMessage("Additionally, you may use " + ChatColor.YELLOW + "/botenvironment addSolidGroup <modid>" + ChatColor.RESET + ", where modid is the uppercase MODID plus a \"_\"");
             sender.sendMessage(ChatUtils.LINE);
         } else if (args.size() > 0 && args.get(0).equals("mobs")) {
             sender.sendMessage(ChatUtils.LINE);
@@ -94,59 +75,9 @@ public class BotEnvironmentCommand extends CommandInstance {
                     loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
             return;
         }
-        if (Math.abs(loc.getX() - sender.getLocation().getX()) > 250 || Math.abs(loc.getZ() - sender.getLocation().getZ()) > 250) {
-            sender.sendMessage(String.format("The location at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + " is too far away.",
-                    loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
-            return;            
-        }
         Material mat = loc.getBlock().getType();
         sender.sendMessage(String.format("Material at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + ": " + ChatColor.GREEN + "%s" + ChatColor.RESET,
                 loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), mat.name()));
-    }
-
-    @Command(
-            name = "addSolidGroup",
-            desc = "Adds every block starting with a prefix to the list of solid materials.",
-            aliases = {"addsolidgroup"},
-            autofill = "autofill"
-    )
-    public void addSolidGroup(CommandSender sender, @Arg("prefix") String prefix, @OptArg("includeNonSolid") boolean includeNonSolid) {
-        try {
-            Field byName = Material.class.getDeclaredField("BY_NAME");
-            byName.setAccessible(true);
-            Map<String, Material> map = (Map<String, Material>) byName.get(null);
-            Map<Material, Block> materialsToBlocks = new HashMap<>();
-            if (!includeNonSolid) {
-                // Build material -> block map using ForgeRegistries
-                Object blocksRegistry = Class.forName("net.minecraftforge.registries.ForgeRegistries").getDeclaredField("BLOCKS").get(null);
-                Set<Entry<ResourceKey<Block>, Block>> blockSet = (Set<Entry<ResourceKey<Block>, Block>>) Class.forName("net.minecraftforge.registries.IForgeRegistry").getMethod("getEntries").invoke(blocksRegistry);
-
-                for (Entry<ResourceKey<Block>, Block> entry : blockSet) {
-                    String result = (String) Class.forName("org.magmafoundation.magma.util.ResourceLocationUtil").getMethod("standardize", ResourceLocation.class).invoke(null, entry.getKey().location());
-                    Material material = Material.getMaterial(result);
-                    if (material != null)
-                        materialsToBlocks.put(material, entry.getValue());
-                }
-            }
-            int added = 0;
-            for (Entry<String, Material> entry : map.entrySet()) {
-                boolean valid = entry.getValue().isBlock() && entry.getKey().startsWith(prefix);
-                if (valid && !includeNonSolid)
-                    if (!materialsToBlocks.containsKey(entry.getValue())) {
-                        sender.sendMessage("Warning: The material " + ChatColor.GREEN + entry.getValue().name() + ChatColor.RESET
-                                + " was not found in the Forge registries, this should not happen!");
-                    } else {
-                        // Check if block is solid
-                        Block block = materialsToBlocks.get(entry.getValue());
-                        valid = block.defaultBlockState().blocksMotion();
-                    }
-                if (valid && LegacyMats.SOLID_MATERIALS.add(entry.getValue()))
-                    added++;
-            }
-            sender.sendMessage("Successfully added " + ChatColor.BLUE + added + ChatColor.RESET + " materials with prefix " + ChatColor.GREEN + prefix + ChatColor.RESET);
-        } catch(ReflectiveOperationException e) {
-            sender.sendMessage("This command only works on Magma servers!");
-        }
     }
 
     @Command(
@@ -177,11 +108,6 @@ public class BotEnvironmentCommand extends CommandInstance {
                 sender.sendMessage(String.format("The location at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + " is not loaded.",
                     loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
                 return;
-            }
-            if (Math.abs(loc.getX() - ((Player)sender).getLocation().getX()) > 250 || Math.abs(loc.getZ() - ((Player)sender).getLocation().getZ()) > 250) {
-                sender.sendMessage(String.format("The location at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + " is too far away.",
-                    loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
-                return;            
             }
             mat = loc.getBlock().getType();
         } else {
@@ -228,11 +154,6 @@ public class BotEnvironmentCommand extends CommandInstance {
                 sender.sendMessage(String.format("The location at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + " is not loaded.",
                     loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
                 return;
-            }
-            if (Math.abs(loc.getX() - ((Player)sender).getLocation().getX()) > 250 || Math.abs(loc.getZ() - ((Player)sender).getLocation().getZ()) > 250) {
-                sender.sendMessage(String.format("The location at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + " is too far away.",
-                    loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
-                return;            
             }
             mat = loc.getBlock().getType();
         } else {
@@ -360,8 +281,6 @@ public class BotEnvironmentCommand extends CommandInstance {
             if (args[0].equals("help")) {
                 output.add("blocks");
                 output.add("mobs");
-            } else if (matches(args[0], "addSolidGroup")) {
-                output.addAll(getLoadedMods());
             } else if (matches(args[0], "addSolid") || matches(args[0], "removeSolid")) {
                 for (Material mat : Material.values())
                     if (!mat.isLegacy())
@@ -402,29 +321,5 @@ public class BotEnvironmentCommand extends CommandInstance {
 
     private boolean isLocationLoaded(Location loc) {
         return loc.getWorld().isChunkLoaded(Location.locToBlock(loc.getX()) >> 4, Location.locToBlock(loc.getZ()) >> 4);
-    }
-
-    private static Set<String> getLoadedMods() {
-        if (!loaded) {
-            try {
-                Object blocksRegistry = Class.forName("net.minecraftforge.registries.ForgeRegistries").getDeclaredField("BLOCKS").get(null);
-                Set<Entry<ResourceKey<Block>, Block>> blockSet = (Set<Entry<ResourceKey<Block>, Block>>) Class.forName("net.minecraftforge.registries.IForgeRegistry").getMethod("getEntries").invoke(blocksRegistry);
-                for (Entry<ResourceKey<Block>, Block> entry : blockSet) {
-                    String namespace = entry.getKey().location().getNamespace();
-                    if (!namespace.equals(NamespacedKey.MINECRAFT))
-                        LOADED_MODS.add(namespace.toUpperCase() + "_");
-                }
-
-                Object itemsRegistry = Class.forName("net.minecraftforge.registries.ForgeRegistries").getDeclaredField("ITEMS").get(null);
-                Set<Entry<ResourceKey<Item>, Item>> itemSet = (Set<Entry<ResourceKey<Item>, Item>>) Class.forName("net.minecraftforge.registries.IForgeRegistry").getMethod("getEntries").invoke(itemsRegistry);
-                for (Entry<ResourceKey<Item>, Item> entry : itemSet) {
-                    String namespace = entry.getKey().location().getNamespace();
-                    if (!namespace.equals(NamespacedKey.MINECRAFT))
-                        LOADED_MODS.add(namespace.toUpperCase() + "_");
-                }
-            } catch (ReflectiveOperationException e) {}
-            loaded = true;
-        }
-        return LOADED_MODS;
     }
 }
