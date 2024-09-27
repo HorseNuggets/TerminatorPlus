@@ -17,12 +17,6 @@ dependencies {
 
     //add the TerminatorPlus-API module
     implementation(project(":TerminatorPlus-API"))
-
-    // paperweightDevBundle("com.example.paperfork", "1.19-R0.1-SNAPSHOT")
-
-    // You will need to manually specify the full dependency if using the groovy gradle dsl
-    // (paperDevBundle and paperweightDevBundle functions do not work in groovy)
-    // paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.19-R0.1-SNAPSHOT")
 }
 
 tasks {

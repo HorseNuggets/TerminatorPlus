@@ -34,12 +34,12 @@ public class BotUtils {
 
         return randomSteveUUID();
     }
-    
+
     public static boolean overlaps(BoundingBox playerBox, BoundingBox blockBox) {
-    	return playerBox.overlaps(blockBox);
+        return playerBox.overlaps(blockBox);
     }
-    
+
     public static double getHorizSqDist(Location blockLoc, Location pLoc) {
-    	return NumberConversions.square(blockLoc.getX() + 0.5 - pLoc.getX()) + NumberConversions.square(blockLoc.getZ() + 0.5 - pLoc.getZ());
+        return NumberConversions.square(blockLoc.getX() + 0.5 - pLoc.getX()) + NumberConversions.square(blockLoc.getZ() + 0.5 - pLoc.getZ());
     }
 }

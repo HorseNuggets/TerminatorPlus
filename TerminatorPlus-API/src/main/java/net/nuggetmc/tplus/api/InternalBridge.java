@@ -1,6 +1,5 @@
 package net.nuggetmc.tplus.api;
 
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 
 /**
@@ -8,6 +7,4 @@ import org.bukkit.block.Block;
  */
 public interface InternalBridge {
     void sendBlockDestructionPacket(short entityId, Block block, int progress);
-
-    Sound breakBlockSound(Block block);
 }

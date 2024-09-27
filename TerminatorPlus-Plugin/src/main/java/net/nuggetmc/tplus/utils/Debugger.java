@@ -16,6 +16,7 @@ import net.nuggetmc.tplus.command.commands.AICommand;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -23,12 +24,30 @@ import org.bukkit.permissions.ServerOperator;
 import org.bukkit.util.Vector;
 
 import java.beans.Statement;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Debugger {
 
     private final CommandSender sender;
+    public static final Set<String> AUTOFILL_METHODS = new HashSet<>();
+
+    static {
+        for (Method method : Debugger.class.getDeclaredMethods()) {
+            if (!method.getName().equals("print") && !method.getName().equals("execute") && !method.getName().equals("buildObjects")
+                    && !method.getName().startsWith("lambda$")) {
+                String autofill = method.getName() + "(";
+                for (Parameter par : method.getParameters()) {
+                    autofill += par.getType().getSimpleName() + ",";
+                }
+                autofill = method.getParameters().length > 0 ? autofill.substring(0, autofill.length() - 1) : autofill;
+                autofill += ")";
+                AUTOFILL_METHODS.add(autofill);
+            }
+        }
+    }
 
     public Debugger(CommandSender sender) {
         this.sender = sender;
@@ -241,6 +260,18 @@ public class Debugger {
         TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setShield(true));
     }
 
+    public void totem() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setItemOffhand(new ItemStack(Material.TOTEM_OF_UNDYING)));
+    }
+
+    public void clearMainHand() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setItem(new ItemStack(Material.AIR)));
+    }
+
+    public void clearOffHand() {
+        TerminatorPlus.getInstance().getManager().fetch().forEach(bot -> bot.setItemOffhand(new ItemStack(Material.AIR)));
+    }
+
     public void offsets(boolean b) {
         Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
         if (!(agent instanceof LegacyAgent)) {
@@ -446,5 +477,21 @@ public class Debugger {
         agent.setEnabled(!b);
 
         print("The Bot Agent is now " + (b ? ChatColor.RED + "DISABLED" : ChatColor.GREEN + "ENABLED") + ChatColor.RESET + ".");
+    }
+
+    public void printSurroundingMobs(double dist) {
+        if (!(sender instanceof Player)) {
+            print("You must be a player to call this.");
+            return;
+        }
+
+        Player player = (Player) sender;
+        double distSq = Math.pow(dist, 2);
+        for (Entity en : player.getWorld().getEntities()) {
+            Location loc = en.getLocation();
+            if (loc.distanceSquared(player.getLocation()) < distSq)
+                print(String.format("Entity at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + ": Type " + ChatColor.GREEN + "%s" + ChatColor.RESET,
+                        loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), en.getType().toString()));
+        }
     }
 }

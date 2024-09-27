@@ -8,6 +8,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import net.nuggetmc.tplus.api.agent.legacyagent.LegacyMats;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
@@ -53,7 +55,7 @@ public class PlayerUtils {
         boolean check = false;
 
         for (int i = 0; i <= amount; i++) {
-            if (loc.clone().add(0, i, 0).getBlock().getType().isSolid()) {
+            if (LegacyMats.isSolid(loc.clone().add(0, i, 0).getBlock().getType())) {
                 check = true;
                 break;
             }
@@ -76,7 +78,7 @@ public class PlayerUtils {
                 break;
             }
 
-            if (check.getBlock().getType().isSolid()) {
+            if (LegacyMats.isSolid(check.getBlock().getType())) {
                 return check.add(0, 1, 0);
             }
         }

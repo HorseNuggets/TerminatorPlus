@@ -12,6 +12,7 @@ public enum EnumTargetGoal {
     NEAREST_BOT("Locate the nearest bot."),
     NEAREST_BOT_DIFFER("Locate the nearest bot with a different username."),
     NEAREST_BOT_DIFFER_ALPHA("Locate the nearest bot with a different username after filtering out non-alpha characters."),
+    CUSTOM_LIST("Locate only the mob types specified in the custom list of mobs"),
     PLAYER("Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found."),
     NONE("No target goal.");
 
@@ -26,6 +27,7 @@ public enum EnumTargetGoal {
             this.put("nearestbot", NEAREST_BOT);
             this.put("nearestbotdiffer", NEAREST_BOT_DIFFER);
             this.put("nearestbotdifferalpha", NEAREST_BOT_DIFFER_ALPHA);
+            this.put("customlist", CUSTOM_LIST);
             this.put("player", PLAYER);
         }
     };

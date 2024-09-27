@@ -8,6 +8,7 @@ import net.nuggetmc.tplus.command.annotation.Command;
 import net.nuggetmc.tplus.command.annotation.Require;
 import net.nuggetmc.tplus.command.commands.AICommand;
 import net.nuggetmc.tplus.command.commands.BotCommand;
+import net.nuggetmc.tplus.command.commands.BotEnvironmentCommand;
 import net.nuggetmc.tplus.command.commands.MainCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -43,7 +44,8 @@ public class CommandHandler {
         registerCommands(
                 new MainCommand(this, "terminatorplus", "The TerminatorPlus main command.", "tplus"),
                 new BotCommand(this, "bot", "The root command for bot management.", "npc"),
-                new AICommand(this, "ai", "The root command for bot AI training.")
+                new AICommand(this, "ai", "The root command for bot AI training."),
+                new BotEnvironmentCommand(this, "botenvironment", "Do /botenvironment help for more information.", "botenv")
         );
     }
 

@@ -146,6 +146,13 @@ public class BotCommand extends CommandInstance {
     }
 
     private void armorTierSetup() {
+        armorTiers.put("none", new ItemStack[]{
+                new ItemStack(Material.AIR),
+                new ItemStack(Material.AIR),
+                new ItemStack(Material.AIR),
+                new ItemStack(Material.AIR),
+        });
+
         armorTiers.put("leather", new ItemStack[]{
                 new ItemStack(Material.LEATHER_BOOTS),
                 new ItemStack(Material.LEATHER_LEGGINGS),
@@ -223,7 +230,7 @@ public class BotCommand extends CommandInstance {
 
     @Autofill
     public List<String> armorAutofill(CommandSender sender, String[] args) {
-        return args.length == 2 ? new ArrayList<>(armorTiers.keySet()) : null;
+        return args.length == 2 ? new ArrayList<>(armorTiers.keySet()) : new ArrayList<>();
     }
 
     @Command(
@@ -280,7 +287,7 @@ public class BotCommand extends CommandInstance {
 
     @Autofill
     public List<String> infoAutofill(CommandSender sender, String[] args) {
-        return args.length == 2 ? manager.fetchNames() : null;
+        return args.length == 2 ? manager.fetchNames() : new ArrayList<>();
     }
 
     @Command(
@@ -520,10 +527,16 @@ public class BotCommand extends CommandInstance {
     @Command(
             name = "debug",
             desc = "Debug plugin code.",
-            visible = false
+            visible = false,
+            autofill = "debugAutofill"
     )
     public void debug(CommandSender sender, @Arg("expression") String expression) {
         new Debugger(sender).execute(expression);
+    }
+
+    @Autofill
+    public List<String> debugAutofill(CommandSender sender, String[] args) {
+        return args.length == 2 ? new ArrayList<>(Debugger.AUTOFILL_METHODS) : new ArrayList<>();
     }
 
     private double parseDoubleOrRelative(String pos, Location loc, int type) {

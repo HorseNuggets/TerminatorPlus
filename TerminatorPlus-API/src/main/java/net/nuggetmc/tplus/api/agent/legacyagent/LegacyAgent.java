@@ -57,6 +57,9 @@ public class LegacyAgent extends Agent {
     private double regionWeightY;
     private double regionWeightZ;
 
+    public static final Set<EntityType> CUSTOM_MOB_LIST = new HashSet<>();
+    public static CustomListMode customListMode = CustomListMode.CUSTOM;
+
     public LegacyAgent(BotManager manager, Plugin plugin) {
         super(manager, plugin);
 
@@ -1017,18 +1020,21 @@ public class LegacyAgent extends Agent {
     }
 
     private void preBreak(Terminator bot, LivingEntity player, Block block, LegacyLevel level) {
-        Material item;
-        Material type = block.getType();
+        List<Material> materials = List.of(LegacyItems.PICKAXE, LegacyItems.AXE, LegacyItems.SHOVEL);
+        ItemStack optimal = new ItemStack(Material.AIR);
+        float optimalSpeed = 1;
 
-        if (LegacyMats.SHOVEL.contains(type)) {
-            item = LegacyItems.SHOVEL;
-        } else if (LegacyMats.AXE.contains(type)) {
-            item = LegacyItems.AXE;
-        } else {
-            item = LegacyItems.PICKAXE;
+        for (Material mat : materials) {
+            ItemStack tool = new ItemStack(mat);
+            float destroySpeed = block.getDestroySpeed(tool);
+
+            if (destroySpeed > optimalSpeed) {
+                optimal = tool;
+                optimalSpeed = destroySpeed;
+            }
         }
 
-        bot.setItem(new ItemStack(item));
+        bot.setItem(optimal);
 
         if (level.isSideDown() || level.isSideDown2()) {
             bot.setBotPitch(69);
@@ -1456,17 +1462,18 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_HOSTILE: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if (entity instanceof Monster && validateCloserEntity(entity, loc, result)) {
+                    if ((entity instanceof Monster || (customListMode == CustomListMode.HOSTILE && CUSTOM_MOB_LIST.contains(entity.getType()))) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
 
                 break;
             }
-            
+
             case NEAREST_RAIDER: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if ((entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider)) && validateCloserEntity(entity, loc, result)) {
+                    boolean raider = entity instanceof Raider || (entity instanceof Vex vex && vex.getSummoner() instanceof Raider);
+                    if ((raider || (customListMode == CustomListMode.RAIDER && CUSTOM_MOB_LIST.contains(entity.getType()))) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
@@ -1476,7 +1483,7 @@ public class LegacyAgent extends Agent {
 
             case NEAREST_MOB: {
                 for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
-                    if (entity instanceof Mob && validateCloserEntity(entity, loc, result)) {
+                    if ((entity instanceof Mob || (customListMode == CustomListMode.MOB && CUSTOM_MOB_LIST.contains(entity.getType()))) && validateCloserEntity(entity, loc, result)) {
                         result = entity;
                     }
                 }
@@ -1526,15 +1533,29 @@ public class LegacyAgent extends Agent {
                         }
                     }
                 }
+                
+                break;
             }
-            case PLAYER: { //Target a single player. Defaults to NEAREST_VULNERABLE_PLAYER if no player found.
+
+            case CUSTOM_LIST: {
+                for (LivingEntity entity : bot.getBukkitEntity().getWorld().getLivingEntities()) {
+                    if (customListMode == CustomListMode.CUSTOM && CUSTOM_MOB_LIST.contains(entity.getType()) && validateCloserEntity(entity, loc, result)) {
+                        result = entity;
+                    }
+                }
+
+                break;
+            }
+
+            case PLAYER: {
                 if (bot.getTargetPlayer() != null) {
                     Player player = Bukkit.getPlayer(bot.getTargetPlayer());
                     if (player != null && !botsInPlayerList.contains(player) && validateCloserEntity(player, loc, null)) {
-                        return player;
+                        result = player;
                     }
                 }
-                return locateTarget(bot, loc, EnumTargetGoal.NEAREST_VULNERABLE_PLAYER);
+
+                break;
             }
         }
         TerminatorLocateTargetEvent event = new TerminatorLocateTargetEvent(bot, result);
@@ -1544,26 +1565,26 @@ public class LegacyAgent extends Agent {
     }
 
     private boolean validateCloserEntity(LivingEntity entity, Location loc, LivingEntity result) {
-    	double regionDistEntity = getWeightedRegionDist(entity.getLocation());
-    	if (regionDistEntity == Double.MAX_VALUE)
-    		return false;
-    	double regionDistResult = result == null ? 0 : getWeightedRegionDist(result.getLocation());
-    	return loc.getWorld() == entity.getWorld() && !entity.isDead()
-    		&& (result == null || (loc.distanceSquared(entity.getLocation()) + regionDistEntity) < (loc.distanceSquared(result.getLocation())) + regionDistResult);
+        double regionDistEntity = getWeightedRegionDist(entity.getLocation());
+        if (regionDistEntity == Double.MAX_VALUE)
+            return false;
+        double regionDistResult = result == null ? 0 : getWeightedRegionDist(result.getLocation());
+        return loc.getWorld() == entity.getWorld() && !entity.isDead()
+                && (result == null || (loc.distanceSquared(entity.getLocation()) + regionDistEntity) < (loc.distanceSquared(result.getLocation())) + regionDistResult);
     }
-    
+
     private double getWeightedRegionDist(Location loc) {
-    	if (region == null)
-    		return 0;
-    	double diffX = Math.max(0, Math.abs(region.getCenterX() - loc.getX()) - region.getWidthX() * 0.5);
-    	double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
-    	double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
-    	if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0)
-    		if (diffX > 0 || diffY > 0 || diffZ > 0)
-    			return Double.MAX_VALUE;
-    	return diffX * diffX * regionWeightX + diffY * diffY * regionWeightY + diffZ * diffZ * regionWeightZ;
+        if (region == null)
+            return 0;
+        double diffX = Math.max(0, Math.abs(region.getCenterX() - loc.getX()) - region.getWidthX() * 0.5);
+        double diffY = Math.max(0, Math.abs(region.getCenterY() - loc.getY()) - region.getHeight() * 0.5);
+        double diffZ = Math.max(0, Math.abs(region.getCenterZ() - loc.getZ()) - region.getWidthZ() * 0.5);
+        if (regionWeightX == 0 && regionWeightY == 0 && regionWeightZ == 0)
+            if (diffX > 0 || diffY > 0 || diffZ > 0)
+                return Double.MAX_VALUE;
+        return diffX * diffX * regionWeightX + diffY * diffY * regionWeightY + diffZ * diffZ * regionWeightZ;
     }
-    
+
     @Override
     public void stopAllTasks() {
     	super.stopAllTasks();
