@@ -1,5 +1,5 @@
 plugins {
-    id("java")
+    java
     id("net.nuggetmc.java-conventions")
 }
 
@@ -17,6 +17,6 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
     compileOnly("com.mojang:authlib:3.2.38")
 }

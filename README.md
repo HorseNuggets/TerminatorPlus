@@ -36,7 +36,7 @@ Terminator terminator = TerminatorPlusAPI.getBotManager().createBot(location, "B
 
 ### Version Support
 
-This plugin requires [Paper 1.20.4](https://papermc.io/downloads/all).
+This plugin requires [Paper 1.21.1](https://papermc.io/downloads/all).
 
 ### Future Updates
 

@@ -57,7 +57,7 @@ public class MockConnection extends Connection {
     }
 
     @Override
-    public void setListener(@NotNull PacketListener packetListener) {
+    public void setListenerForServerboundHandshake(@NotNull PacketListener packetListener) {
         try {
             PACKET_LISTENER_FIELD.set(this, packetListener);
             DISCONNECT_LISTENER_FIELD.set(this, null);
