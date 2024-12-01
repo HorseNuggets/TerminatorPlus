@@ -8,7 +8,7 @@ public class BotDeathEvent extends EntityDeathEvent {
     private final Terminator bot;
 
     public BotDeathEvent(EntityDeathEvent event, Terminator bot) {
-        super(event.getEntity(), event.getDrops(), event.getDroppedExp());
+        super(event.getEntity(), event.getDamageSource(), event.getDrops(), event.getDroppedExp());
         this.bot = bot;
     }
 

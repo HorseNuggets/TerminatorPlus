@@ -13,7 +13,7 @@ import net.nuggetmc.tplus.command.commands.MainCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
-import org.bukkit.craftbukkit.v1_20_R3.CraftServer;
+import org.bukkit.craftbukkit.CraftServer;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
