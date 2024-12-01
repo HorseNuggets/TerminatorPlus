@@ -80,7 +80,7 @@ public abstract class Agent {
         Player player = event.getPlayer();
 
         scheduler.runTaskAsynchronously(plugin, () -> {
-            Terminator bot = manager.getBot(player);
+            Terminator bot = manager.getBot(player.getEntityId());
 
             if (bot != null) {
                 bot.incrementKills();

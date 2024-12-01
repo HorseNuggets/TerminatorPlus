@@ -1,6 +1,5 @@
 package net.nuggetmc.tplus.api.agent.legacyagent;
 
-import com.google.common.base.Optional;
 import net.nuggetmc.tplus.api.BotManager;
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.TerminatorPlusAPI;
@@ -73,7 +72,7 @@ public class LegacyAgent extends Agent {
 
     @Override
     protected void tick() {
-    	botsInPlayerList = manager.fetch().stream().filter(t -> t.isInPlayerList()).map(b -> b.getBukkitEntity()).toList();
+    	botsInPlayerList = manager.fetch().stream().filter(Terminator::isInPlayerList).map(Terminator::getBukkitEntity).toList();
     	manager.fetch().forEach(this::tickBot);
     }
 
@@ -368,7 +367,7 @@ public class LegacyAgent extends Agent {
             placeType = Material.WATER;
             
             for (Block block : event.getStandingOn()) {
-            	if (LegacyMats.canPlaceWater(block, Optional.of(yPos))) {
+            	if (LegacyMats.canPlaceWater(block, yPos)) {
             		groundLoc = block.getLocation();
             		break;
             	}
@@ -510,8 +509,8 @@ public class LegacyAgent extends Agent {
             		locStanding.add(loc);
             }
     	}
-    	Collections.sort(locStanding, (a, b) ->
-    		Double.compare(BotUtils.getHorizSqDist(a, player.getLocation()), BotUtils.getHorizSqDist(b, player.getLocation())));
+    	locStanding.sort((a, b) ->
+                Double.compare(BotUtils.getHorizSqDist(a, player.getLocation()), BotUtils.getHorizSqDist(b, player.getLocation())));
     	
         //Break potential obstructing walls
     	for (Location loc : locStanding) {
@@ -569,7 +568,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.NORTH_D_2;
                 } else {
-                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().getFirst();
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -607,7 +606,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.SOUTH_D_2;
                 } else {
-                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().getFirst();
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -645,7 +644,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.EAST_D_2;
                 } else {
-                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().getFirst();
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -683,7 +682,7 @@ public class LegacyAgent extends Agent {
                     get = get.getLocation().add(0, -2, 0).getBlock();
                     level = LegacyLevel.WEST_D_2;
                 } else {
-                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                	Block standing = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().getFirst();
                 	if(standing == null)
                 		break;
                 	boolean obstructed = standing.getLocation().getBlockY() == player.getLocation().getBlockY()
@@ -723,24 +722,14 @@ public class LegacyAgent extends Agent {
             }
         }
         if (level == LegacyLevel.ABOVE || level == LegacyLevel.BELOW) {
-            Block check;
+            Block check = switch (dir) {
+                case NORTH -> player.getLocation().add(0, 2, -1).getBlock();
+                case SOUTH -> player.getLocation().add(0, 2, 1).getBlock();
+                case EAST -> player.getLocation().add(1, 2, 0).getBlock();
+                case WEST -> player.getLocation().add(-1, 2, 0).getBlock();
+                default -> null;
+            };
 
-            switch (dir) {
-                case NORTH:
-                	check = player.getLocation().add(0, 2, -1).getBlock();
-                    break;
-                case SOUTH:
-                	check = player.getLocation().add(0, 2, 1).getBlock();
-                    break;
-                case EAST:
-                	check = player.getLocation().add(1, 2, 0).getBlock();
-                    break;
-                case WEST:
-                	check = player.getLocation().add(-1, 2, 0).getBlock();
-                    break;
-                default:
-                	check = null;
-            }
             if (LegacyMats.AIR.contains(player.getLocation().add(0, 2, 0).getBlock().getType())
                 && LegacyMats.AIR.contains(check.getType()))
                 return null;
@@ -773,24 +762,13 @@ public class LegacyAgent extends Agent {
         boolean above = LegacyWorldManager.aboveGround(playerNPC.getLocation());
 
         BlockFace dir = playerNPC.getFacing();
-        Block get;
-
-        switch (dir) {
-            case NORTH:
-                get = playerNPC.getLocation().add(0, 1, -1).getBlock();
-                break;
-            case SOUTH:
-                get = playerNPC.getLocation().add(0, 1, 1).getBlock();
-                break;
-            case EAST:
-                get = playerNPC.getLocation().add(1, 1, 0).getBlock();
-                break;
-            case WEST:
-                get = playerNPC.getLocation().add(-1, 1, 0).getBlock();
-                break;
-            default:
-                get = null;
-        }
+        Block get = switch (dir) {
+            case NORTH -> playerNPC.getLocation().add(0, 1, -1).getBlock();
+            case SOUTH -> playerNPC.getLocation().add(0, 1, 1).getBlock();
+            case EAST -> playerNPC.getLocation().add(1, 1, 0).getBlock();
+            case WEST -> playerNPC.getLocation().add(-1, 1, 0).getBlock();
+            default -> null;
+        };
 
         if (get == null || LegacyMats.BREAK.contains(get.getType())) {
             if (a.distance(b) >= 16 && above) return false;
@@ -897,7 +875,7 @@ public class LegacyAgent extends Agent {
 
                 return true;
             } else if (sameXZ && LegacyMats.BREAK.contains(m1)) {
-                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().getFirst();
                 if (block != null && block.getLocation().getBlockY() == playerNPC.getLocation().getBlockY()
                 	&& !LegacyMats.BREAK.contains(block.getType())) {
                     npc.look(BlockFace.DOWN);
@@ -918,7 +896,7 @@ public class LegacyAgent extends Agent {
             return false;
 
         if (c && npc.getLocation().getBlockY() > loc.getBlockY() + 1) {
-            Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+            Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().getFirst();
             if (block == null)
             	return false;
             npc.look(BlockFace.DOWN);
@@ -934,7 +912,7 @@ public class LegacyAgent extends Agent {
             b.setY(0);
 
             if (npc.getLocation().getBlockY() > loc.getBlockY() + 10 && a.distance(b) < 10) {
-                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().get(0);
+                Block block = npc.getStandingOn().isEmpty() ? null : npc.getStandingOn().getFirst();
                 if (block == null)
                 	return false;
                 npc.look(BlockFace.DOWN);
@@ -1005,9 +983,7 @@ public class LegacyAgent extends Agent {
     private boolean isDoorObstacle(Block block) {
     	if (block.getType().data == Door.class)
     		return true;
-    	if (block.getType().data == TrapDoor.class && ((TrapDoor)block.getBlockData()).isOpen())
-    		return true;
-    	return false;
+        return block.getType().data == TrapDoor.class && ((TrapDoor) block.getBlockData()).isOpen();
     }
 
     private boolean checkAt(Terminator bot, Block block, LivingEntity player) {
@@ -1082,7 +1058,7 @@ public class LegacyAgent extends Agent {
                     if (wrapper.getLevel() == null)
                     	 cur = player.getLocation().add(0, 1, 0).getBlock();
                     else if (wrapper.getLevel() == LegacyLevel.BELOW)
-                    	cur = bot.getStandingOn().isEmpty() ? null : bot.getStandingOn().get(0);
+                    	cur = bot.getStandingOn().isEmpty() ? null : bot.getStandingOn().getFirst();
                     else
                     	cur = wrapper.getLevel().offset(player.getLocation()).getBlock();
 
@@ -1093,7 +1069,7 @@ public class LegacyAgent extends Agent {
                     	&& block.getLocation().clone().add(0, 1, 0).equals(cur.getLocation())) {
                     	cur = block;
                     	wrapper.setLevel(wrapper.getLevel().sideDown());
-                    	
+
                     	if (wrapper.getLevel().isSideDown() || wrapper.getLevel().isSideDown2())
                     		bot.setBotPitch(69);
                     	else if (wrapper.getLevel().isSideUp())
@@ -1106,7 +1082,7 @@ public class LegacyAgent extends Agent {
                     	&& block.getLocation().clone().add(0, -1, 0).equals(cur.getLocation())) {
                     	cur = block;
                     	wrapper.setLevel(wrapper.getLevel().sideUp());
-                    	
+
                     	if (wrapper.getLevel().isSideDown() || wrapper.getLevel().isSideDown2())
                     		bot.setBotPitch(69);
                     	else if (wrapper.getLevel().isSideUp())
@@ -1135,10 +1111,8 @@ public class LegacyAgent extends Agent {
                         TerminatorPlusAPI.getInternalBridge().sendBlockDestructionPacket(crackList.get(block), block, -1);
 
 
-                        if (sound != null) {
-                            for (Player all : Bukkit.getOnlinePlayers())
-                                all.playSound(block.getLocation(), sound, SoundCategory.BLOCKS, 1, 1);
-                        }
+                        for (Player all : Bukkit.getOnlinePlayers())
+                            all.playSound(block.getLocation(), sound, SoundCategory.BLOCKS, 1, 1);
 
                         block.breakNaturally();
 
@@ -1155,10 +1129,8 @@ public class LegacyAgent extends Agent {
                         return;
                     }
 
-                    if (sound != null) {
-                        for (Player all : Bukkit.getOnlinePlayers())
-                            all.playSound(block.getLocation(), sound, SoundCategory.BLOCKS, (float) 0.3, 1);
-                    }
+                    for (Player all : Bukkit.getOnlinePlayers())
+                        all.playSound(block.getLocation(), sound, SoundCategory.BLOCKS, (float) 0.3, 1);
 
                     if (block.getType() == Material.BARRIER || block.getType() == Material.BEDROCK || block.getType() == Material.END_PORTAL_FRAME
                     		|| block.getType() == Material.STRUCTURE_BLOCK || block.getType() == Material.STRUCTURE_BLOCK
@@ -1437,9 +1409,6 @@ public class LegacyAgent extends Agent {
         EnumTargetGoal g = goal;
         if (targetGoal.length > 0) g = targetGoal[0];
         switch (g) {
-            default:
-                return null;
-
             case NEAREST_PLAYER: {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     if (!botsInPlayerList.contains(player) && validateCloserEntity(player, loc, result)) {
@@ -1557,6 +1526,9 @@ public class LegacyAgent extends Agent {
 
                 break;
             }
+
+            default:
+                return null;
         }
         TerminatorLocateTargetEvent event = new TerminatorLocateTargetEvent(bot, result);
         Bukkit.getPluginManager().callEvent(event);

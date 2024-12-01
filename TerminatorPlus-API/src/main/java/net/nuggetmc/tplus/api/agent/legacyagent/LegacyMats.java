@@ -9,14 +9,7 @@ import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.Bisected.Half;
 import org.bukkit.block.data.type.*;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -130,7 +123,7 @@ public class LegacyMats {
     
     public static final Set<Material> GATES = new HashSet<>(concatTypes(Gate.class));
     
-    public static final Set<Material> OBSTACLES = new HashSet<>(concatTypes(Lists.newArrayList(
+    public static final Set<Material> OBSTACLES = new HashSet<>(concatTypes(List.of(
     	Material.IRON_BARS,
     	Material.CHAIN,
     	Material.END_ROD,
@@ -139,10 +132,10 @@ public class LegacyMats {
     	Material.SWEET_BERRY_BUSH,
     	Material.FLOWER_POT,
     	Material.GLASS_PANE
-    ), Arrays.asList(), Arrays.asList(GlassPane.class), m -> m.name().startsWith("POTTED_")));
+    ), List.of(), List.of(GlassPane.class), m -> m.name().startsWith("POTTED_")));
 
     //Notice: We exclude blocks that cannot exist without a solid block below (such as rails or crops)
-    public static final Set<Material> NONSOLID = new HashSet<>(concatTypes(Lists.newArrayList(
+    public static final Set<Material> NONSOLID = new HashSet<>(concatTypes(List.of(
     	Material.COBWEB,
     	Material.END_GATEWAY,
     	Material.END_PORTAL,
@@ -163,11 +156,11 @@ public class LegacyMats {
     	Material.WEEPING_VINES,
     	Material.CAVE_VINES_PLANT,
     	Material.CAVE_VINES
-    ), Arrays.asList(), Arrays.asList(Switch.class, CoralWallFan.class, WallSign.class), m -> m.name().endsWith("_WALL_BANNER")));
+    ), List.of(), Arrays.asList(Switch.class, CoralWallFan.class, WallSign.class), m -> m.name().endsWith("_WALL_BANNER")));
     
     public static final Set<Material> LEAVES = new HashSet<>(concatTypes(Leaves.class));
     
-    public static final Set<Material> INSTANT_BREAK = new HashSet<>(concatTypes(Lists.newArrayList(
+    public static final Set<Material> INSTANT_BREAK = new HashSet<>(concatTypes(List.of(
         Material.TALL_GRASS,
         Material.SHORT_GRASS,
         Material.FERN,
@@ -234,7 +227,7 @@ public class LegacyMats {
         Material.CAVE_VINES,
         Material.CAVE_VINES_PLANT,
         Material.SEA_PICKLE
-    ), Arrays.asList(), Arrays.asList(Sapling.class, CoralWallFan.class), m -> m.name().endsWith("_CORAL_FAN") || m.name().endsWith("_CORAL")
+    ), List.of(), Arrays.asList(Sapling.class, CoralWallFan.class), m -> m.name().endsWith("_CORAL_FAN") || m.name().endsWith("_CORAL")
     	|| m.name().startsWith("POTTED_")));
     
     private static List<Material> concatTypes(Class<?>... types) {
@@ -242,7 +235,7 @@ public class LegacyMats {
     }
     
     private static List<Material> concatTypes(List<Material> materials, List<Class<?>> types) {
-    	return concatTypes(materials, Arrays.asList(), types);
+    	return concatTypes(materials, List.of(), types);
     }
     
     private static List<Material> concatTypes(List<Material> materials, List<Material> exclusions, List<Class<?>> types) {
@@ -274,13 +267,11 @@ public class LegacyMats {
     	
     	if((mat.name().endsWith("_HEAD") || mat.name().endsWith("_SKULL")) && !mat.name().equals("PISTON_HEAD"))
     		return true;
-    	
-    	if(mat.data == Candle.class)
-    		return true;
-    	return false;
+
+        return mat.data == Candle.class;
     }
     
-    public static boolean canPlaceWater(Block block, Optional<Double> entityYPos) {
+    public static boolean canPlaceWater(Block block, Double entityYPos) {
     	if (isSolid(block.getType())) {
     		if (block.getType() == Material.CHAIN && ((Chain)block.getBlockData()).getAxis() == Axis.Y
     			&& !((Chain)block.getBlockData()).isWaterlogged())
@@ -297,7 +288,7 @@ public class LegacyMats {
     			return false;
     		if (block.getType().data == Stairs.class && ((Stairs)block.getBlockData()).getHalf() == Bisected.Half.BOTTOM
     			&& !((Stairs)block.getBlockData()).isWaterlogged()
-    			&& (!entityYPos.isPresent() || (int)entityYPos.get().doubleValue() != block.getLocation().getBlockY()))
+    			&& (entityYPos == null || (int)entityYPos.doubleValue() != block.getLocation().getBlockY()))
     			return false;
     		if ((block.getType().data == Fence.class || block.getType().data == Wall.class)
     			&& !((Waterlogged)block.getBlockData()).isWaterlogged())
@@ -305,12 +296,10 @@ public class LegacyMats {
     		if (block.getType() == Material.LIGHTNING_ROD && !((LightningRod)block.getBlockData()).isWaterlogged()
     			&& (((LightningRod)block.getBlockData()).getFacing() == BlockFace.UP || ((LightningRod)block.getBlockData()).getFacing() == BlockFace.DOWN))
     			return false;
-    		if (block.getType().data == TrapDoor.class && (((TrapDoor)block.getBlockData()).getHalf() == Half.TOP
-    			|| (((TrapDoor)block.getBlockData()).getHalf() == Half.BOTTOM && ((TrapDoor)block.getBlockData()).isOpen()))
-    			&& !((TrapDoor)block.getBlockData()).isWaterlogged())
-    			return false;
-    		return true;
-    	} else {
+            return block.getType().data != TrapDoor.class || (((TrapDoor) block.getBlockData()).getHalf() != Half.TOP
+                    && (((TrapDoor) block.getBlockData()).getHalf() != Half.BOTTOM || !((TrapDoor) block.getBlockData()).isOpen()))
+                    || ((TrapDoor) block.getBlockData()).isWaterlogged();
+        } else {
     		if (block.getType().name().endsWith("_CARPET"))
         		return true;
     		if (block.getType().data == Candle.class)
@@ -377,49 +366,16 @@ public class LegacyMats {
     		if (block.getType().data == TrapDoor.class && (((TrapDoor)block.getBlockData()).getHalf() == Half.BOTTOM
     			|| ((TrapDoor)block.getBlockData()).isOpen()))
     			return false;
-    		switch (block.getType()) {
-    			case POINTED_DRIPSTONE:
-    			case SMALL_AMETHYST_BUD:
-    			case MEDIUM_AMETHYST_BUD:
-    			case LARGE_AMETHYST_BUD:
-    			case AMETHYST_CLUSTER:
-    			case BAMBOO:
-    			case CACTUS:
-    			case DRAGON_EGG:
-    			case TURTLE_EGG:
-    			case CHAIN:
-    			case IRON_BARS:
-    			case LANTERN:
-    			case SOUL_LANTERN:
-    			case ANVIL:
-    			case BREWING_STAND:
-    			case CHEST:
-    			case ENDER_CHEST:
-    			case TRAPPED_CHEST:
-    			case ENCHANTING_TABLE:
-    			case GRINDSTONE:
-    			case LECTERN:
-    			case STONECUTTER:
-    			case BELL:
-    			case CAKE:
-    			case CAMPFIRE:
-    			case SOUL_CAMPFIRE:
-    			case CAULDRON:
-    			case COMPOSTER:
-    			case CONDUIT:
-    			case END_PORTAL_FRAME:
-    			case FARMLAND:
-    			case DAYLIGHT_DETECTOR:
-    			case HONEY_BLOCK:
-    			case HOPPER:
-    			case LIGHTNING_ROD:
-    			case SCULK_SENSOR:
-    			case SCULK_SHRIEKER:
-    				return false;
-				default:
-    		}
-    		return true;
-    	} else {
+            return switch (block.getType()) {
+                case POINTED_DRIPSTONE, SMALL_AMETHYST_BUD, MEDIUM_AMETHYST_BUD, LARGE_AMETHYST_BUD, AMETHYST_CLUSTER,
+                     BAMBOO, CACTUS, DRAGON_EGG, TURTLE_EGG, CHAIN, IRON_BARS, LANTERN, SOUL_LANTERN, ANVIL,
+                     BREWING_STAND, CHEST, ENDER_CHEST, TRAPPED_CHEST, ENCHANTING_TABLE, GRINDSTONE, LECTERN,
+                     STONECUTTER, BELL, CAKE, CAMPFIRE, SOUL_CAMPFIRE, CAULDRON, COMPOSTER, CONDUIT, END_PORTAL_FRAME,
+                     FARMLAND, DAYLIGHT_DETECTOR, HONEY_BLOCK, HOPPER, LIGHTNING_ROD, SCULK_SENSOR, SCULK_SHRIEKER ->
+                        false;
+                default -> true;
+            };
+        } else {
     		switch (block.getType()) {
     			case CHORUS_FLOWER:
     			case SCAFFOLDING:
@@ -453,29 +409,13 @@ public class LegacyMats {
 				return true;
     		if (block.getType().data == TrapDoor.class && !((TrapDoor)block.getBlockData()).isWaterlogged())
     			return true;
-			switch (block.getType()) {
-				case POINTED_DRIPSTONE:
-    			case SMALL_AMETHYST_BUD:
-    			case MEDIUM_AMETHYST_BUD:
-    			case LARGE_AMETHYST_BUD:
-    			case AMETHYST_CLUSTER:
-    			case SEA_PICKLE:
-    			case LANTERN:
-    			case SOUL_LANTERN:
-    			case CHEST:
-    			case ENDER_CHEST:
-    			case TRAPPED_CHEST:
-    			case CAMPFIRE:
-    			case SOUL_CAMPFIRE:
-    			case CONDUIT:
-    			case LIGHTNING_ROD:
-    			case SCULK_SENSOR:
-    			case SCULK_SHRIEKER:
-    				return true;
-				default:
-			}
-			return false;
-		}
+            return switch (block.getType()) {
+                case POINTED_DRIPSTONE, SMALL_AMETHYST_BUD, MEDIUM_AMETHYST_BUD, LARGE_AMETHYST_BUD, AMETHYST_CLUSTER,
+                     SEA_PICKLE, LANTERN, SOUL_LANTERN, CHEST, ENDER_CHEST, TRAPPED_CHEST, CAMPFIRE, SOUL_CAMPFIRE,
+                     CONDUIT, LIGHTNING_ROD, SCULK_SENSOR, SCULK_SHRIEKER -> true;
+                default -> false;
+            };
+        }
 	}
 	
 	/**

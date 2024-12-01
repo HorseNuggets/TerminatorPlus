@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.command;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.command.annotation.Arg;
@@ -9,10 +10,11 @@ import net.nuggetmc.tplus.command.exception.ArgCountException;
 import net.nuggetmc.tplus.command.exception.ArgParseException;
 import net.nuggetmc.tplus.command.exception.NonPlayerException;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 public abstract class CommandInstance extends BukkitCommand {
 
     private static final String MANAGE_PERMISSION = "terminatorplus.manage";
+    private static final Logger log = LoggerFactory.getLogger(CommandInstance.class);
     protected final CommandHandler commandHandler;
     private final Map<String, CommandMethod> methods;
     private final Map<String, String> aliasesToNames;
@@ -70,12 +73,12 @@ public abstract class CommandInstance extends BukkitCommand {
     @Override
     public boolean execute(@Nonnull CommandSender sender, @Nonnull String label, @Nonnull String[] args) {
         if (!sender.hasPermission(MANAGE_PERMISSION)) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command. (Check if you are OP.)");
+            sender.sendMessage(NamedTextColor.RED + "You do not have permission to use this command. (Check if you are OP.)");
             return false;
         }
         if (!TerminatorPlus.isCorrectVersion()) {
-            sender.sendMessage(ChatColor.RED + "You are not running the correct server version of Minecraft!");
-            sender.sendMessage(ChatColor.RED + "You are using MC server version " + TerminatorPlus.getMcVersion() + " but this plugin requires " + TerminatorPlus.REQUIRED_VERSION);
+            sender.sendMessage(NamedTextColor.RED + "You are not running the correct server version of Minecraft!");
+            sender.sendMessage(NamedTextColor.RED + "You are using MC server version " + TerminatorPlus.getMcVersion() + " but this plugin requires " + TerminatorPlus.REQUIRED_VERSION);
             return false;
         }
 
@@ -90,14 +93,14 @@ public abstract class CommandInstance extends BukkitCommand {
         }
 
         if (method == null) {
-            sender.sendMessage(ChatColor.RED + "There is no root command present for the " + ChatColor.YELLOW + getName() + ChatColor.RED + " command.");
+            sender.sendMessage(NamedTextColor.RED + "There is no root command present for the " + NamedTextColor.YELLOW + getName() + NamedTextColor.RED + " command.");
             return true;
         }
 
         List<String> arguments = new ArrayList<>(Arrays.asList(args));
 
-        if (arguments.size() > 0) {
-            arguments.remove(0);
+        if (!arguments.isEmpty()) {
+            arguments.removeFirst();
         }
 
         List<Object> parsedArguments = new ArrayList<>();
@@ -202,7 +205,7 @@ public abstract class CommandInstance extends BukkitCommand {
         } catch (ArgParseException e) {
             Parameter parameter = e.getParameter();
             String name = getArgumentName(parameter);
-            sender.sendMessage("The parameter " + ChatColor.YELLOW + name + ChatColor.RESET + " must be of type " + ChatColor.YELLOW + parameter.getType().toString() + ChatColor.RESET + ".");
+            sender.sendMessage("The parameter " + NamedTextColor.YELLOW + name + NamedTextColor.WHITE + " must be of type " + NamedTextColor.YELLOW + parameter.getType().toString() + NamedTextColor.WHITE + ".");
             return true;
         } catch (ArgCountException e) {
             List<String> usageArgs = new ArrayList<>();
@@ -215,7 +218,7 @@ public abstract class CommandInstance extends BukkitCommand {
                 }
             });
 
-            sender.sendMessage("Command Usage: " + org.bukkit.ChatColor.YELLOW + "/" + getName() + (method.getName().isEmpty() ? "" : " " + method.getName())
+            sender.sendMessage("Command Usage: " + NamedTextColor.YELLOW + "/" + getName() + (method.getName().isEmpty() ? "" : " " + method.getName())
                     + " " + StringUtils.join(usageArgs, " "));
             return true;
         }
@@ -223,8 +226,8 @@ public abstract class CommandInstance extends BukkitCommand {
         try {
             method.getMethod().invoke(method.getHandler(), parsedArguments.toArray());
         } catch (InvocationTargetException | IllegalAccessException e) {
-            sender.sendMessage(ChatColor.RED + "Failed to perform command.");
-            e.printStackTrace();
+            sender.sendMessage(NamedTextColor.RED + "Failed to perform command.");
+            log.error(e.getMessage(), e);
         }
 
         return true;
@@ -255,7 +258,7 @@ public abstract class CommandInstance extends BukkitCommand {
                 try {
                     return ((List<String>) autofiller.invoke(commandMethod.getHandler(), sender, args)).stream().filter(c -> c.contains(args[args.length - 1])).collect(Collectors.toList());
                 } catch (InvocationTargetException | IllegalAccessException e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(), e);
                 }
             }
         }

@@ -53,7 +53,7 @@ public class BotManagerImpl implements BotManager, Listener {
     @Override
     public void add(Terminator bot) {
         if (joinMessages) {
-            // Bukkit.broadcastMessage(ChatColor.YELLOW + (bot.getBotName() + " joined the game"));
+            // Bukkit.broadcastMessage(NamedTextColor.YELLOW + (bot.getBotName() + " joined the game"));
             Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<yellow>" + bot.getBotName() + " joined the game"));
         }
 
@@ -127,16 +127,16 @@ public class BotManagerImpl implements BotManager, Listener {
             if (sender instanceof Player player)
                 createBots(player.getLocation(), name, MojangAPI.getSkin(skinName), n, network);
             else {
-                Location l = new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+                Location l = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
                 if (sender != null)
-                    // sender.sendMessage(ChatColor.RED + "No location specified, defaulting to " + l + ".");
+                    // sender.sendMessage(NamedTextColor.RED + "No location specified, defaulting to " + l + ".");
                     sender.sendRichMessage("<red>No location specified, defaulting to " + l.getX() + ", " + l.getY() + ", " + l.getZ() + ".");
                 createBots(l, name, MojangAPI.getSkin(skinName), n, network);
             }
         }
 
         if (sender != null)
-            // sender.sendMessage("Process completed (" + ChatColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + ChatColor.RESET + ").");
+            // sender.sendMessage("Process completed (" + NamedTextColor.RED + ((System.currentTimeMillis() - timestamp) / 1000D) + "s" + NamedTextColor.WHITE + ").");
             sender.sendRichMessage("Process completed (<red>" + ((System.currentTimeMillis() - timestamp) / 1000D) + "s<reset>).");
     }
 
@@ -168,7 +168,6 @@ public class BotManagerImpl implements BotManager, Listener {
                 bot.setNeuralNetwork(network == NeuralNetwork.RANDOM ? NeuralNetwork.generateRandomNetwork() : network);
                 bot.setShield(true);
                 bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
-                //bot.setRemoveOnDeath(false);
             }
 
             if (network != null) {
@@ -209,6 +208,7 @@ public class BotManagerImpl implements BotManager, Listener {
 
 
     @Override
+    @SuppressWarnings("deprecation")
     public Terminator getBot(Player player) { // potentially memory intensive
         int id = player.getEntityId();
         return getBot(id);

@@ -1,6 +1,7 @@
 package net.nuggetmc.tplus.command;
 
 import com.google.common.collect.Sets;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.api.utils.DebugLogUtils;
@@ -10,7 +11,6 @@ import net.nuggetmc.tplus.command.commands.AICommand;
 import net.nuggetmc.tplus.command.commands.BotCommand;
 import net.nuggetmc.tplus.command.commands.BotEnvironmentCommand;
 import net.nuggetmc.tplus.command.commands.MainCommand;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.craftbukkit.CraftServer;
@@ -105,8 +105,8 @@ public class CommandHandler {
 
     public void sendRootInfo(CommandInstance commandInstance, CommandSender sender) {
         sender.sendMessage(ChatUtils.LINE);
-        sender.sendMessage(ChatColor.GOLD + plugin.getName() + ChatUtils.BULLET_FORMATTED + ChatColor.GRAY
-                + "[" + ChatColor.YELLOW + "/" + commandInstance.getName() + ChatColor.GRAY + "]");
+        sender.sendMessage(NamedTextColor.GOLD + plugin.getName() + ChatUtils.BULLET_FORMATTED + NamedTextColor.GRAY
+                + "[" + NamedTextColor.YELLOW + "/" + commandInstance.getName() + NamedTextColor.GRAY + "]");
         help.get(commandInstance.getName()).forEach(sender::sendMessage);
         sender.sendMessage(ChatUtils.LINE);
     }
@@ -123,7 +123,7 @@ public class CommandHandler {
                 continue;
             }
 
-            output.add(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "/" + commandInstance.getName() + " " + method.getName()
+            output.add(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "/" + commandInstance.getName() + " " + method.getName()
                     + ChatUtils.BULLET_FORMATTED + method.getDescription());
         }
 

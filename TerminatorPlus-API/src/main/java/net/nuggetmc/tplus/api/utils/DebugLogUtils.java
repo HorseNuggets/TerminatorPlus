@@ -1,13 +1,13 @@
 package net.nuggetmc.tplus.api.utils;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.permissions.ServerOperator;
 
 import java.util.Arrays;
 
 public class DebugLogUtils {
-    public static final String PREFIX = ChatColor.YELLOW + "[DEBUG] " + ChatColor.RESET;
+    public static final String PREFIX = NamedTextColor.YELLOW + "[DEBUG] " + NamedTextColor.WHITE;
 
     public static void log(Object... objects) {
         String[] values = fromStringArray(objects);

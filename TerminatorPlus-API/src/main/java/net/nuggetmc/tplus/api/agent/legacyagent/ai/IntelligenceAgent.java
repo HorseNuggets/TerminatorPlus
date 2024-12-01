@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.api.agent.legacyagent.ai;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.nuggetmc.tplus.api.AIManager;
 import net.nuggetmc.tplus.api.BotManager;
 import net.nuggetmc.tplus.api.Terminator;
@@ -10,7 +11,6 @@ import net.nuggetmc.tplus.api.utils.MathUtils;
 import net.nuggetmc.tplus.api.utils.MojangAPI;
 import net.nuggetmc.tplus.api.utils.PlayerUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -100,22 +100,22 @@ public class IntelligenceAgent {
     private void runGeneration() throws InterruptedException {
         generation++;
 
-        print("Starting generation " + ChatColor.RED + generation + ChatColor.RESET + "...");
+        print("Starting generation " + NamedTextColor.RED + generation + NamedTextColor.WHITE + "...");
 
         sleep(2000);
 
         String skinName = botSkin == null ? this.botName : botSkin;
 
-        print("Fetching skin data for " + ChatColor.GREEN + skinName + ChatColor.RESET + "...");
+        print("Fetching skin data for " + NamedTextColor.GREEN + skinName + NamedTextColor.WHITE + "...");
 
         String[] skinData = MojangAPI.getSkin(skinName);
 
         String botName = this.botName.endsWith("%") ? this.botName : this.botName + "%";
 
-        print("Creating " + (populationSize == 1 ? "new bot" : ChatColor.RED + NumberFormat.getInstance(Locale.US).format(populationSize) + ChatColor.RESET + " new bots")
-                + " with name " + ChatColor.GREEN + botName.replace("%", ChatColor.LIGHT_PURPLE + "%" + ChatColor.RESET)
-                + (botSkin == null ? "" : ChatColor.RESET + " and skin " + ChatColor.GREEN + botSkin)
-                + ChatColor.RESET + "...");
+        print("Creating " + (populationSize == 1 ? "new bot" : NamedTextColor.RED + NumberFormat.getInstance(Locale.US).format(populationSize) + NamedTextColor.WHITE + " new bots")
+                + " with name " + NamedTextColor.GREEN + botName.replace("%", NamedTextColor.LIGHT_PURPLE + "%" + NamedTextColor.WHITE)
+                + (botSkin == null ? "" : NamedTextColor.WHITE + " and skin " + NamedTextColor.GREEN + botSkin)
+                + NamedTextColor.WHITE + "...");
 
         Set<Map<BotNode, Map<BotDataType, Double>>> loadedProfiles = genProfiles.get(generation);
         Location loc = PlayerUtils.findAbove(primary.getLocation(), 20);
@@ -163,7 +163,7 @@ public class IntelligenceAgent {
             sleep(1000);
         }
 
-        print("Generation " + ChatColor.RED + generation + ChatColor.RESET + " has ended.");
+        print("Generation " + NamedTextColor.RED + generation + NamedTextColor.WHITE + " has ended.");
 
         HashMap<Terminator, Integer> values = new HashMap<>();
 
@@ -180,8 +180,8 @@ public class IntelligenceAgent {
             Terminator bot = entry.getKey();
             boolean check = i <= cutoff;
             if (check) {
-                print(ChatColor.GRAY + "[" + ChatColor.YELLOW + "#" + i + ChatColor.GRAY + "] " + ChatColor.GREEN + bot.getBotName()
-                        + ChatUtils.BULLET_FORMATTED + ChatColor.RED + bot.getKills() + " kills");
+                print(NamedTextColor.GRAY + "[" + NamedTextColor.YELLOW + "#" + i + NamedTextColor.GRAY + "] " + NamedTextColor.GREEN + bot.getBotName()
+                        + ChatUtils.BULLET_FORMATTED + NamedTextColor.RED + bot.getKills() + " kills");
                 winners.add(bot);
             }
 
@@ -287,9 +287,9 @@ public class IntelligenceAgent {
     }
 
     private void print(Object... objects) {
-        String message = ChatColor.DARK_GREEN + "[REINFORCEMENT] " + ChatColor.RESET + String.join(" ", Arrays.stream(objects).map(String::valueOf).toArray(String[]::new));
+        String message = NamedTextColor.DARK_GREEN + "[REINFORCEMENT] " + NamedTextColor.WHITE + String.join(" ", Arrays.stream(objects).map(String::valueOf).toArray(String[]::new));
         users.forEach(u -> u.sendMessage(message));
-        // log -> ChatColor.stripColor(message);
+        // log -> NamedTextColor.stripColor(message);
     }
 
     private void setup() {
@@ -297,12 +297,12 @@ public class IntelligenceAgent {
 
         if (populationSize < cutoff) {
             populationSize = cutoff;
-            print("The input value for the population size is lower than the cutoff (" + ChatColor.RED + cutoff + ChatColor.RESET + ")!"
-                    + " The new population size is " + ChatColor.RED + populationSize + ChatColor.RESET + ".");
+            print("The input value for the population size is lower than the cutoff (" + NamedTextColor.RED + cutoff + NamedTextColor.WHITE + ")!"
+                    + " The new population size is " + NamedTextColor.RED + populationSize + NamedTextColor.WHITE + ".");
         }
 
         if (!(manager.getAgent() instanceof LegacyAgent)) {
-            print("The AI manager currently only supports " + ChatColor.AQUA + "LegacyAgent" + ChatColor.RESET + ".");
+            print("The AI manager currently only supports " + NamedTextColor.AQUA + "LegacyAgent" + NamedTextColor.WHITE + ".");
             close();
             return;
         }
@@ -310,7 +310,7 @@ public class IntelligenceAgent {
         agent = (LegacyAgent) manager.getAgent();
         agent.setTargetType(EnumTargetGoal.NONE);
 
-        print("The bot target goal has been set to " + ChatColor.YELLOW + EnumTargetGoal.NONE.name() + ChatColor.RESET + ".");
+        print("The bot target goal has been set to " + NamedTextColor.YELLOW + EnumTargetGoal.NONE.name() + NamedTextColor.WHITE + ".");
         print("Disabling target offsets...");
 
         agent.offsets = false;
@@ -319,7 +319,7 @@ public class IntelligenceAgent {
 
         agent.setDrops(false);
 
-        print(ChatColor.GREEN + "Setup is now complete.");
+        print(NamedTextColor.GREEN + "Setup is now complete.");
     }
 
     private void clearBots() {
@@ -336,7 +336,7 @@ public class IntelligenceAgent {
         manager.reset();
 
         String formatted = NumberFormat.getNumberInstance(Locale.US).format(size);
-        print("Removed " + ChatColor.RED + formatted + ChatColor.RESET + " entit" + (size == 1 ? "y" : "ies") + ".");
+        print("Removed " + NamedTextColor.RED + formatted + NamedTextColor.WHITE + " entit" + (size == 1 ? "y" : "ies") + ".");
 
         bots.clear();*/
     }
