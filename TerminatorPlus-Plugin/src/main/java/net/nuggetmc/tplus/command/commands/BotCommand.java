@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.command.commands;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.agent.legacyagent.EnumTargetGoal;
@@ -59,7 +60,7 @@ public class BotCommand extends CommandInstance {
             desc = "Create a bot."
     )
     public void create(CommandSender sender, @Arg("name") String name, @OptArg("skin") String skin, @TextArg @OptArg("loc") String loc) {
-        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
         if (loc != null && !loc.isEmpty()) {
             Player player = Bukkit.getPlayer(loc);
             if (player != null) {
@@ -74,11 +75,11 @@ public class BotCommand extends CommandInstance {
                         World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
                         location = new Location(world, x, y, z);
                     } catch (NumberFormatException e) {
-                        sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                        sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
                         return;
                     }
                 } else {
-                    sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                    sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
                     return;
                 }
             }
@@ -95,7 +96,7 @@ public class BotCommand extends CommandInstance {
             desc = "Create multiple bots at once."
     )
     public void multi(CommandSender sender, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin, @TextArg @OptArg("loc") String loc) {
-        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
         if (loc != null && !loc.isEmpty()) {
             Player player = Bukkit.getPlayer(loc);
             if (player != null) {
@@ -110,11 +111,11 @@ public class BotCommand extends CommandInstance {
                         World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
                         location = new Location(world, x, y, z);
                     } catch (NumberFormatException e) {
-                        sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                        sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
                         return;
                     }
                 } else {
-                    sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                    sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
                     return;
                 }
             }
@@ -134,7 +135,7 @@ public class BotCommand extends CommandInstance {
         Material type = Material.matchMaterial(itemName);
 
         if (type == null) {
-            sender.sendMessage("The item " + ChatColor.YELLOW + itemName + ChatColor.RESET + " is not valid!");
+            sender.sendMessage("The item " + NamedTextColor.YELLOW + itemName + NamedTextColor.WHITE + " is not valid!");
             return;
         }
 
@@ -142,7 +143,7 @@ public class BotCommand extends CommandInstance {
 
         manager.fetch().forEach(bot -> bot.setDefaultItem(item));
 
-        sender.sendMessage("Successfully set the default item to " + ChatColor.YELLOW + item.getType() + ChatColor.RESET + " for all current bots.");
+        sender.sendMessage("Successfully set the default item to " + NamedTextColor.YELLOW + item.getType() + NamedTextColor.WHITE + " for all current bots.");
     }
 
     private void armorTierSetup() {
@@ -205,8 +206,8 @@ public class BotCommand extends CommandInstance {
         String tier = armorTier.toLowerCase();
 
         if (!armorTiers.containsKey(tier)) {
-            sender.sendMessage(ChatColor.YELLOW + tier + ChatColor.RESET + " is not a valid tier!");
-            sender.sendMessage("Available tiers: " + ChatColor.YELLOW + String.join(ChatColor.RESET + ", " + ChatColor.YELLOW, armorTiers.keySet()));
+            sender.sendMessage(NamedTextColor.YELLOW + tier + NamedTextColor.WHITE + " is not a valid tier!");
+            sender.sendMessage("Available tiers: " + NamedTextColor.YELLOW + String.join(NamedTextColor.WHITE + ", " + NamedTextColor.YELLOW, armorTiers.keySet()));
             return;
         }
 
@@ -225,7 +226,7 @@ public class BotCommand extends CommandInstance {
             }
         });
 
-        sender.sendMessage("Successfully set the armor tier to " + ChatColor.YELLOW + tier + ChatColor.RESET + " for all current bots.");
+        sender.sendMessage("Successfully set the armor tier to " + NamedTextColor.YELLOW + tier + NamedTextColor.WHITE + " for all current bots.");
     }
 
     @Autofill
@@ -240,7 +241,7 @@ public class BotCommand extends CommandInstance {
     )
     public void info(CommandSender sender, @Arg("bot-name") String name) {
         if (name == null) {
-            sender.sendMessage(ChatColor.YELLOW + "Bot GUI coming soon!");
+            sender.sendMessage(NamedTextColor.YELLOW + "Bot GUI coming soon!");
             return;
         }
 
@@ -251,7 +252,7 @@ public class BotCommand extends CommandInstance {
                 Terminator bot = manager.getFirst(name, (sender instanceof Player pl) ? pl.getLocation() : null);
 
                 if (bot == null) {
-                    sender.sendMessage("Could not find bot " + ChatColor.GREEN + name + ChatColor.RESET + "!");
+                    sender.sendMessage("Could not find bot " + NamedTextColor.GREEN + name + NamedTextColor.WHITE + "!");
                     return;
                 }
 
@@ -267,14 +268,14 @@ public class BotCommand extends CommandInstance {
                  */
 
                 String botName = bot.getBotName();
-                String world = ChatColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
+                String world = NamedTextColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
                 Location loc = bot.getLocation();
-                String strLoc = ChatColor.YELLOW + formatter.format(loc.getX()) + ", " + formatter.format(loc.getY()) + ", " + formatter.format(loc.getZ());
+                String strLoc = NamedTextColor.YELLOW + formatter.format(loc.getX()) + ", " + formatter.format(loc.getY()) + ", " + formatter.format(loc.getZ());
                 Vector vel = bot.getVelocity();
-                String strVel = ChatColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
+                String strVel = NamedTextColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
 
                 sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(ChatColor.GREEN + botName);
+                sender.sendMessage(NamedTextColor.GREEN + botName);
                 sender.sendMessage(ChatUtils.BULLET_FORMATTED + "World: " + world);
                 sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Position: " + strLoc);
                 sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + strVel);
@@ -301,12 +302,12 @@ public class BotCommand extends CommandInstance {
         List<String> names = manager.fetchNames();
         Map<String, Integer> freqMap = names.stream().collect(Collectors.toMap(s -> s, s -> 1, Integer::sum));
         List<Entry<String, Integer>> entries = freqMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).collect(Collectors.toList());
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).toList();
 
         sender.sendMessage(ChatUtils.LINE);
-        entries.forEach(en -> sender.sendMessage(ChatColor.GREEN + en.getKey()
-                + ChatColor.RESET + " - " + ChatColor.BLUE + en.getValue().toString() + ChatColor.RESET));
-        sender.sendMessage("Total bots: " + ChatColor.BLUE + freqMap.values().stream().reduce(0, Integer::sum) + ChatColor.RESET);
+        entries.forEach(en -> sender.sendMessage(NamedTextColor.GREEN + en.getKey()
+                + NamedTextColor.WHITE + " - " + NamedTextColor.BLUE + en.getValue().toString() + NamedTextColor.WHITE));
+        sender.sendMessage("Total bots: " + NamedTextColor.BLUE + freqMap.values().stream().reduce(0, Integer::sum) + NamedTextColor.WHITE);
         sender.sendMessage(ChatUtils.LINE);
     }
 
@@ -318,7 +319,7 @@ public class BotCommand extends CommandInstance {
         sender.sendMessage("Removing every bot...");
         int size = manager.fetch().size();
         manager.reset();
-        sender.sendMessage("Removed " + ChatColor.RED + ChatUtils.NUMBER_FORMAT.format(size) + ChatColor.RESET + " entit" + (size == 1 ? "y" : "ies") + ".");
+        sender.sendMessage("Removed " + NamedTextColor.RED + ChatUtils.NUMBER_FORMAT.format(size) + NamedTextColor.WHITE + " entit" + (size == 1 ? "y" : "ies") + ".");
 
         if (aiManager == null) {
             this.aiManager = (AICommand) handler.getCommand("ai");
@@ -343,86 +344,85 @@ public class BotCommand extends CommandInstance {
         String arg1 = args.isEmpty() ? null : args.get(0);
         String arg2 = args.size() < 2 ? null : args.get(1);
 
-        String extra = ChatColor.GRAY + " [" + ChatColor.YELLOW + "/bot settings" + ChatColor.GRAY + "]";
+        String extra = NamedTextColor.GRAY + " [" + NamedTextColor.YELLOW + "/bot settings" + NamedTextColor.GRAY + "]";
 
         if (arg1 == null || (!arg1.equalsIgnoreCase("setgoal") && !arg1.equalsIgnoreCase("mobtarget") && !arg1.equalsIgnoreCase("playertarget")
                 && !arg1.equalsIgnoreCase("addplayerlist") && !arg1.equalsIgnoreCase("region"))) {
             sender.sendMessage(ChatUtils.LINE);
-            sender.sendMessage(ChatColor.GOLD + "Bot Settings" + extra);
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "addplayerlist" + ChatUtils.BULLET_FORMATTED + "Adds newly spawned bots to the player list. This allows the bots to be affected by player selectors like @a and @p.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "region" + ChatUtils.BULLET_FORMATTED + "Sets a region for the bots to prioritize entities inside.");
+            sender.sendMessage(NamedTextColor.GOLD + "Bot Settings" + extra);
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "addplayerlist" + ChatUtils.BULLET_FORMATTED + "Adds newly spawned bots to the player list. This allows the bots to be affected by player selectors like @a and @p.");
+            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "region" + ChatUtils.BULLET_FORMATTED + "Sets a region for the bots to prioritize entities inside.");
             sender.sendMessage(ChatUtils.LINE);
             return;
         } else if (arg1.equalsIgnoreCase("setgoal")) {
             if (arg2 == null) {
-                sender.sendMessage("The global bot goal is currently " + ChatColor.BLUE + agent.getTargetType() + ChatColor.RESET + ".");
+                sender.sendMessage("The global bot goal is currently " + NamedTextColor.BLUE + agent.getTargetType() + NamedTextColor.WHITE + ".");
                 return;
             }
             EnumTargetGoal goal = EnumTargetGoal.from(arg2);
 
             if (goal == null) {
                 sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(ChatColor.GOLD + "Goal Selection Types" + extra);
-                Arrays.stream(EnumTargetGoal.values()).forEach(g -> sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + g.name().replace("_", "").toLowerCase()
+                sender.sendMessage(NamedTextColor.GOLD + "Goal Selection Types" + extra);
+                Arrays.stream(EnumTargetGoal.values()).forEach(g -> sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + g.name().replace("_", "").toLowerCase()
                         + ChatUtils.BULLET_FORMATTED + g.description()));
                 sender.sendMessage(ChatUtils.LINE);
                 return;
             }
             agent.setTargetType(goal);
-            sender.sendMessage("The global bot goal has been set to " + ChatColor.BLUE + goal.name() + ChatColor.RESET + ".");
+            sender.sendMessage("The global bot goal has been set to " + NamedTextColor.BLUE + goal.name() + NamedTextColor.WHITE + ".");
         } else if (arg1.equalsIgnoreCase("mobtarget")) {
             if (arg2 == null) {
-                sender.sendMessage("Mob targeting is currently " + (manager.isMobTarget() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ".");
+                sender.sendMessage("Mob targeting is currently " + (manager.isMobTarget() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
                 return;
             }
             if (!arg2.equals("true") && !arg2.equals("false")) {
-                sender.sendMessage(ChatColor.RED + "You must specify true or false!");
+                sender.sendMessage(NamedTextColor.RED + "You must specify true or false!");
                 return;
             }
             manager.setMobTarget(Boolean.parseBoolean(arg2));
-            sender.sendMessage("Mob targeting is now " + (manager.isMobTarget() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ".");
+            sender.sendMessage("Mob targeting is now " + (manager.isMobTarget() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
         } else if (arg1.equalsIgnoreCase("playertarget")) {
             if (args.size() < 2) {
-                sender.sendMessage(ChatColor.RED + "You must specify a player name!");
+                sender.sendMessage(NamedTextColor.RED + "You must specify a player name!");
                 return;
             }
-            String playerName = arg2;
-            Player player = Bukkit.getPlayer(playerName);
+            Player player = Bukkit.getPlayer(arg2);
             if (player == null) {
-                sender.sendMessage(ChatColor.RED + "Could not find player " + ChatColor.YELLOW + playerName + ChatColor.RED + "!");
+                sender.sendMessage(NamedTextColor.RED + "Could not find player " + NamedTextColor.YELLOW + arg2 + NamedTextColor.RED + "!");
                 return;
             }
             for (Terminator fetch : manager.fetch()) {
                 fetch.setTargetPlayer(player.getUniqueId());
             }
-            sender.sendMessage("All spawned bots are now set to target " + ChatColor.BLUE + player.getName() + ChatColor.RESET + ". They will target the closest player if they can't be found.\nYou may need to set the goal to PLAYER.");
+            sender.sendMessage("All spawned bots are now set to target " + NamedTextColor.BLUE + player.getName() + NamedTextColor.WHITE + ". They will target the closest player if they can't be found.\nYou may need to set the goal to PLAYER.");
         } else if (arg1.equalsIgnoreCase("addplayerlist")) {
             if (arg2 == null) {
-                sender.sendMessage("Adding bots to the player list is currently " + (manager.addToPlayerList() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ".");
+                sender.sendMessage("Adding bots to the player list is currently " + (manager.addToPlayerList() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
                 return;
             }
             if (!arg2.equals("true") && !arg2.equals("false")) {
-                sender.sendMessage(ChatColor.RED + "You must specify true or false!");
+                sender.sendMessage(NamedTextColor.RED + "You must specify true or false!");
                 return;
             }
             manager.setAddToPlayerList(Boolean.parseBoolean(arg2));
-            sender.sendMessage("Adding bots to the player list is now " + (manager.addToPlayerList() ? ChatColor.GREEN + "enabled" : ChatColor.RED + "disabled") + ChatColor.RESET + ".");
+            sender.sendMessage("Adding bots to the player list is now " + (manager.addToPlayerList() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
         } else if (arg1.equalsIgnoreCase("region")) {
             if (arg2 == null) {
                 if (agent.getRegion() == null) {
                     sender.sendMessage("No region has been set.");
                     return;
                 }
-                sender.sendMessage("The current region is " + ChatColor.BLUE + agent.getRegion() + ChatColor.RESET + ".");
+                sender.sendMessage("The current region is " + NamedTextColor.BLUE + agent.getRegion() + NamedTextColor.WHITE + ".");
                 if (agent.getRegionWeightX() == 0 && agent.getRegionWeightY() == 0 && agent.getRegionWeightZ() == 0)
                     sender.sendMessage("Entities out of range will not be targeted.");
                 else {
-                    sender.sendMessage("The region X weight is " + ChatColor.BLUE + agent.getRegionWeightX() + ChatColor.RESET + ".");
-                    sender.sendMessage("The region Y weight is " + ChatColor.BLUE + agent.getRegionWeightY() + ChatColor.RESET + ".");
-                    sender.sendMessage("The region Z weight is " + ChatColor.BLUE + agent.getRegionWeightZ() + ChatColor.RESET + ".");
+                    sender.sendMessage("The region X weight is " + NamedTextColor.BLUE + agent.getRegionWeightX() + NamedTextColor.WHITE + ".");
+                    sender.sendMessage("The region Y weight is " + NamedTextColor.BLUE + agent.getRegionWeightY() + NamedTextColor.WHITE + ".");
+                    sender.sendMessage("The region Z weight is " + NamedTextColor.BLUE + agent.getRegionWeightZ() + NamedTextColor.WHITE + ".");
                 }
                 return;
             }
@@ -434,12 +434,12 @@ public class BotCommand extends CommandInstance {
             boolean strict = args.size() == 8 && args.get(7).equalsIgnoreCase("strict");
             if (args.size() != 10 && !strict) {
                 sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(ChatColor.GOLD + "Bot Region Settings" + extra);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "<x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ>" + ChatUtils.BULLET_FORMATTED
+                sender.sendMessage(NamedTextColor.GOLD + "Bot Region Settings" + extra);
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "<x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ>" + ChatUtils.BULLET_FORMATTED
                         + "Sets a region for bots to prioritize entities within.");
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "<x1> <y1> <z1> <x2> <y2> <z2> strict" + ChatUtils.BULLET_FORMATTED
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "<x1> <y1> <z1> <x2> <y2> <z2> strict" + ChatUtils.BULLET_FORMATTED
                         + "Sets a region so that the bots only target entities within the region.");
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "clear" + ChatUtils.BULLET_FORMATTED
+                sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "clear" + ChatUtils.BULLET_FORMATTED
                         + "Clears the region.");
                 sender.sendMessage("Without strict mode, the entity distance from the region is multiplied by the weight values if outside the region.");
                 sender.sendMessage("The resulting value is added to the entity distance when selecting an entity.");
@@ -468,18 +468,18 @@ public class BotCommand extends CommandInstance {
                 }
             } catch (NumberFormatException e) {
                 sender.sendMessage("The region bounds and weights must be valid numbers!");
-                sender.sendMessage("Correct syntax: " + ChatColor.YELLOW + "/bot settings region <x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ>"
-                        + ChatColor.RESET);
+                sender.sendMessage("Correct syntax: " + NamedTextColor.YELLOW + "/bot settings region <x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ>"
+                        + NamedTextColor.WHITE);
                 return;
             }
             agent.setRegion(new BoundingBox(x1, y1, z1, x2, y2, z2), wX, wY, wZ);
-            sender.sendMessage("The region has been set to " + ChatColor.BLUE + agent.getRegion() + ChatColor.RESET + ".");
+            sender.sendMessage("The region has been set to " + NamedTextColor.BLUE + agent.getRegion() + NamedTextColor.WHITE + ".");
             if (wX == 0 && wY == 0 && wZ == 0)
                 sender.sendMessage("Entities out of range will not be targeted.");
             else {
-                sender.sendMessage("The region X weight is " + ChatColor.BLUE + agent.getRegionWeightX() + ChatColor.RESET + ".");
-                sender.sendMessage("The region Y weight is " + ChatColor.BLUE + agent.getRegionWeightY() + ChatColor.RESET + ".");
-                sender.sendMessage("The region Z weight is " + ChatColor.BLUE + agent.getRegionWeightZ() + ChatColor.RESET + ".");
+                sender.sendMessage("The region X weight is " + NamedTextColor.BLUE + agent.getRegionWeightX() + NamedTextColor.WHITE + ".");
+                sender.sendMessage("The region Y weight is " + NamedTextColor.BLUE + agent.getRegionWeightY() + NamedTextColor.WHITE + ".");
+                sender.sendMessage("The region Z weight is " + NamedTextColor.BLUE + agent.getRegionWeightZ() + NamedTextColor.WHITE + ".");
             }
         }
     }
@@ -540,18 +540,14 @@ public class BotCommand extends CommandInstance {
     }
 
     private double parseDoubleOrRelative(String pos, Location loc, int type) {
-        if (loc == null || pos.length() == 0 || pos.charAt(0) != '~')
+        if (loc == null || pos.isEmpty() || pos.charAt(0) != '~')
             return Double.parseDouble(pos);
         double relative = pos.length() == 1 ? 0 : Double.parseDouble(pos.substring(1));
-        switch (type) {
-            case 0:
-                return relative + Math.round(loc.getX() * 1000) / 1000D;
-            case 1:
-                return relative + Math.round(loc.getY() * 1000) / 1000D;
-            case 2:
-                return relative + Math.round(loc.getZ() * 1000) / 1000D;
-            default:
-                return 0;
-        }
+        return switch (type) {
+            case 0 -> relative + Math.round(loc.getX() * 1000) / 1000D;
+            case 1 -> relative + Math.round(loc.getY() * 1000) / 1000D;
+            case 2 -> relative + Math.round(loc.getZ() * 1000) / 1000D;
+            default -> 0;
+        };
     }
 }

@@ -94,41 +94,39 @@ public enum LegacyLevel {
     }
     
     public LegacyLevel sideUp() {
-    	switch(this) {
-    		case NORTH: return NORTH_U;
-    		case SOUTH: return SOUTH_U;
-    		case EAST: return EAST_U;
-    		case WEST: return WEST_U;
-    		case NORTH_D: return NORTH;
-    		case SOUTH_D: return SOUTH;
-    		case EAST_D: return EAST;
-    		case WEST_D: return WEST;
-    		case NORTH_D_2: return NORTH_D;
-    		case SOUTH_D_2: return SOUTH_D;
-    		case EAST_D_2: return EAST_D;
-    		case WEST_D_2: return WEST_D;
-    		default:
-    			return null;
-    	}
+        return switch (this) {
+            case NORTH -> NORTH_U;
+            case SOUTH -> SOUTH_U;
+            case EAST -> EAST_U;
+            case WEST -> WEST_U;
+            case NORTH_D -> NORTH;
+            case SOUTH_D -> SOUTH;
+            case EAST_D -> EAST;
+            case WEST_D -> WEST;
+            case NORTH_D_2 -> NORTH_D;
+            case SOUTH_D_2 -> SOUTH_D;
+            case EAST_D_2 -> EAST_D;
+            case WEST_D_2 -> WEST_D;
+            default -> null;
+        };
     }
     
     public LegacyLevel sideDown() {
-    	switch(this) {
-    		case NORTH_U: return NORTH;
-    		case SOUTH_U: return SOUTH;
-    		case EAST_U: return EAST;
-    		case WEST_U: return WEST;
-    		case NORTH: return NORTH_D;
-    		case SOUTH: return SOUTH_D;
-    		case EAST: return EAST_D;
-    		case WEST: return WEST_D;
-    		case NORTH_D: return NORTH_D_2;
-    		case SOUTH_D: return SOUTH_D_2;
-    		case EAST_D: return EAST_D_2;
-    		case WEST_D: return WEST_D_2;
-    		default:
-    			return null;
-    	}
+        return switch (this) {
+            case NORTH_U -> NORTH;
+            case SOUTH_U -> SOUTH;
+            case EAST_U -> EAST;
+            case WEST_U -> WEST;
+            case NORTH -> NORTH_D;
+            case SOUTH -> SOUTH_D;
+            case EAST -> EAST_D;
+            case WEST -> WEST_D;
+            case NORTH_D -> NORTH_D_2;
+            case SOUTH_D -> SOUTH_D_2;
+            case EAST_D -> EAST_D_2;
+            case WEST_D -> WEST_D_2;
+            default -> null;
+        };
     }
     
 	public static LegacyLevel getOffset(Location start, Location end) {

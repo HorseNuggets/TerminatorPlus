@@ -1,6 +1,6 @@
 package net.nuggetmc.tplus.api.agent.legacyagent.ai;
 
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.api.utils.MathUtils;
 
@@ -80,7 +80,7 @@ public class NeuralNetwork {
 
     public String output() {
         List<String> strings = new ArrayList<>();
-        nodes.forEach((type, node) -> strings.add(type.name().toLowerCase() + "=" + (node.check() ? ChatUtils.ON + "1" : ChatUtils.OFF + "0") + ChatColor.RESET));
+        nodes.forEach((type, node) -> strings.add(type.name().toLowerCase() + "=" + (node.check() ? ChatUtils.ON + "1" : ChatUtils.OFF + "0") + NamedTextColor.WHITE));
         Collections.sort(strings);
         return "[" + join(strings) + "]";
     }

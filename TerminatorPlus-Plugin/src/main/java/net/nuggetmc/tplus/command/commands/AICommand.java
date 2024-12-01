@@ -1,5 +1,6 @@
 package net.nuggetmc.tplus.command.commands;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.AIManager;
 import net.nuggetmc.tplus.api.Terminator;
@@ -12,7 +13,6 @@ import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
 import net.nuggetmc.tplus.command.annotation.*;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -55,10 +55,10 @@ public class AICommand extends CommandInstance implements AIManager {
     )
     public void random(CommandSender sender, List<String> args, @Arg("amount") int amount, @Arg("name") String name, @OptArg("skin") String skin, @OptArg("loc") @TextArg String loc) {
         if (sender instanceof Player && args.size() < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /ai random <amount> <name> [skin] [spawnLoc: [player Player]/[x,y,z]]");
+            sender.sendMessage(NamedTextColor.RED + "Usage: /ai random <amount> <name> [skin] [spawnLoc: [player Player]/[x,y,z]]");
             return;
         }
-        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        Location location = (sender instanceof Player) ? ((Player) sender).getLocation() : new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
         if (loc != null && !loc.isEmpty()) {
             Player player = Bukkit.getPlayer(loc);
             if (player != null) {
@@ -73,11 +73,11 @@ public class AICommand extends CommandInstance implements AIManager {
                         World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
                         location = new Location(world, x, y, z);
                     } catch (NumberFormatException e) {
-                        sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                        sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
                         return;
                     }
                 } else {
-                    sender.sendMessage("The location '" + ChatColor.YELLOW + loc + ChatColor.RESET + "' is not valid!");
+                    sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
                     return;
                 }
             }
@@ -127,7 +127,7 @@ public class AICommand extends CommandInstance implements AIManager {
         String name = agent.getName();
         clearSession();
 
-        scheduler.runTaskLater(plugin, () -> sender.sendMessage("The session " + ChatColor.YELLOW + name + ChatColor.RESET + " has been closed."), 10);
+        scheduler.runTaskLater(plugin, () -> sender.sendMessage("The session " + NamedTextColor.YELLOW + name + NamedTextColor.WHITE + " has been closed."), 10);
     }
 
     @Override
@@ -155,12 +155,12 @@ public class AICommand extends CommandInstance implements AIManager {
                 Terminator bot = manager.getFirst(name, (sender instanceof Player pl) ? pl.getLocation() : null);
 
                 if (bot == null) {
-                    sender.sendMessage("Could not find bot " + ChatColor.GREEN + name + ChatColor.RESET + "!");
+                    sender.sendMessage("Could not find bot " + NamedTextColor.GREEN + name + NamedTextColor.WHITE + "!");
                     return;
                 }
 
                 if (!bot.hasNeuralNetwork()) {
-                    sender.sendMessage("The bot " + ChatColor.GREEN + name + ChatColor.RESET + " does not have a neural network!");
+                    sender.sendMessage("The bot " + NamedTextColor.GREEN + name + NamedTextColor.WHITE + " does not have a neural network!");
                     return;
                 }
 
@@ -169,15 +169,15 @@ public class AICommand extends CommandInstance implements AIManager {
 
                 network.nodes().forEach((nodeType, node) -> {
                     strings.add("");
-                    strings.add(ChatColor.YELLOW + "\"" + nodeType.name().toLowerCase() + "\"" + ChatColor.RESET + ":");
+                    strings.add(NamedTextColor.YELLOW + "\"" + nodeType.name().toLowerCase() + "\"" + NamedTextColor.WHITE + ":");
                     List<String> values = new ArrayList<>();
                     node.getValues().forEach((dataType, value) -> values.add(ChatUtils.BULLET_FORMATTED + "node"
-                            + dataType.getShorthand().toUpperCase() + ": " + ChatColor.RED + MathUtils.round2Dec(value)));
+                            + dataType.getShorthand().toUpperCase() + ": " + NamedTextColor.RED + MathUtils.round2Dec(value)));
                     strings.addAll(values);
                 });
 
                 sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(ChatColor.DARK_GREEN + "NeuralNetwork" + ChatUtils.BULLET_FORMATTED + ChatColor.GRAY + "[" + ChatColor.GREEN + name + ChatColor.GRAY + "]");
+                sender.sendMessage(NamedTextColor.DARK_GREEN + "NeuralNetwork" + ChatUtils.BULLET_FORMATTED + NamedTextColor.GRAY + "[" + NamedTextColor.GREEN + name + NamedTextColor.GRAY + "]");
                 strings.forEach(sender::sendMessage);
                 sender.sendMessage(ChatUtils.LINE);
             } catch (Exception e) {

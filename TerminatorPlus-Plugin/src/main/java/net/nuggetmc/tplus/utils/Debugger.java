@@ -1,5 +1,7 @@
 package net.nuggetmc.tplus.utils;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
@@ -22,6 +24,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.permissions.ServerOperator;
 import org.bukkit.util.Vector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.Statement;
 import java.lang.reflect.Method;
@@ -33,18 +37,19 @@ public class Debugger {
 
     private final CommandSender sender;
     public static final Set<String> AUTOFILL_METHODS = new HashSet<>();
+    private static final Logger log = LoggerFactory.getLogger(Debugger.class);
 
     static {
         for (Method method : Debugger.class.getDeclaredMethods()) {
             if (!method.getName().equals("print") && !method.getName().equals("execute") && !method.getName().equals("buildObjects")
                     && !method.getName().startsWith("lambda$")) {
-                String autofill = method.getName() + "(";
+                StringBuilder autofill = new StringBuilder(method.getName() + "(");
                 for (Parameter par : method.getParameters()) {
-                    autofill += par.getType().getSimpleName() + ",";
+                    autofill.append(par.getType().getSimpleName()).append(",");
                 }
-                autofill = method.getParameters().length > 0 ? autofill.substring(0, autofill.length() - 1) : autofill;
-                autofill += ")";
-                AUTOFILL_METHODS.add(autofill);
+                autofill = new StringBuilder(method.getParameters().length > 0 ? autofill.substring(0, autofill.length() - 1) : autofill.toString());
+                autofill.append(")");
+                AUTOFILL_METHODS.add(autofill.toString());
             }
         }
     }
@@ -69,10 +74,10 @@ public class Debugger {
             Object[] args = content.isEmpty() ? null : buildObjects(content);
 
             Statement statement = new Statement(this, name, args);
-            print("Running the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\"...");
+            print("Running the expression \"" + NamedTextColor.AQUA + cmd + NamedTextColor.WHITE + "\"...");
             statement.execute();
         } catch (Exception e) {
-            print("Error: the expression \"" + ChatColor.AQUA + cmd + ChatColor.RESET + "\" failed to execute.");
+            print("Error: the expression \"" + NamedTextColor.AQUA + cmd + NamedTextColor.WHITE + "\" failed to execute.");
             print(e.toString());
         }
     }
@@ -132,14 +137,13 @@ public class Debugger {
         locs.add(new Location(world, 216, 50, -187));
         locs.add(new Location(world, 181, 35, -150));
 
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
+        if (sender instanceof Player player) {
 
             Bukkit.dispatchCommand(player, "team join a @a");
 
-            Bukkit.broadcastMessage(ChatColor.YELLOW + "Starting wave " + ChatColor.RED + n + ChatColor.YELLOW + "...");
+            Bukkit.broadcast(Component.text(NamedTextColor.YELLOW + "Starting wave " + NamedTextColor.RED + n + NamedTextColor.YELLOW + "..."));
 
-            Bukkit.broadcastMessage(ChatColor.YELLOW + "Unleashing the Super Zombies...");
+            Bukkit.broadcast(Component.text(NamedTextColor.YELLOW + "Unleashing the Super Zombies..."));
 
             String[] skin = MojangAPI.getSkin("Lozimac");
 
@@ -148,14 +152,14 @@ public class Debugger {
             switch (n) {
                 case 1: {
                     for (int i = 0; i < 20; i++) {
-                        Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                     }
                     break;
                 }
 
                 case 2: {
                     for (int i = 0; i < 30; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setDefaultItem(new ItemStack(Material.WOODEN_AXE));
                     }
                     break;
@@ -163,7 +167,7 @@ public class Debugger {
 
                 case 3: {
                     for (int i = 0; i < 30; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
                         bot.setShield(true);
                         bot.setDefaultItem(new ItemStack(Material.STONE_AXE));
@@ -173,7 +177,7 @@ public class Debugger {
 
                 case 4: {
                     for (int i = 0; i < 40; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
                         bot.setShield(true);
                         bot.setDefaultItem(new ItemStack(Material.IRON_AXE));
@@ -183,7 +187,7 @@ public class Debugger {
 
                 case 5: {
                     for (int i = 0; i < 50; i++) {
-                        Bot bot = Bot.createBot(MathUtils.getRandomSetElement(locs), name, skin);
+                        Bot bot = Bot.createBot(Objects.requireNonNull(MathUtils.getRandomSetElement(locs)), name, skin);
                         bot.setNeuralNetwork(NeuralNetwork.generateRandomNetwork());
                         bot.setShield(true);
                         bot.setDefaultItem(new ItemStack(Material.DIAMOND_AXE));
@@ -192,7 +196,7 @@ public class Debugger {
                 }
             }
 
-            Bukkit.broadcastMessage(ChatColor.YELLOW + "The Super Zombies have been unleashed.");
+            Bukkit.broadcast(Component.text(NamedTextColor.YELLOW + "The Super Zombies have been unleashed."));
 
             hideNametags();
         }
@@ -232,10 +236,10 @@ public class Debugger {
                 try {
                     Thread.sleep(wait);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(), e);
                 }
 
-                Bukkit.getScheduler().runTask(plugin, () -> Bot.createBot(PlayerUtils.findBottom(loc.clone().add(Math.random() * 20 - 10, 0, Math.random() * 20 - 10)), ChatColor.GREEN + "-$26.95", skin));
+                Bukkit.getScheduler().runTask(plugin, () -> Bot.createBot(PlayerUtils.findBottom(loc.clone().add(Math.random() * 20 - 10, 0, Math.random() * 20 - 10)), NamedTextColor.GREEN + "-$26.95", skin));
 
                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
@@ -274,21 +278,19 @@ public class Debugger {
 
     public void offsets(boolean b) {
         Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
-        if (!(agent instanceof LegacyAgent)) {
-            print("This method currently only supports " + ChatColor.AQUA + "LegacyAgent" + ChatColor.RESET + ".");
+        if (!(agent instanceof LegacyAgent legacyAgent)) {
+            print("This method currently only supports " + NamedTextColor.AQUA + "LegacyAgent" + NamedTextColor.WHITE + ".");
             return;
         }
 
-        LegacyAgent legacyAgent = (LegacyAgent) agent;
         legacyAgent.offsets = b;
 
-        print("Bot target offsets are now " + (legacyAgent.offsets ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED") + ChatColor.RESET + ".");
+        print("Bot target offsets are now " + (legacyAgent.offsets ? NamedTextColor.GREEN + "ENABLED" : NamedTextColor.RED + "DISABLED") + NamedTextColor.WHITE + ".");
     }
 
     public void confuse(int n) {
-        if (!(sender instanceof Player)) return;
+        if (!(sender instanceof Player player)) return;
 
-        Player player = (Player) sender;
         Location loc = player.getLocation();
 
         double f = n < 100 ? .004 * n : .4;
@@ -328,7 +330,7 @@ public class Debugger {
                 int i = 1;
 
                 for (String name : players) {
-                    print(name, ChatColor.GRAY + "(" + ChatColor.GREEN + i + ChatColor.GRAY + "/" + size + ")");
+                    print(name, NamedTextColor.GRAY + "(" + NamedTextColor.GREEN + i + NamedTextColor.GRAY + "/" + size + ")");
                     String[] skin = MojangAPI.getSkin(name);
                     skinCache.put(name, skin);
 
@@ -388,7 +390,7 @@ public class Debugger {
             return;
         }
 
-        print("Located bot", (ChatColor.GREEN + bot.getBotName() + ChatColor.RESET + "."));
+        print("Located bot", (NamedTextColor.GREEN + bot.getBotName() + NamedTextColor.WHITE + "."));
 
         if (sender instanceof Player) {
             print("Teleporting...");
@@ -397,13 +399,11 @@ public class Debugger {
     }
 
     public void setTarget(int n) {
-        print("This has been established as a feature as \"" + ChatColor.AQUA + "/bot settings setgoal" + ChatColor.RESET + "\"!");
+        print("This has been established as a feature as \"" + NamedTextColor.AQUA + "/bot settings setgoal" + NamedTextColor.WHITE + "\"!");
     }
 
     public void trackYVel() {
-        if (!(sender instanceof Player)) return;
-
-        Player player = (Player) sender;
+        if (!(sender instanceof Player player)) return;
 
         Bukkit.getScheduler().scheduleSyncRepeatingTask(TerminatorPlus.getInstance(), () -> {
             print(player.getVelocity().getY());
@@ -429,7 +429,7 @@ public class Debugger {
             seat.setVisible(false);
             seat.setSmall(true);
 
-            bot.getBukkitEntity().setPassenger(seat);
+            bot.getBukkitEntity().addPassenger(seat);
         }
     }
 
@@ -458,12 +458,10 @@ public class Debugger {
     }
 
     public void look() {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             print("Unspecified player.");
             return;
         }
-
-        Player player = (Player) sender;
 
         for (Terminator bot : TerminatorPlus.getInstance().getManager().fetch()) {
             bot.faceLocation(player.getEyeLocation());
@@ -476,21 +474,20 @@ public class Debugger {
         boolean b = agent.isEnabled();
         agent.setEnabled(!b);
 
-        print("The Bot Agent is now " + (b ? ChatColor.RED + "DISABLED" : ChatColor.GREEN + "ENABLED") + ChatColor.RESET + ".");
+        print("The Bot Agent is now " + (b ? NamedTextColor.RED + "DISABLED" : NamedTextColor.GREEN + "ENABLED") + NamedTextColor.WHITE + ".");
     }
 
     public void printSurroundingMobs(double dist) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             print("You must be a player to call this.");
             return;
         }
 
-        Player player = (Player) sender;
         double distSq = Math.pow(dist, 2);
         for (Entity en : player.getWorld().getEntities()) {
             Location loc = en.getLocation();
             if (loc.distanceSquared(player.getLocation()) < distSq)
-                print(String.format("Entity at " + ChatColor.BLUE + "(%d, %d, %d)" + ChatColor.RESET + ": Type " + ChatColor.GREEN + "%s" + ChatColor.RESET,
+                print(String.format("Entity at " + NamedTextColor.BLUE + "(%d, %d, %d)" + NamedTextColor.WHITE + ": Type " + NamedTextColor.GREEN + "%s" + NamedTextColor.WHITE,
                         loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), en.getType().toString()));
         }
     }

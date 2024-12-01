@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -37,7 +38,7 @@ public class MCLogs {
         String serverVersion = Bukkit.getVersion();
         String pluginVersion = TerminatorPlus.getVersion();
         String serverSoftware = Bukkit.getName();
-        String serverPlugins = Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(plugin -> plugin.getName() + " v" + plugin.getDescription().getVersion()).reduce((s, s2) -> s + ", " + s2).orElse("No plugins");
+        String serverPlugins = Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(plugin -> plugin.getName() + " v" + plugin.getPluginMeta().getVersion()).reduce((s, s2) -> s + ", " + s2).orElse("No plugins");
         String serverTPS = Arrays.stream(Bukkit.getTPS()).mapToObj(tps -> String.format("%.2f", tps)).reduce((s, s2) -> s + ", " + s2).orElse("No TPS");
         String freeMemory = String.format("%.2f", (double) (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024) + "MB";
         String maxMemory = String.format("%.2f", (double) Runtime.getRuntime().maxMemory() / 1024 / 1024) + "MB";
@@ -47,7 +48,7 @@ public class MCLogs {
     }
 
     private static String pasteText(String text) throws IOException {
-        URL url = new URL("https://api.mclo.gs/1/log"); // application/x-www-form-urlencoded
+        URL url = URI.create("https://api.mclo.gs/1/log").toURL(); // application/x-www-form-urlencoded
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");

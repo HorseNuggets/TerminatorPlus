@@ -1,24 +1,22 @@
 package net.nuggetmc.tplus.command.commands;
 
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.hover.content.Text;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.command.CommandHandler;
 import net.nuggetmc.tplus.command.CommandInstance;
 import net.nuggetmc.tplus.command.annotation.Command;
 import net.nuggetmc.tplus.utils.MCLogs;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import java.io.IOException;
 
 public class MainCommand extends CommandInstance {
 
-    private BaseComponent[] rootInfo;
+    private Component rootInfo;
 
     public MainCommand(CommandHandler handler, String name, String description, String... aliases) {
         super(handler, name, description, aliases);
@@ -30,7 +28,7 @@ public class MainCommand extends CommandInstance {
             rootInfoSetup();
         }
 
-        sender.spigot().sendMessage(rootInfo);
+        sender.sendMessage(rootInfo);
     }
 
     @Command(
@@ -38,50 +36,50 @@ public class MainCommand extends CommandInstance {
             desc = "Upload debug info to mclo.gs"
     )
     public void debugInfo(CommandSender sender) {
-        sender.sendMessage(ChatColor.GREEN + "Uploading debug info to mclogs...");
+        sender.sendMessage(NamedTextColor.GREEN + "Uploading debug info to mclogs...");
         String url = null;
         try {
             url = MCLogs.postInfo();
         } catch (IOException e) {
             String error = e.getMessage();
-            sender.sendMessage(ChatColor.RED + "Failed to upload debug info to mclogs: " + error);
+            sender.sendMessage(NamedTextColor.RED + "Failed to upload debug info to mclogs: " + error);
             return;
         }
-        sender.sendMessage(ChatColor.GREEN + "Debug info uploaded to " + url);
+        sender.sendMessage(NamedTextColor.GREEN + "Debug info uploaded to " + url);
     }
 
 
     private void rootInfoSetup() {
-        ComponentBuilder message = new ComponentBuilder();
         String pluginName = TerminatorPlus.getInstance().getName();
 
-        message.append(ChatUtils.LINE + "\n");
-        message.append(ChatColor.GOLD + pluginName + ChatColor.GRAY + " [v" + TerminatorPlus.getVersion() + "]\n");
-        message.append("\nPlugin Information:\n");
-        message.append(ChatUtils.BULLET_FORMATTED + "Author" + ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "HorseNuggets\n");
-        message.append(ChatUtils.BULLET_FORMATTED + "Links" + ChatUtils.BULLET_FORMATTED);
-        message.append(ChatColor.RED + "YouTube");
-        message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://youtube.com/horsenuggets"));
-        message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to visit HorseNuggets' " + ChatColor.RED + "YouTube" + ChatColor.RESET + "!")));
-        message.append(", ");
-        message.event((ClickEvent) null);
-        message.event((HoverEvent) null);
-        message.append(ChatColor.BLUE + "Discord");
-        message.event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://discord.gg/vZVSf2D6mz"));
-        message.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Click to visit HorseNuggets' " + ChatColor.BLUE + "Discord" + ChatColor.RESET + "!")));
-        message.append("\n");
-        message.event((ClickEvent) null);
-        message.event((HoverEvent) null);
-        message.append("\nPlugin Commands:\n");
+        rootInfo = Component.text()
+                .append(Component.text(ChatUtils.LINE + "\n"))
+                .append(Component.text(pluginName).color(NamedTextColor.GOLD))
+                .append(Component.text(" [v" + TerminatorPlus.getVersion() + "]\n").color(NamedTextColor.GRAY))
+                .append(Component.text("\nPlugin Information:\n"))
+                .append(Component.text(ChatUtils.BULLET_FORMATTED + "Author" + ChatUtils.BULLET_FORMATTED))
+                .append(Component.text("HorseNuggets\n").color(NamedTextColor.YELLOW))
+                .append(Component.text(ChatUtils.BULLET_FORMATTED + "Links" + ChatUtils.BULLET_FORMATTED))
+                .append(Component.text("YouTube")
+                        .color(NamedTextColor.RED)
+                        .clickEvent(ClickEvent.openUrl("https://youtube.com/horsenuggets"))
+                        .hoverEvent(HoverEvent.showText(Component.text("Click to visit HorseNuggets' YouTube!"))))
+                .append(Component.text(", "))
+                .append(Component.text("Discord")
+                        .color(NamedTextColor.BLUE)
+                        .clickEvent(ClickEvent.openUrl("https://discord.gg/vZVSf2D6mz"))
+                        .hoverEvent(HoverEvent.showText(Component.text("Click to visit HorseNuggets' Discord!"))))
+                .append(Component.text("\n\nPlugin Commands:\n"))
+                .build();
 
         commandHandler.getCommands().forEach((name, command) -> {
             if (!name.equalsIgnoreCase(pluginName)) {
-                message.append(ChatUtils.BULLET_FORMATTED + ChatColor.YELLOW + "/" + name + ChatUtils.BULLET_FORMATTED + command.getDescription() + "\n");
+                rootInfo = rootInfo.append(Component.text(ChatUtils.BULLET_FORMATTED))
+                        .append(Component.text("/" + name).color(NamedTextColor.YELLOW))
+                        .append(Component.text(ChatUtils.BULLET_FORMATTED + command.getDescription() + "\n"));
             }
         });
 
-        message.append(ChatUtils.LINE);
-
-        this.rootInfo = message.create();
+        rootInfo = rootInfo.append(Component.text(ChatUtils.LINE));
     }
 }

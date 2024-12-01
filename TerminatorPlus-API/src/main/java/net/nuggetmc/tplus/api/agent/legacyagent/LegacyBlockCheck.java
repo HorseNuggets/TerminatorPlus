@@ -12,8 +12,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 
-import com.google.common.base.Optional;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -191,7 +189,7 @@ public class LegacyBlockCheck {
     	while (itr.hasNext()) {
     		Block next = itr.next().getBlock();
     		boolean placeable = nether ? LegacyMats.canPlaceTwistingVines(next)
-    			: LegacyMats.canPlaceWater(next, Optional.absent());
+    			: LegacyMats.canPlaceWater(next, null);
     		if (placeable || (!LegacyMats.isSolid(next.getType()) && !LegacyMats.canStandOn(next.getType())))
     			itr.remove();
     	}
@@ -208,8 +206,8 @@ public class LegacyBlockCheck {
     				return 1;
     			return Double.compare(BotUtils.getHorizSqDist(a, botLoc), BotUtils.getHorizSqDist(b, botLoc));
     		});
-    		
-    		Location faceLoc = below2List.get(0);
+
+    		Location faceLoc = below2List.getFirst();
     		Location loc = faceLoc.clone().add(0, 1, 0);
             bot.faceLocation(faceLoc);
             bot.look(BlockFace.DOWN);

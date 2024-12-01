@@ -50,6 +50,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -66,7 +67,6 @@ public class Bot extends ServerPlayer implements Terminator {
     private boolean blockUse;
     private Vector velocity;
     private Vector oldVelocity;
-    private boolean removeOnDeath;
     private int aliveTicks;
     private int kills;
     private byte groundTicks;
@@ -86,7 +86,6 @@ public class Bot extends ServerPlayer implements Terminator {
         this.velocity = new Vector(0, 0, 0);
         this.oldVelocity = velocity.clone();
         this.noFallTicks = 60;
-        this.removeOnDeath = true;
         this.offset = MathUtils.circleOffset(3);
         if (addToPlayerList) {
             minecraftServer.getPlayerList().getPlayers().add(this);
@@ -214,7 +213,7 @@ public class Bot extends ServerPlayer implements Terminator {
                 new ClientboundAddEntityPacket(this.getId(), this.getUUID(), this.getX(), this.getY(), this.getZ(), this.getXRot(), this.getYRot(), this.getType(), 0, this.getDeltaMovement(), this.getYHeadRot()),
                 //new ClientboundSetEntityDataPacket(this.getId(), this.entityData, true),
                 new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, this),
-                new ClientboundSetEntityDataPacket(this.getId(), this.entityData.packDirty()),
+                new ClientboundSetEntityDataPacket(this.getId(), Objects.requireNonNull(this.entityData.packDirty())),
                 new ClientboundRotateHeadPacket(this, (byte) ((this.yHeadRot * 256f) / 360f))
         };
     }
@@ -329,10 +328,9 @@ public class Bot extends ServerPlayer implements Terminator {
     private void loadChunks() {
         Level world = level();
 
-        for (int i = chunkPosition().x - 1; i <= chunkPosition().x + 1; i++) {
-            for (int j = chunkPosition().z - 1; j <= chunkPosition().z + 1; j++) {
-                LevelChunk chunk = world.getChunk(i, j);
-
+        for (int x = -1; x <= 1; x++) {
+            for (int z = -1; z <= 1; z++) {
+                LevelChunk chunk = world.getChunk(chunkPosition().x + x, chunkPosition().z + z);
                 if (!chunk.loaded) {
                     chunk.loaded = true;
                 }
@@ -411,7 +409,7 @@ public class Bot extends ServerPlayer implements Terminator {
         this.blockUse = true;
         startUsingItem(InteractionHand.OFF_HAND);
         //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
-        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData.packDirty()));
+        sendPacket(new ClientboundSetEntityDataPacket(getId(), Objects.requireNonNull(entityData.packDirty())));
     }
 
     private void stopBlocking(int cooldown) {
@@ -419,7 +417,7 @@ public class Bot extends ServerPlayer implements Terminator {
         stopUsingItem();
         scheduler.runTaskLater(plugin, () -> this.blockUse = false, cooldown);
         //sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData, true));
-        sendPacket(new ClientboundSetEntityDataPacket(getId(), entityData.packDirty()));
+        sendPacket(new ClientboundSetEntityDataPacket(getId(), Objects.requireNonNull(entityData.packDirty())));
     }
 
     @Override
@@ -437,7 +435,9 @@ public class Bot extends ServerPlayer implements Terminator {
     private void updateLocation() {
         double y;
 
-        MathUtils.clean(velocity); // TODO lag????
+        if (MathUtils.isNotFinite(velocity)) {
+            MathUtils.clean(velocity);
+        }
 
         if (isBotInWater()) {
             y = Math.min(velocity.getY() + 0.1, 0.1);
@@ -576,7 +576,7 @@ public class Bot extends ServerPlayer implements Terminator {
         }
 
         //Closest block comes first
-        Collections.sort(standingOn, (a, b) ->
+        standingOn.sort((a, b) ->
                 Double.compare(BotUtils.getHorizSqDist(a.getLocation(), getLocation()), BotUtils.getHorizSqDist(b.getLocation(), getLocation())));
 
         this.standingOn = standingOn;
@@ -623,44 +623,27 @@ public class Bot extends ServerPlayer implements Terminator {
     }
 
     private void removeTab() {
-        sendPacket(new ClientboundPlayerInfoRemovePacket(Arrays.asList(this.getUUID())));
-    }
-
-    public void setRemoveOnDeath(boolean enabled) {
-        this.removeOnDeath = enabled;
+        sendPacket(new ClientboundPlayerInfoRemovePacket(List.of(this.getUUID())));
     }
 
     private void setDead() {
         sendPacket(new ClientboundRemoveEntitiesPacket(getId()));
-
         this.dead = true;
         this.inventoryMenu.removed(this);
-        if (this.containerMenu != null) {
-            this.containerMenu.removed(this);
-        }
-    }
-
-    private void dieCheck() {
-        if (removeOnDeath) {
-
-            // I replaced HashSet with ConcurrentHashMap.newKeySet which creates a "ConcurrentHashSet"
-            // this should fix the concurrentmodificationexception mentioned above, I used the ConcurrentHashMap.newKeySet to make a "ConcurrentHashSet"
-            plugin.getManager().remove(this);
-
-            scheduler.runTaskLater(plugin, this::removeBot, 20);
-
-            this.removeTab();
-        }
+        this.containerMenu.removed(this);
     }
 
     @Override
-    public void die(DamageSource damageSource) {
+    public void die(@NotNull DamageSource damageSource) {
         super.die(damageSource);
-        this.dieCheck();
+
+        plugin.getManager().remove(this);
+        scheduler.runTaskLater(plugin, this::removeBot, 20);
+        this.removeTab();
     }
 
     @Override
-    public void push(Entity entity) {
+    public void push(@NotNull Entity entity) {
         if (!this.isPassengerOfSameVehicle(entity) && !entity.noPhysics && !this.noPhysics) {
             double d0 = entity.getX() - this.getZ();
             double d1 = entity.getX() - this.getZ();
@@ -843,15 +826,12 @@ public class Bot extends ServerPlayer implements Terminator {
     public void setItem(org.bukkit.inventory.ItemStack item, EquipmentSlot slot) {
         if (item == null) item = defaultItem;
 
-        //System.out.println("set");
         if (slot == EquipmentSlot.MAINHAND) {
             getBukkitEntity().getInventory().setItemInMainHand(item);
         } else if (slot == EquipmentSlot.OFFHAND) {
             getBukkitEntity().getInventory().setItemInOffHand(item);
         }
 
-        //System.out.println("slot = " + slot);
-        //System.out.println("item = " + item);
         sendPacket(new ClientboundSetEquipmentPacket(getId(), new ArrayList<>(Collections.singletonList(
                 new Pair<>(slot, CraftItemStack.asNMSCopy(item))
         ))));
@@ -873,7 +853,6 @@ public class Bot extends ServerPlayer implements Terminator {
     public void stand() {
         Player player = getBukkitEntity();
         player.setSneaking(false);
-        player.setSwimming(false);
 
         registerPose(Pose.STANDING);
     }

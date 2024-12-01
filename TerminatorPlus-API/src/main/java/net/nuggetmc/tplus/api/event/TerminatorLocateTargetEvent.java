@@ -5,11 +5,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 public class TerminatorLocateTargetEvent extends Event implements Cancellable {
 
     private static final HandlerList handlerList = new HandlerList();
-    private Terminator terminator;
+    private final Terminator terminator;
     private LivingEntity target;
     private boolean cancelled;
 
@@ -23,7 +24,7 @@ public class TerminatorLocateTargetEvent extends Event implements Cancellable {
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public @NotNull HandlerList getHandlers() {
         return handlerList;
     }
 

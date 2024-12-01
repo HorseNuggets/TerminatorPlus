@@ -5,55 +5,17 @@ import org.bukkit.inventory.ItemStack;
 public class ItemUtils {
 
     public static double getLegacyAttackDamage(ItemStack item) {
-        switch (item.getType()) {
-            default:
-                return 0.25;
-
-            case WOODEN_SHOVEL:
-            case GOLDEN_SHOVEL:
-            case WOODEN_HOE:
-            case GOLDEN_HOE:
-            case STONE_HOE:
-            case IRON_HOE:
-            case DIAMOND_HOE:
-            case NETHERITE_HOE:
-                return 1;
-
-            case WOODEN_PICKAXE:
-            case GOLDEN_PICKAXE:
-            case STONE_SHOVEL:
-                return 2;
-
-            case WOODEN_AXE:
-            case GOLDEN_AXE:
-            case STONE_PICKAXE:
-            case IRON_SHOVEL:
-                return 3;
-
-            case WOODEN_SWORD:
-            case GOLDEN_SWORD:
-            case STONE_AXE:
-            case IRON_PICKAXE:
-            case DIAMOND_SHOVEL:
-                return 4;
-
-            case STONE_SWORD:
-            case IRON_AXE:
-            case DIAMOND_PICKAXE:
-            case NETHERITE_SHOVEL:
-                return 5;
-
-            case IRON_SWORD:
-            case DIAMOND_AXE:
-            case NETHERITE_PICKAXE:
-                return 6;
-
-            case DIAMOND_SWORD:
-            case NETHERITE_AXE:
-                return 7;
-
-            case NETHERITE_SWORD:
-                return 8;
-        }
+        return switch (item.getType()) {
+            case WOODEN_SHOVEL, GOLDEN_SHOVEL, WOODEN_HOE, GOLDEN_HOE, STONE_HOE, IRON_HOE, DIAMOND_HOE,
+                 NETHERITE_HOE -> 1;
+            case WOODEN_PICKAXE, GOLDEN_PICKAXE, STONE_SHOVEL -> 2;
+            case WOODEN_AXE, GOLDEN_AXE, STONE_PICKAXE, IRON_SHOVEL -> 3;
+            case WOODEN_SWORD, GOLDEN_SWORD, STONE_AXE, IRON_PICKAXE, DIAMOND_SHOVEL -> 4;
+            case STONE_SWORD, IRON_AXE, DIAMOND_PICKAXE, NETHERITE_SHOVEL -> 5;
+            case IRON_SWORD, DIAMOND_AXE, NETHERITE_PICKAXE -> 6;
+            case DIAMOND_SWORD, NETHERITE_AXE -> 7;
+            case NETHERITE_SWORD -> 8;
+            default -> 0.25;
+        };
     }
 }
