@@ -9,7 +9,13 @@ import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.Bisected.Half;
 import org.bukkit.block.data.type.*;
 
-import java.util.*;
+import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -123,7 +129,7 @@ public class LegacyMats {
     
     public static final Set<Material> GATES = new HashSet<>(concatTypes(Gate.class));
     
-    public static final Set<Material> OBSTACLES = new HashSet<>(concatTypes(List.of(
+    public static final Set<Material> OBSTACLES = new HashSet<>(concatTypes(Lists.newArrayList(
     	Material.IRON_BARS,
     	Material.CHAIN,
     	Material.END_ROD,
@@ -132,10 +138,10 @@ public class LegacyMats {
     	Material.SWEET_BERRY_BUSH,
     	Material.FLOWER_POT,
     	Material.GLASS_PANE
-    ), List.of(), List.of(GlassPane.class), m -> m.name().startsWith("POTTED_")));
+    ), Arrays.asList(), Arrays.asList(GlassPane.class), m -> m.name().startsWith("POTTED_")));
 
     //Notice: We exclude blocks that cannot exist without a solid block below (such as rails or crops)
-    public static final Set<Material> NONSOLID = new HashSet<>(concatTypes(List.of(
+    public static final Set<Material> NONSOLID = new HashSet<>(concatTypes(Lists.newArrayList(
     	Material.COBWEB,
     	Material.END_GATEWAY,
     	Material.END_PORTAL,
@@ -156,11 +162,11 @@ public class LegacyMats {
     	Material.WEEPING_VINES,
     	Material.CAVE_VINES_PLANT,
     	Material.CAVE_VINES
-    ), List.of(), Arrays.asList(Switch.class, CoralWallFan.class, WallSign.class), m -> m.name().endsWith("_WALL_BANNER")));
+    ), Arrays.asList(), Arrays.asList(Switch.class, CoralWallFan.class, WallSign.class), m -> m.name().endsWith("_WALL_BANNER")));
     
     public static final Set<Material> LEAVES = new HashSet<>(concatTypes(Leaves.class));
     
-    public static final Set<Material> INSTANT_BREAK = new HashSet<>(concatTypes(List.of(
+    public static final Set<Material> INSTANT_BREAK = new HashSet<>(concatTypes(Lists.newArrayList(
         Material.TALL_GRASS,
         Material.SHORT_GRASS,
         Material.FERN,
@@ -227,7 +233,7 @@ public class LegacyMats {
         Material.CAVE_VINES,
         Material.CAVE_VINES_PLANT,
         Material.SEA_PICKLE
-    ), List.of(), Arrays.asList(Sapling.class, CoralWallFan.class), m -> m.name().endsWith("_CORAL_FAN") || m.name().endsWith("_CORAL")
+    ), Arrays.asList(), Arrays.asList(Sapling.class, CoralWallFan.class), m -> m.name().endsWith("_CORAL_FAN") || m.name().endsWith("_CORAL")
     	|| m.name().startsWith("POTTED_")));
     
     private static List<Material> concatTypes(Class<?>... types) {
@@ -235,7 +241,7 @@ public class LegacyMats {
     }
     
     private static List<Material> concatTypes(List<Material> materials, List<Class<?>> types) {
-    	return concatTypes(materials, List.of(), types);
+    	return concatTypes(materials, Arrays.asList(), types);
     }
     
     private static List<Material> concatTypes(List<Material> materials, List<Material> exclusions, List<Class<?>> types) {
