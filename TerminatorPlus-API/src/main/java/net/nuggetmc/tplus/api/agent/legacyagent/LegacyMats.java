@@ -9,6 +9,8 @@ import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.Bisected.Half;
 import org.bukkit.block.data.type.*;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -127,7 +129,7 @@ public class LegacyMats {
     
     public static final Set<Material> GATES = new HashSet<>(concatTypes(Gate.class));
     
-    public static final Set<Material> OBSTACLES = new HashSet<>(concatTypes(List.of(
+    public static final Set<Material> OBSTACLES = new HashSet<>(concatTypes(Lists.newArrayList(
     	Material.IRON_BARS,
     	Material.CHAIN,
     	Material.END_ROD,
@@ -139,7 +141,7 @@ public class LegacyMats {
     ), Arrays.asList(), Arrays.asList(GlassPane.class), m -> m.name().startsWith("POTTED_")));
 
     //Notice: We exclude blocks that cannot exist without a solid block below (such as rails or crops)
-    public static final Set<Material> NONSOLID = new HashSet<>(concatTypes(List.of(
+    public static final Set<Material> NONSOLID = new HashSet<>(concatTypes(Lists.newArrayList(
     	Material.COBWEB,
     	Material.END_GATEWAY,
     	Material.END_PORTAL,
@@ -164,7 +166,7 @@ public class LegacyMats {
     
     public static final Set<Material> LEAVES = new HashSet<>(concatTypes(Leaves.class));
     
-    public static final Set<Material> INSTANT_BREAK = new HashSet<>(concatTypes(List.of(
+    public static final Set<Material> INSTANT_BREAK = new HashSet<>(concatTypes(Lists.newArrayList(
         Material.TALL_GRASS,
         Material.SHORT_GRASS,
         Material.FERN,
