@@ -26,4 +26,6 @@ jobs:
         if: success()
         with:
           name: TerminatorPlus
-          path: build/libs/
+          path: |
+            build/libs/
+            TerminatorPlus-API/build/libs
