@@ -450,7 +450,9 @@ public class Bot extends ServerPlayer implements Terminator {
                 y = 0;
             } else {
                 y = velocity.getY();
-                velocity.setY(Math.max(y - 0.1, -3.5));
+                if(jumpTicks - 3 <= 0) {
+                    velocity.setY(Math.max(y - 0.08, -3.5));
+                }
             }
         }
 
@@ -484,7 +486,7 @@ public class Bot extends ServerPlayer implements Terminator {
 
     @Override
     public void jump() {
-        jump(new Vector(0, 0.5, 0));
+        jump(new Vector(0, 0.42, 0));
     }
 
     @Override
