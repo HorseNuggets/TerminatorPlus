@@ -1,6 +1,5 @@
 package net.nuggetmc.tplus.command.commands;
 
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
 import net.nuggetmc.tplus.api.agent.legacyagent.EnumTargetGoal;
@@ -75,11 +74,11 @@ public class BotCommand extends CommandInstance {
                         World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
                         location = new Location(world, x, y, z);
                     } catch (NumberFormatException e) {
-                        sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
+                        sender.sendRichMessage("The location '<yellow>" + loc + "<white>' is not valid!");
                         return;
                     }
                 } else {
-                    sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
+                    sender.sendRichMessage("The location '<yellow>" + loc + "<white>' is not valid!");
                     return;
                 }
             }
@@ -111,11 +110,11 @@ public class BotCommand extends CommandInstance {
                         World world = Bukkit.getWorld(split.length >= 4 ? split[3] : location.getWorld().getName());
                         location = new Location(world, x, y, z);
                     } catch (NumberFormatException e) {
-                        sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
+                        sender.sendRichMessage("The location '<yellow>" + loc + "<white>' is not valid!");
                         return;
                     }
                 } else {
-                    sender.sendMessage("The location '" + NamedTextColor.YELLOW + loc + NamedTextColor.WHITE + "' is not valid!");
+                    sender.sendRichMessage("The location '<yellow>" + loc + "<white>' is not valid!");
                     return;
                 }
             }
@@ -135,7 +134,7 @@ public class BotCommand extends CommandInstance {
         Material type = Material.matchMaterial(itemName);
 
         if (type == null) {
-            sender.sendMessage("The item " + NamedTextColor.YELLOW + itemName + NamedTextColor.WHITE + " is not valid!");
+            sender.sendRichMessage("The item <yellow>" + itemName + "<white> is not valid!");
             return;
         }
 
@@ -143,7 +142,7 @@ public class BotCommand extends CommandInstance {
 
         manager.fetch().forEach(bot -> bot.setDefaultItem(item));
 
-        sender.sendMessage("Successfully set the default item to " + NamedTextColor.YELLOW + item.getType() + NamedTextColor.WHITE + " for all current bots.");
+        sender.sendRichMessage("Successfully set the default item to <yellow>" + item.getType() + "<white> for all current bots.");
     }
 
     private void armorTierSetup() {
@@ -206,8 +205,8 @@ public class BotCommand extends CommandInstance {
         String tier = armorTier.toLowerCase();
 
         if (!armorTiers.containsKey(tier)) {
-            sender.sendMessage(NamedTextColor.YELLOW + tier + NamedTextColor.WHITE + " is not a valid tier!");
-            sender.sendMessage("Available tiers: " + NamedTextColor.YELLOW + String.join(NamedTextColor.WHITE + ", " + NamedTextColor.YELLOW, armorTiers.keySet()));
+            sender.sendRichMessage("<yellow>" + tier + "<white> is not a valid tier!");
+            sender.sendRichMessage("Available tiers: <yellow>" + String.join("<white>, <yellow>", armorTiers.keySet()));
             return;
         }
 
@@ -226,7 +225,7 @@ public class BotCommand extends CommandInstance {
             }
         });
 
-        sender.sendMessage("Successfully set the armor tier to " + NamedTextColor.YELLOW + tier + NamedTextColor.WHITE + " for all current bots.");
+        sender.sendRichMessage("Successfully set the armor tier to <yellow>" + tier + "<white> for all current bots.");
     }
 
     @Autofill
@@ -241,7 +240,7 @@ public class BotCommand extends CommandInstance {
     )
     public void info(CommandSender sender, @Arg("bot-name") String name) {
         if (name == null) {
-            sender.sendMessage(NamedTextColor.YELLOW + "Bot GUI coming soon!");
+            sender.sendRichMessage("<yellow>Bot GUI coming soon!");
             return;
         }
 
@@ -252,7 +251,7 @@ public class BotCommand extends CommandInstance {
                 Terminator bot = manager.getFirst(name, (sender instanceof Player pl) ? pl.getLocation() : null);
 
                 if (bot == null) {
-                    sender.sendMessage("Could not find bot " + NamedTextColor.GREEN + name + NamedTextColor.WHITE + "!");
+                    sender.sendRichMessage("Could not find bot <green>" + name + "<white>!");
                     return;
                 }
 
@@ -267,18 +266,18 @@ public class BotCommand extends CommandInstance {
                  * neural network values (network name if loaded, otherwise RANDOM)
                  */
 
-                String botName = bot.getBotName();
-                String world = NamedTextColor.YELLOW + bot.getBukkitEntity().getWorld().getName();
+                String botName = "<green>" + bot.getBotName();
+                String world = "<yellow>" + bot.getBukkitEntity().getWorld().getName();
                 Location loc = bot.getLocation();
-                String strLoc = NamedTextColor.YELLOW + formatter.format(loc.getX()) + ", " + formatter.format(loc.getY()) + ", " + formatter.format(loc.getZ());
+                String strLoc = "<yellow>" + formatter.format(loc.getX()) + ", " + formatter.format(loc.getY()) + ", " + formatter.format(loc.getZ());
                 Vector vel = bot.getVelocity();
-                String strVel = NamedTextColor.AQUA + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
+                String strVel = "<aqua>" + formatter.format(vel.getX()) + ", " + formatter.format(vel.getY()) + ", " + formatter.format(vel.getZ());
 
                 sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(NamedTextColor.GREEN + botName);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "World: " + world);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Position: " + strLoc);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + strVel);
+                sender.sendRichMessage(botName);
+                sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "World: " + world);
+                sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "Position: " + strLoc);
+                sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "Velocity: " + strVel);
                 sender.sendMessage(ChatUtils.LINE);
             } catch (Exception e) {
                 sender.sendMessage(ChatUtils.EXCEPTION_MESSAGE);
@@ -305,9 +304,9 @@ public class BotCommand extends CommandInstance {
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).toList();
 
         sender.sendMessage(ChatUtils.LINE);
-        entries.forEach(en -> sender.sendMessage(NamedTextColor.GREEN + en.getKey()
-                + NamedTextColor.WHITE + " - " + NamedTextColor.BLUE + en.getValue().toString() + NamedTextColor.WHITE));
-        sender.sendMessage("Total bots: " + NamedTextColor.BLUE + freqMap.values().stream().reduce(0, Integer::sum) + NamedTextColor.WHITE);
+        entries.forEach(en -> sender.sendRichMessage("<green>" + en.getKey()
+                + "<white> - <blue>" + en.getValue().toString() + "<white>"));
+        sender.sendRichMessage("Total bots: <blue>" + freqMap.values().stream().reduce(0, Integer::sum) + "<white>");
         sender.sendMessage(ChatUtils.LINE);
     }
 
@@ -319,7 +318,7 @@ public class BotCommand extends CommandInstance {
         sender.sendMessage("Removing every bot...");
         int size = manager.fetch().size();
         manager.reset();
-        sender.sendMessage("Removed " + NamedTextColor.RED + ChatUtils.NUMBER_FORMAT.format(size) + NamedTextColor.WHITE + " entit" + (size == 1 ? "y" : "ies") + ".");
+        sender.sendRichMessage("Removed <red>" + ChatUtils.NUMBER_FORMAT.format(size) + "<white> entit" + (size == 1 ? "y" : "ies") + ".");
 
         if (aiManager == null) {
             this.aiManager = (AICommand) handler.getCommand("ai");
@@ -344,85 +343,85 @@ public class BotCommand extends CommandInstance {
         String arg1 = args.isEmpty() ? null : args.get(0);
         String arg2 = args.size() < 2 ? null : args.get(1);
 
-        String extra = NamedTextColor.GRAY + " [" + NamedTextColor.YELLOW + "/bot settings" + NamedTextColor.GRAY + "]";
+        String extra = "<gray>[<yellow>/bot settings<gray>]";
 
         if (arg1 == null || (!arg1.equalsIgnoreCase("setgoal") && !arg1.equalsIgnoreCase("mobtarget") && !arg1.equalsIgnoreCase("playertarget")
                 && !arg1.equalsIgnoreCase("addplayerlist") && !arg1.equalsIgnoreCase("region"))) {
             sender.sendMessage(ChatUtils.LINE);
-            sender.sendMessage(NamedTextColor.GOLD + "Bot Settings" + extra);
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "addplayerlist" + ChatUtils.BULLET_FORMATTED + "Adds newly spawned bots to the player list. This allows the bots to be affected by player selectors like @a and @p.");
-            sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "region" + ChatUtils.BULLET_FORMATTED + "Sets a region for the bots to prioritize entities inside.");
+            sender.sendRichMessage("<gold>Bot Settings" + extra);
+            sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow>setgoal" + ChatUtils.BULLET_FORMATTED + "Set the global bot target selection method.");
+            sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow>mobtarget" + ChatUtils.BULLET_FORMATTED + "Allow all bots to be targeted by hostile mobs.");
+            sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow>playertarget" + ChatUtils.BULLET_FORMATTED + "Sets a player name for spawned bots to focus on if the goal is PLAYER.");
+            sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow>addplayerlist" + ChatUtils.BULLET_FORMATTED + "Adds newly spawned bots to the player list. This allows the bots to be affected by player selectors like @a and @p.");
+            sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow>region" + ChatUtils.BULLET_FORMATTED + "Sets a region for the bots to prioritize entities inside.");
             sender.sendMessage(ChatUtils.LINE);
             return;
         } else if (arg1.equalsIgnoreCase("setgoal")) {
             if (arg2 == null) {
-                sender.sendMessage("The global bot goal is currently " + NamedTextColor.BLUE + agent.getTargetType() + NamedTextColor.WHITE + ".");
+                sender.sendRichMessage("The global bot goal is currently <blue>" + agent.getTargetType() + "<white>.");
                 return;
             }
             EnumTargetGoal goal = EnumTargetGoal.from(arg2);
 
             if (goal == null) {
                 sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(NamedTextColor.GOLD + "Goal Selection Types" + extra);
-                Arrays.stream(EnumTargetGoal.values()).forEach(g -> sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + g.name().replace("_", "").toLowerCase()
+                sender.sendRichMessage("<gold>Goal Selection Types" + extra);
+                Arrays.stream(EnumTargetGoal.values()).forEach(g -> sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow>" + g.name().replace("_", "").toLowerCase()
                         + ChatUtils.BULLET_FORMATTED + g.description()));
                 sender.sendMessage(ChatUtils.LINE);
                 return;
             }
             agent.setTargetType(goal);
-            sender.sendMessage("The global bot goal has been set to " + NamedTextColor.BLUE + goal.name() + NamedTextColor.WHITE + ".");
+            sender.sendRichMessage("The global bot goal has been set to <blue>" + goal.name() + "<white>.");
         } else if (arg1.equalsIgnoreCase("mobtarget")) {
             if (arg2 == null) {
-                sender.sendMessage("Mob targeting is currently " + (manager.isMobTarget() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
+                sender.sendRichMessage("Mob targeting is currently " + (manager.isMobTarget() ? "<green>enabled" : "<red>disabled") + "<white>.");
                 return;
             }
             if (!arg2.equals("true") && !arg2.equals("false")) {
-                sender.sendMessage(NamedTextColor.RED + "You must specify true or false!");
+                sender.sendRichMessage("<red>You must specify true or false!");
                 return;
             }
             manager.setMobTarget(Boolean.parseBoolean(arg2));
-            sender.sendMessage("Mob targeting is now " + (manager.isMobTarget() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
+            sender.sendRichMessage("Mob targeting is now " + (manager.isMobTarget() ? "<green>enabled" : "<red>disabled") + "<white>.");
         } else if (arg1.equalsIgnoreCase("playertarget")) {
             if (args.size() < 2) {
-                sender.sendMessage(NamedTextColor.RED + "You must specify a player name!");
+                sender.sendRichMessage("<red>You must specify a player name!");
                 return;
             }
             Player player = Bukkit.getPlayer(arg2);
             if (player == null) {
-                sender.sendMessage(NamedTextColor.RED + "Could not find player " + NamedTextColor.YELLOW + arg2 + NamedTextColor.RED + "!");
+                sender.sendRichMessage("<red>Could not find player <yellow>" + arg2 + "<red>!");
                 return;
             }
             for (Terminator fetch : manager.fetch()) {
                 fetch.setTargetPlayer(player.getUniqueId());
             }
-            sender.sendMessage("All spawned bots are now set to target " + NamedTextColor.BLUE + player.getName() + NamedTextColor.WHITE + ". They will target the closest player if they can't be found.\nYou may need to set the goal to PLAYER.");
+            sender.sendRichMessage("All spawned bots are now set to target <blue>" + player.getName() + "<white>. They will target the closest player if they can't be found.\nYou may need to set the goal to PLAYER.");
         } else if (arg1.equalsIgnoreCase("addplayerlist")) {
             if (arg2 == null) {
-                sender.sendMessage("Adding bots to the player list is currently " + (manager.addToPlayerList() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
+                sender.sendRichMessage("Adding bots to the player list is currently " + (manager.addToPlayerList() ? "<green>enabled" : "<red>disabled") + "<white>.");
                 return;
             }
             if (!arg2.equals("true") && !arg2.equals("false")) {
-                sender.sendMessage(NamedTextColor.RED + "You must specify true or false!");
+                sender.sendRichMessage("<red>You must specify true or false!");
                 return;
             }
             manager.setAddToPlayerList(Boolean.parseBoolean(arg2));
-            sender.sendMessage("Adding bots to the player list is now " + (manager.addToPlayerList() ? NamedTextColor.GREEN + "enabled" : NamedTextColor.RED + "disabled") + NamedTextColor.WHITE + ".");
+            sender.sendRichMessage("Adding bots to the player list is now " + (manager.addToPlayerList() ? "<green>enabled" : "<red>disabled") + "<white>.");
         } else if (arg1.equalsIgnoreCase("region")) {
             if (arg2 == null) {
                 if (agent.getRegion() == null) {
                     sender.sendMessage("No region has been set.");
                     return;
                 }
-                sender.sendMessage("The current region is " + NamedTextColor.BLUE + agent.getRegion() + NamedTextColor.WHITE + ".");
+                sender.sendRichMessage("The current region is <blue>" + agent.getRegion() + "<white>.");
                 if (agent.getRegionWeightX() == 0 && agent.getRegionWeightY() == 0 && agent.getRegionWeightZ() == 0)
                     sender.sendMessage("Entities out of range will not be targeted.");
                 else {
-                    sender.sendMessage("The region X weight is " + NamedTextColor.BLUE + agent.getRegionWeightX() + NamedTextColor.WHITE + ".");
-                    sender.sendMessage("The region Y weight is " + NamedTextColor.BLUE + agent.getRegionWeightY() + NamedTextColor.WHITE + ".");
-                    sender.sendMessage("The region Z weight is " + NamedTextColor.BLUE + agent.getRegionWeightZ() + NamedTextColor.WHITE + ".");
+                    sender.sendRichMessage("The region X weight is <blue>" + agent.getRegionWeightX() + "<white>.");
+                    sender.sendRichMessage("The region Y weight is <blue>" + agent.getRegionWeightY() + "<white>.");
+                    sender.sendRichMessage("The region Z weight is <blue>" + agent.getRegionWeightZ() + "<white>.");
                 }
                 return;
             }
@@ -434,12 +433,12 @@ public class BotCommand extends CommandInstance {
             boolean strict = args.size() == 8 && args.get(7).equalsIgnoreCase("strict");
             if (args.size() != 10 && !strict) {
                 sender.sendMessage(ChatUtils.LINE);
-                sender.sendMessage(NamedTextColor.GOLD + "Bot Region Settings" + extra);
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "<x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ>" + ChatUtils.BULLET_FORMATTED
+                sender.sendRichMessage("<gold>Bot Region Settings" + extra);
+                sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow><x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ>" + ChatUtils.BULLET_FORMATTED
                         + "Sets a region for bots to prioritize entities within.");
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "<x1> <y1> <z1> <x2> <y2> <z2> strict" + ChatUtils.BULLET_FORMATTED
+                sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow><x1> <y1> <z1> <x2> <y2> <z2> strict" + ChatUtils.BULLET_FORMATTED
                         + "Sets a region so that the bots only target entities within the region.");
-                sender.sendMessage(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "clear" + ChatUtils.BULLET_FORMATTED
+                sender.sendRichMessage(ChatUtils.BULLET_FORMATTED + "<yellow>clear" + ChatUtils.BULLET_FORMATTED
                         + "Clears the region.");
                 sender.sendMessage("Without strict mode, the entity distance from the region is multiplied by the weight values if outside the region.");
                 sender.sendMessage("The resulting value is added to the entity distance when selecting an entity.");
@@ -468,18 +467,17 @@ public class BotCommand extends CommandInstance {
                 }
             } catch (NumberFormatException e) {
                 sender.sendMessage("The region bounds and weights must be valid numbers!");
-                sender.sendMessage("Correct syntax: " + NamedTextColor.YELLOW + "/bot settings region <x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ>"
-                        + NamedTextColor.WHITE);
+                sender.sendRichMessage("Correct syntax: <yellow>/bot settings region <x1> <y1> <z1> <x2> <y2> <z2> <wX> <wY> <wZ><white>");
                 return;
             }
             agent.setRegion(new BoundingBox(x1, y1, z1, x2, y2, z2), wX, wY, wZ);
-            sender.sendMessage("The region has been set to " + NamedTextColor.BLUE + agent.getRegion() + NamedTextColor.WHITE + ".");
+            sender.sendRichMessage("The region has been set to <blue>" + agent.getRegion() + "<white>.");
             if (wX == 0 && wY == 0 && wZ == 0)
                 sender.sendMessage("Entities out of range will not be targeted.");
             else {
-                sender.sendMessage("The region X weight is " + NamedTextColor.BLUE + agent.getRegionWeightX() + NamedTextColor.WHITE + ".");
-                sender.sendMessage("The region Y weight is " + NamedTextColor.BLUE + agent.getRegionWeightY() + NamedTextColor.WHITE + ".");
-                sender.sendMessage("The region Z weight is " + NamedTextColor.BLUE + agent.getRegionWeightZ() + NamedTextColor.WHITE + ".");
+                sender.sendRichMessage("The region X weight is <blue>" + agent.getRegionWeightX() + "<white>.");
+                sender.sendRichMessage("The region Y weight is <blue>" + agent.getRegionWeightY() + "<white>.");
+                sender.sendRichMessage("The region Z weight is <blue>" + agent.getRegionWeightZ() + "<white>.");
             }
         }
     }

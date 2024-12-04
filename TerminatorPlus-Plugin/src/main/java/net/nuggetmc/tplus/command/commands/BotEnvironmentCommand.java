@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -41,19 +40,19 @@ public class BotEnvironmentCommand extends CommandInstance {
         if (!args.isEmpty() && args.getFirst().equals("blocks")) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage("If you are running this plugin on a hybrid server, keep in mind that blocks added by mods are not considered solid.");
-            sender.sendMessage("You must manually add solid blocks added by mods with " + NamedTextColor.YELLOW + "/botenvironment addSolid <material>" + NamedTextColor.WHITE + ".");
+            sender.sendRichMessage("You must manually add solid blocks added by mods with <yellow>/botenvironment addSolid <material><white>.");
             sender.sendMessage(ChatUtils.LINE);
         } else if (!args.isEmpty() && args.getFirst().equals("mobs")) {
             sender.sendMessage(ChatUtils.LINE);
             sender.sendMessage("The custom mob list is a user-defined list of mobs.");
-            sender.sendMessage("Use " + NamedTextColor.YELLOW + "/botenvironment addCustomMob <name>" + NamedTextColor.WHITE + " to add mob types to the list.");
+            sender.sendRichMessage("Use <yellow>/botenvironment addCustomMob <name><white> to add mob types to the list.");
             sender.sendMessage("The list can be used in the CUSTOM_LIST targeting option, and can also be appended to the hostile, raider, or mob targeting options.");
             sender.sendMessage("When appending, the mobs predefined as well as the mobs in the custom list will be considered.");
-            sender.sendMessage("Use " + NamedTextColor.YELLOW + "/botenvironment mobListType" + NamedTextColor.WHITE + " to change the behavior of the custom mob list.");
+            sender.sendRichMessage("Use <yellow>/botenvironment mobListType<white> to change the behavior of the custom mob list.");
             sender.sendMessage(ChatUtils.LINE);
         } else {
-            sender.sendMessage("Do " + NamedTextColor.YELLOW + "/botenvironment help blocks " + NamedTextColor.WHITE + "for more information on adding solid blocks.");
-            sender.sendMessage("Do " + NamedTextColor.YELLOW + "/botenvironment help mobs " + NamedTextColor.WHITE + "for more information on creating a custom mob list.");
+            sender.sendRichMessage("Do <yellow>/botenvironment help blocks <white>for more information on adding solid blocks.");
+            sender.sendRichMessage("Do <yellow>/botenvironment help mobs <white>for more information on creating a custom mob list.");
         }
     }
 
@@ -73,13 +72,15 @@ public class BotEnvironmentCommand extends CommandInstance {
             return;
         }
         if (!isLocationLoaded(loc)) {
-            sender.sendMessage(String.format("The location at " + NamedTextColor.BLUE + "(%d, %d, %d)" + NamedTextColor.WHITE + " is not loaded.",
+            sender.sendRichMessage(String.format("The location at <blue>(%d, %d, %d)<white> is not loaded.",
                     loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+
             return;
         }
         Material mat = loc.getBlock().getType();
-        sender.sendMessage(String.format("Material at " + NamedTextColor.BLUE + "(%d, %d, %d)" + NamedTextColor.WHITE + ": " + NamedTextColor.GREEN + "%s" + NamedTextColor.WHITE,
+        sender.sendRichMessage(String.format("Material at <blue>(%d, %d, %d)<white>: <green>%s<white>",
                 loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), mat.name()));
+
     }
 
     @Command(
@@ -103,19 +104,19 @@ public class BotEnvironmentCommand extends CommandInstance {
                 loc.setY(parseDoubleOrRelative(args.get(1), loc, 1));
                 loc.setZ(parseDoubleOrRelative(args.get(2), loc, 2));
             } catch (NumberFormatException e) {
-                sender.sendMessage("A valid location must be provided! " + NamedTextColor.YELLOW + "/bot addSolid <x> <y> <z>" + NamedTextColor.WHITE);
+                sender.sendRichMessage("A valid location must be provided! <yellow>/bot addSolid <x> <y> <z><white>");
                 return;
             }
             if (!isLocationLoaded(loc)) {
-                sender.sendMessage(String.format("The location at " + NamedTextColor.BLUE + "(%d, %d, %d)" + NamedTextColor.WHITE + " is not loaded.",
-                    loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+                sender.sendRichMessage(String.format("The location at <blue>(%d, %d, %d)<white> is not loaded.",
+                        loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
                 return;
             }
             mat = loc.getBlock().getType();
         } else {
             sender.sendMessage("Invalid syntax!");
-            sender.sendMessage("To specify a material: " + NamedTextColor.YELLOW + "/bot addSolid <material>" + NamedTextColor.WHITE);
-            sender.sendMessage("To specify a location containing a material: " + NamedTextColor.YELLOW + "/bot addSolid <x> <y> <z>" + NamedTextColor.WHITE);
+            sender.sendRichMessage("To specify a material: <yellow>/bot addSolid <material><white>");
+            sender.sendRichMessage("To specify a location containing a material: <yellow>/bot addSolid <x> <y> <z><white>");
             return;
         }
         if (mat == null) {
@@ -123,9 +124,9 @@ public class BotEnvironmentCommand extends CommandInstance {
             return;
         }
         if (LegacyMats.SOLID_MATERIALS.add(mat))
-            sender.sendMessage("Successfully added " + NamedTextColor.BLUE + mat.name() + NamedTextColor.WHITE + " to the list.");
+            sender.sendRichMessage("Successfully added <blue>" + mat.name() + "<white> to the list.");
         else
-            sender.sendMessage(NamedTextColor.BLUE + mat.name() + NamedTextColor.WHITE + " already exists in the list!");
+            sender.sendRichMessage("<blue>" + mat.name() + "<white> already exists in the list!");
     }
 
     @Command(
@@ -149,19 +150,19 @@ public class BotEnvironmentCommand extends CommandInstance {
                 loc.setY(parseDoubleOrRelative(args.get(1), loc, 1));
                 loc.setZ(parseDoubleOrRelative(args.get(2), loc, 2));
             } catch (NumberFormatException e) {
-                sender.sendMessage("A valid location must be provided! " + NamedTextColor.YELLOW + "/bot removeSolid <x> <y> <z>" + NamedTextColor.WHITE);
+                sender.sendRichMessage("A valid location must be provided! <yellow>/bot removeSolid <x> <y> <z><white>");
                 return;
             }
             if (!isLocationLoaded(loc)) {
-                sender.sendMessage(String.format("The location at " + NamedTextColor.BLUE + "(%d, %d, %d)" + NamedTextColor.WHITE + " is not loaded.",
-                    loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
+                sender.sendRichMessage(String.format("The location at <blue>(%d, %d, %d)<white> is not loaded.",
+                        loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()));
                 return;
             }
             mat = loc.getBlock().getType();
         } else {
             sender.sendMessage("Invalid syntax!");
-            sender.sendMessage("To specify a material: " + NamedTextColor.YELLOW + "/bot removeSolid <material>" + NamedTextColor.WHITE);
-            sender.sendMessage("To specify a location containing a material: " + NamedTextColor.YELLOW + "/bot removeSolid <x> <y> <z>" + NamedTextColor.WHITE);
+            sender.sendRichMessage("To specify a material: <yellow>/bot removeSolid <material><white>");
+            sender.sendRichMessage("To specify a location containing a material: <yellow>/bot removeSolid <x> <y> <z><white>");
             return;
         }
         if (mat == null) {
@@ -169,9 +170,9 @@ public class BotEnvironmentCommand extends CommandInstance {
             return;
         }
         if (LegacyMats.SOLID_MATERIALS.remove(mat))
-            sender.sendMessage("Successfully removed " + NamedTextColor.BLUE + mat.name() + NamedTextColor.WHITE + " from the list.");
+            sender.sendRichMessage("Successfully removed <blue>" + mat.name() + "<white> from the list.");
         else
-            sender.sendMessage(NamedTextColor.BLUE + mat.name() + NamedTextColor.WHITE + " does not exist in the list!");
+            sender.sendRichMessage("<blue>" + mat.name() + "<white> does not exist in the list!");
     }
 
     @Command(
@@ -182,8 +183,8 @@ public class BotEnvironmentCommand extends CommandInstance {
     public void listSolids(CommandSender sender) {
         sender.sendMessage(ChatUtils.LINE);
         for (Material mat : LegacyMats.SOLID_MATERIALS)
-            sender.sendMessage(NamedTextColor.GREEN + mat.name() + NamedTextColor.WHITE);
-        sender.sendMessage("Total items: " + NamedTextColor.BLUE + LegacyMats.SOLID_MATERIALS.size() + NamedTextColor.WHITE);
+            sender.sendRichMessage("<green>" + mat.name() + "<white>");
+        sender.sendRichMessage("Total items: <blue>" + LegacyMats.SOLID_MATERIALS.size() + "<white>");
         sender.sendMessage(ChatUtils.LINE);
     }
 
@@ -195,7 +196,7 @@ public class BotEnvironmentCommand extends CommandInstance {
     public void clearSolids(CommandSender sender) {
         int size = LegacyMats.SOLID_MATERIALS.size();
         LegacyMats.SOLID_MATERIALS.clear();
-        sender.sendMessage("Removed all " + NamedTextColor.BLUE + size + NamedTextColor.WHITE + " item(s) from the list.");
+        sender.sendRichMessage("Removed all <blue>" + size + "<white> item(s) from the list.");
     }
 
     @Command(
@@ -211,9 +212,9 @@ public class BotEnvironmentCommand extends CommandInstance {
             return;
         }
         if (LegacyAgent.CUSTOM_MOB_LIST.add(type))
-            sender.sendMessage("Successfully added " + NamedTextColor.BLUE + type.name() + NamedTextColor.WHITE + " to the list.");
+            sender.sendRichMessage("Successfully added <blue>" + type.name() + "<white> to the list.");
         else
-            sender.sendMessage(NamedTextColor.BLUE + type.name() + NamedTextColor.WHITE + " already exists in the list!");
+            sender.sendRichMessage("<blue>" + type.name() + "<white> already exists in the list!");
     }
 
     @Command(
@@ -229,9 +230,9 @@ public class BotEnvironmentCommand extends CommandInstance {
             return;
         }
         if (LegacyAgent.CUSTOM_MOB_LIST.remove(type))
-            sender.sendMessage("Successfully removed " + NamedTextColor.BLUE + type.name() + NamedTextColor.WHITE + " from the list.");
+            sender.sendRichMessage("Successfully removed <blue>" + type.name() + "<white> from the list.");
         else
-            sender.sendMessage(NamedTextColor.BLUE + type.name() + NamedTextColor.WHITE + " does not exist in the list!");
+            sender.sendRichMessage("<blue>" + type.name() + "<white> does not exist in the list!");
     }
 
     @Command(
@@ -242,8 +243,8 @@ public class BotEnvironmentCommand extends CommandInstance {
     public void listCustomMobs(CommandSender sender) {
         sender.sendMessage(ChatUtils.LINE);
         for (EntityType type : LegacyAgent.CUSTOM_MOB_LIST)
-            sender.sendMessage(NamedTextColor.GREEN + type.name() + NamedTextColor.WHITE);
-        sender.sendMessage("Total items: " + NamedTextColor.BLUE + LegacyAgent.CUSTOM_MOB_LIST.size() + NamedTextColor.WHITE);
+            sender.sendRichMessage("<green>" + type.name() + "<white>");
+        sender.sendRichMessage("Total items: <blue>" + LegacyAgent.CUSTOM_MOB_LIST.size() + "<white>");
         sender.sendMessage(ChatUtils.LINE);
     }
 
@@ -255,7 +256,7 @@ public class BotEnvironmentCommand extends CommandInstance {
     public void clearCustomMobs(CommandSender sender) {
         int size = LegacyAgent.CUSTOM_MOB_LIST.size();
         LegacyAgent.CUSTOM_MOB_LIST.clear();
-        sender.sendMessage("Removed all " + NamedTextColor.BLUE + size + NamedTextColor.WHITE + " item(s) from the list.");
+        sender.sendRichMessage("Removed all <blue>" + size + "<white> item(s) from the list.");
     }
 
     @Command(
@@ -266,13 +267,13 @@ public class BotEnvironmentCommand extends CommandInstance {
     )
     public void mobListType(CommandSender sender, List<String> args) {
         if (args.isEmpty()) {
-            sender.sendMessage("The custom mob list type is " + NamedTextColor.BLUE + LegacyAgent.customListMode + NamedTextColor.WHITE + ".");
+            sender.sendRichMessage("The custom mob list type is <blue>" + LegacyAgent.customListMode + "<white>.");
         } else if (args.size() > 0 && CustomListMode.isValid(args.get(0))) {
             LegacyAgent.customListMode = CustomListMode.from(args.get(0));
-            sender.sendMessage(
-                    "Successfully set the custom mob list type to " + NamedTextColor.BLUE + args.get(0) + NamedTextColor.WHITE + ".");
+            sender.sendRichMessage("Successfully set the custom mob list type to <blue>" + args.get(0) + "<white>.");
+
         } else
-            sender.sendMessage("Usage: " + NamedTextColor.YELLOW + "/botenvironment mobListType (" + CustomListMode.listModes() + ")" + NamedTextColor.WHITE);
+            sender.sendRichMessage("Usage: <yellow>/botenvironment mobListType (" + CustomListMode.listModes() + ")<white>");
     }
 
     @Autofill

@@ -1,6 +1,6 @@
 package net.nuggetmc.tplus.command;
 
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.utils.ChatUtils;
 import net.nuggetmc.tplus.api.utils.DebugLogUtils;
@@ -105,8 +105,8 @@ public class CommandHandler {
 
     public void sendRootInfo(CommandInstance commandInstance, CommandSender sender) {
         sender.sendMessage(ChatUtils.LINE);
-        sender.sendMessage(NamedTextColor.GOLD + plugin.getName() + ChatUtils.BULLET_FORMATTED + NamedTextColor.GRAY
-                + "[" + NamedTextColor.YELLOW + "/" + commandInstance.getName() + NamedTextColor.GRAY + "]");
+        sender.sendRichMessage("<gold>" + plugin.getName() + ChatUtils.BULLET_FORMATTED
+                + "<gray>[<yellow>/" + commandInstance.getName() + "<gray>]");
         help.get(commandInstance.getName()).forEach(sender::sendMessage);
         sender.sendMessage(ChatUtils.LINE);
     }
@@ -122,9 +122,8 @@ public class CommandHandler {
             if (!method.getMethod().getAnnotation(Command.class).visible() || method.getName().isEmpty()) {
                 continue;
             }
-
-            output.add(ChatUtils.BULLET_FORMATTED + NamedTextColor.YELLOW + "/" + commandInstance.getName() + " " + method.getName()
-                    + ChatUtils.BULLET_FORMATTED + method.getDescription());
+            output.add(ChatUtils.BULLET_FORMATTED + MiniMessage.miniMessage().deserialize("<yellow>/" + commandInstance.getName() + " " + method.getName()
+                    + ChatUtils.BULLET_FORMATTED + method.getDescription()));
         }
 
         return output.stream().sorted().collect(Collectors.toList());

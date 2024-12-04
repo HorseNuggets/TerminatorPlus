@@ -1,6 +1,7 @@
 package net.nuggetmc.tplus.api.agent.legacyagent.ai;
 
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.nuggetmc.tplus.api.AIManager;
 import net.nuggetmc.tplus.api.BotManager;
 import net.nuggetmc.tplus.api.Terminator;
@@ -100,22 +101,21 @@ public class IntelligenceAgent {
     private void runGeneration() throws InterruptedException {
         generation++;
 
-        print("Starting generation " + NamedTextColor.RED + generation + NamedTextColor.WHITE + "...");
+        print(MiniMessage.miniMessage().deserialize("Starting generation <red>" + generation + "<white>..."));
 
         sleep(2000);
 
         String skinName = botSkin == null ? this.botName : botSkin;
 
-        print("Fetching skin data for " + NamedTextColor.GREEN + skinName + NamedTextColor.WHITE + "...");
+        print(MiniMessage.miniMessage().deserialize("Fetching skin data for <green>" + skinName + "<white>..."));
 
         String[] skinData = MojangAPI.getSkin(skinName);
 
         String botName = this.botName.endsWith("%") ? this.botName : this.botName + "%";
-
-        print("Creating " + (populationSize == 1 ? "new bot" : NamedTextColor.RED + NumberFormat.getInstance(Locale.US).format(populationSize) + NamedTextColor.WHITE + " new bots")
-                + " with name " + NamedTextColor.GREEN + botName.replace("%", NamedTextColor.LIGHT_PURPLE + "%" + NamedTextColor.WHITE)
-                + (botSkin == null ? "" : NamedTextColor.WHITE + " and skin " + NamedTextColor.GREEN + botSkin)
-                + NamedTextColor.WHITE + "...");
+        print(MiniMessage.miniMessage().deserialize("Creating " + (populationSize == 1 ? "new bot" : "<red>" + NumberFormat.getInstance(Locale.US).format(populationSize) + "<white> new bots")
+                + " with name <green>" + botName.replace("%", "<light_purple>%<white>")
+                + (botSkin == null ? "" : "<white> and skin <green>" + botSkin)
+                + "<white>..."));
 
         Set<Map<BotNode, Map<BotDataType, Double>>> loadedProfiles = genProfiles.get(generation);
         Location loc = PlayerUtils.findAbove(primary.getLocation(), 20);
@@ -163,7 +163,7 @@ public class IntelligenceAgent {
             sleep(1000);
         }
 
-        print("Generation " + NamedTextColor.RED + generation + NamedTextColor.WHITE + " has ended.");
+        print(MiniMessage.miniMessage().deserialize("Generation <red>" + generation + "<white> has ended."));
 
         HashMap<Terminator, Integer> values = new HashMap<>();
 
@@ -180,8 +180,8 @@ public class IntelligenceAgent {
             Terminator bot = entry.getKey();
             boolean check = i <= cutoff;
             if (check) {
-                print(NamedTextColor.GRAY + "[" + NamedTextColor.YELLOW + "#" + i + NamedTextColor.GRAY + "] " + NamedTextColor.GREEN + bot.getBotName()
-                        + ChatUtils.BULLET_FORMATTED + NamedTextColor.RED + bot.getKills() + " kills");
+                print(MiniMessage.miniMessage().deserialize("<gray>[<yellow>#" + i + "<gray>] <green>" + bot.getBotName()
+                        + ChatUtils.BULLET_FORMATTED + "<red>" + bot.getKills() + " kills"));
                 winners.add(bot);
             }
 
@@ -287,9 +287,10 @@ public class IntelligenceAgent {
     }
 
     private void print(Object... objects) {
-        String message = NamedTextColor.DARK_GREEN + "[REINFORCEMENT] " + NamedTextColor.WHITE + String.join(" ", Arrays.stream(objects).map(String::valueOf).toArray(String[]::new));
+        Component message = MiniMessage.miniMessage().deserialize("<dark_green>[REINFORCEMENT] <white>" + String.join(" ", Arrays.stream(objects).map(String::valueOf).toArray(String[]::new)));
+
         users.forEach(u -> u.sendMessage(message));
-        // log -> NamedTextColor.stripColor(message);
+        // log -> MiniMessage.miniMessage().stripTags(message.toString());
     }
 
     private void setup() {
@@ -297,12 +298,12 @@ public class IntelligenceAgent {
 
         if (populationSize < cutoff) {
             populationSize = cutoff;
-            print("The input value for the population size is lower than the cutoff (" + NamedTextColor.RED + cutoff + NamedTextColor.WHITE + ")!"
-                    + " The new population size is " + NamedTextColor.RED + populationSize + NamedTextColor.WHITE + ".");
+            print(MiniMessage.miniMessage().deserialize("The input value for the population size is lower than the cutoff (<red>" + cutoff + "<white>)! "
+                    + "The new population size is <red>" + populationSize + "<white>."));
         }
 
         if (!(manager.getAgent() instanceof LegacyAgent)) {
-            print("The AI manager currently only supports " + NamedTextColor.AQUA + "LegacyAgent" + NamedTextColor.WHITE + ".");
+            print(MiniMessage.miniMessage().deserialize("The AI manager currently only supports <aqua>LegacyAgent<white>."));
             close();
             return;
         }
@@ -310,7 +311,7 @@ public class IntelligenceAgent {
         agent = (LegacyAgent) manager.getAgent();
         agent.setTargetType(EnumTargetGoal.NONE);
 
-        print("The bot target goal has been set to " + NamedTextColor.YELLOW + EnumTargetGoal.NONE.name() + NamedTextColor.WHITE + ".");
+        print(MiniMessage.miniMessage().deserialize("The bot target goal has been set to <yellow>" + EnumTargetGoal.NONE.name() + "<white>."));
         print("Disabling target offsets...");
 
         agent.offsets = false;
@@ -319,7 +320,7 @@ public class IntelligenceAgent {
 
         agent.setDrops(false);
 
-        print(NamedTextColor.GREEN + "Setup is now complete.");
+        print(MiniMessage.miniMessage().deserialize("<green>Setup is now complete."));
     }
 
     private void clearBots() {
@@ -336,7 +337,7 @@ public class IntelligenceAgent {
         manager.reset();
 
         String formatted = NumberFormat.getNumberInstance(Locale.US).format(size);
-        print("Removed " + NamedTextColor.RED + formatted + NamedTextColor.WHITE + " entit" + (size == 1 ? "y" : "ies") + ".");
+        print(MiniMessage.miniMessage().deserialize("Removed <red>" + formatted + "<white> entit" + (size == 1 ? "y" : "ies") + "."));
 
         bots.clear();*/
     }

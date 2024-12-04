@@ -1,7 +1,6 @@
 package net.nuggetmc.tplus.utils;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.nuggetmc.tplus.TerminatorPlus;
 import net.nuggetmc.tplus.api.Terminator;
@@ -74,10 +73,10 @@ public class Debugger {
             Object[] args = content.isEmpty() ? null : buildObjects(content);
 
             Statement statement = new Statement(this, name, args);
-            print("Running the expression \"" + NamedTextColor.AQUA + cmd + NamedTextColor.WHITE + "\"...");
+            print(MiniMessage.miniMessage().deserialize("Running the expression \"<aqua>" + cmd + "<white>\"..."));
             statement.execute();
         } catch (Exception e) {
-            print("Error: the expression \"" + NamedTextColor.AQUA + cmd + NamedTextColor.WHITE + "\" failed to execute.");
+            print(MiniMessage.miniMessage().deserialize("Error: the expression \"<aqua>" + cmd + "<white>\" failed to execute."));
             print(e.toString());
         }
     }
@@ -141,9 +140,9 @@ public class Debugger {
 
             Bukkit.dispatchCommand(player, "team join a @a");
 
-            Bukkit.broadcast(Component.text(NamedTextColor.YELLOW + "Starting wave " + NamedTextColor.RED + n + NamedTextColor.YELLOW + "..."));
+            Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<yellow>Starting wave <red>" + n + "<yellow>..."));
 
-            Bukkit.broadcast(Component.text(NamedTextColor.YELLOW + "Unleashing the Super Zombies..."));
+            Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<yellow>Unleashing the Super Zombies..."));
 
             String[] skin = MojangAPI.getSkin("Lozimac");
 
@@ -196,7 +195,7 @@ public class Debugger {
                 }
             }
 
-            Bukkit.broadcast(Component.text(NamedTextColor.YELLOW + "The Super Zombies have been unleashed."));
+            Bukkit.broadcast(MiniMessage.miniMessage().deserialize("<yellow>The Super Zombies have been unleashed."));
 
             hideNametags();
         }
@@ -239,7 +238,13 @@ public class Debugger {
                     log.error(e.getMessage(), e);
                 }
 
-                Bukkit.getScheduler().runTask(plugin, () -> Bot.createBot(PlayerUtils.findBottom(loc.clone().add(Math.random() * 20 - 10, 0, Math.random() * 20 - 10)), NamedTextColor.GREEN + "-$26.95", skin));
+                Bukkit.getScheduler().runTask(plugin, () -> Bot.createBot(
+                        PlayerUtils.findBottom(
+                                loc.clone().add(
+                                        Math.random() * 20 - 10,
+                                        0,
+                                        Math.random() * 20 - 10)),
+                        MiniMessage.miniMessage().deserialize("<green>-$26.95").toString(), skin));
 
                 player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
             }
@@ -279,13 +284,13 @@ public class Debugger {
     public void offsets(boolean b) {
         Agent agent = TerminatorPlus.getInstance().getManager().getAgent();
         if (!(agent instanceof LegacyAgent legacyAgent)) {
-            print("This method currently only supports " + NamedTextColor.AQUA + "LegacyAgent" + NamedTextColor.WHITE + ".");
+            print(MiniMessage.miniMessage().deserialize("This method currently only supports <aqua>LegacyAgent<white>."));
             return;
         }
 
         legacyAgent.offsets = b;
 
-        print("Bot target offsets are now " + (legacyAgent.offsets ? NamedTextColor.GREEN + "ENABLED" : NamedTextColor.RED + "DISABLED") + NamedTextColor.WHITE + ".");
+        print(MiniMessage.miniMessage().deserialize("Bot target offsets are now " + (legacyAgent.offsets ? "<green>ENABLED" : "<red>DISABLED") + "<white>."));
     }
 
     public void confuse(int n) {
@@ -330,7 +335,7 @@ public class Debugger {
                 int i = 1;
 
                 for (String name : players) {
-                    print(name, NamedTextColor.GRAY + "(" + NamedTextColor.GREEN + i + NamedTextColor.GRAY + "/" + size + ")");
+                    print(name, MiniMessage.miniMessage().deserialize("<gray>(<green>" + i + "<gray>/" + size + ")").toString());
                     String[] skin = MojangAPI.getSkin(name);
                     skinCache.put(name, skin);
 
@@ -390,7 +395,7 @@ public class Debugger {
             return;
         }
 
-        print("Located bot", (NamedTextColor.GREEN + bot.getBotName() + NamedTextColor.WHITE + "."));
+        print(MiniMessage.miniMessage().deserialize("Located bot <green>" + bot.getBotName() + "<white>."));
 
         if (sender instanceof Player) {
             print("Teleporting...");
@@ -399,7 +404,7 @@ public class Debugger {
     }
 
     public void setTarget(int n) {
-        print("This has been established as a feature as \"" + NamedTextColor.AQUA + "/bot settings setgoal" + NamedTextColor.WHITE + "\"!");
+        print(MiniMessage.miniMessage().deserialize("This has been established as a feature as \"<aqua>/bot settings setgoal<white>\"!"));
     }
 
     public void trackYVel() {
@@ -474,7 +479,7 @@ public class Debugger {
         boolean b = agent.isEnabled();
         agent.setEnabled(!b);
 
-        print("The Bot Agent is now " + (b ? NamedTextColor.RED + "DISABLED" : NamedTextColor.GREEN + "ENABLED") + NamedTextColor.WHITE + ".");
+        print(MiniMessage.miniMessage().deserialize("The Bot Agent is now " + (b ? "<red>DISABLED" : "<green>ENABLED") + "<white>."));
     }
 
     public void printSurroundingMobs(double dist) {
@@ -487,8 +492,8 @@ public class Debugger {
         for (Entity en : player.getWorld().getEntities()) {
             Location loc = en.getLocation();
             if (loc.distanceSquared(player.getLocation()) < distSq)
-                print(String.format("Entity at " + NamedTextColor.BLUE + "(%d, %d, %d)" + NamedTextColor.WHITE + ": Type " + NamedTextColor.GREEN + "%s" + NamedTextColor.WHITE,
-                        loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), en.getType().toString()));
+                print(MiniMessage.miniMessage().deserialize("Entity at <blue>(" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ()
+                        + ")<white>: Type <green>" + en.getType() + "<white>"));
         }
     }
 }

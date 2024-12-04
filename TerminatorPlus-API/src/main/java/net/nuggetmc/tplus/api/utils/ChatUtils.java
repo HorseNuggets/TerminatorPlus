@@ -1,20 +1,20 @@
 package net.nuggetmc.tplus.api.utils;
 
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.text.NumberFormat;
 import java.util.Locale;
 
 public class ChatUtils {
-    public static final String LINE = NamedTextColor.GRAY + "------------------------------------------------";
+    public static final String LINE = MiniMessage.miniMessage().deserialize("<gray>------------------------------------------------").toString();
     public static final String BULLET = "\u25AA";
-    public static final String BULLET_FORMATTED = NamedTextColor.GRAY + BULLET + NamedTextColor.WHITE;
-    public static final String EXCEPTION_MESSAGE = NamedTextColor.RED + "An exception has occured. Please try again.";
+    public static final String BULLET_FORMATTED = MiniMessage.miniMessage().deserialize("<gray>" + BULLET + "<white>").toString();
+    public static final String EXCEPTION_MESSAGE = MiniMessage.miniMessage().deserialize("<red>An exception has occured. Please try again.").toString();
 
     public static final NumberFormat NUMBER_FORMAT = NumberFormat.getNumberInstance(Locale.US);
 
-    public static final String ON = NamedTextColor.GREEN.toString();
-    public static final String OFF = NamedTextColor.GRAY.toString();
+    public static final String ON = MiniMessage.miniMessage().deserialize("<green>").toString();
+    public static final String OFF = MiniMessage.miniMessage().deserialize("<gray>").toString();
 
     public static String trim16(String str) {
         return str.length() > 16 ? str.substring(0, 16) : str;

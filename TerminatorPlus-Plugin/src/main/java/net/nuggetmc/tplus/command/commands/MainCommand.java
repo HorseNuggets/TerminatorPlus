@@ -36,16 +36,16 @@ public class MainCommand extends CommandInstance {
             desc = "Upload debug info to mclo.gs"
     )
     public void debugInfo(CommandSender sender) {
-        sender.sendMessage(NamedTextColor.GREEN + "Uploading debug info to mclogs...");
+        sender.sendRichMessage("<green>Uploading debug info to mclogs...");
         String url = null;
         try {
             url = MCLogs.postInfo();
         } catch (IOException e) {
             String error = e.getMessage();
-            sender.sendMessage(NamedTextColor.RED + "Failed to upload debug info to mclogs: " + error);
+            sender.sendRichMessage("<red>Failed to upload debug info to mclogs: " + error);
             return;
         }
-        sender.sendMessage(NamedTextColor.GREEN + "Debug info uploaded to " + url);
+        sender.sendRichMessage("<green>Debug info uploaded to " + url);
     }
 
 
